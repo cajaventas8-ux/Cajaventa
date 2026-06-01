@@ -6,8 +6,7 @@ node_modules/
 .env.local
 .env.*.local
 
-# Configuración SSO local — NO commitear (contiene secreto)
-js/alas-sso-config.js
+# js/alas-sso-config.js se commitea con valores de producción
 
 # Logs
 *.log
