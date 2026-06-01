@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function() {
         <nav class="sidebar__nav" aria-label="Navegacion principal">
           <div style="padding: 6px 8px 8px; border-bottom: 1px solid rgba(226,232,240,0.55); margin-bottom: 4px;">
             <a href="javascript:void(0)"
-               onclick="window.location.href = (window.ALAS_SSO_CONFIG && window.ALAS_SSO_CONFIG.launcherUrl) || 'http://localhost:5173'"
+               onclick="window.location.href = (window.ALAS_SSO_CONFIG && window.ALAS_SSO_CONFIG.launcherUrl) || 'https://launcher-tawny.vercel.app'"
                class="sidebar__item"
                title="Volver al Launcher ALAS"
                style="color: #0B5F8D; font-weight: 500;"

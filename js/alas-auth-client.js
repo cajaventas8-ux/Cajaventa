@@ -15,7 +15,7 @@
   // Lee desde js/alas-sso-config.js (cargado antes en el HTML, no commiteado).
   // Si no existe, usa fallback de desarrollo que rechazará tokens de producción.
   var _cfg         = window.ALAS_SSO_CONFIG || {};
-  var LAUNCHER_URL = _cfg.launcherUrl || 'http://localhost:5173';
+  var LAUNCHER_URL = _cfg.launcherUrl || 'https://launcher-tawny.vercel.app';
   var SSO_SECRET   = _cfg.secret      || 'REEMPLAZAR-EN-PRODUCCION';
   var SESSION_KEY  = 'alas.sso.session';
   var USER_KEY     = 'acuse.currentUser';             // clave que ya usa supabase.js para auditoría
