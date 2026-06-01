@@ -1,0 +1,11 @@
+.env
+.env.*
+node_modules
+setup-db.js
+importar-excel.js
+config-rls.js
+sql
+scripts
+*.log
+*.bak
+*.bak*

@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+
+# Entorno
+.env
+.env.local
+.env.*.local
+
+# Configuración SSO local — NO commitear (contiene secreto)
+js/alas-sso-config.js
+
+# Logs
+*.log
+
+# Backups
+*.bak
+*.bak*
+
+# Servidor local de desarrollo
+tmp_*
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+*~

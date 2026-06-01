@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "start": "node server.js",
+    "check": "node scripts/check-js.js",
+    "test": "npm run check"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0"
+  }
+}

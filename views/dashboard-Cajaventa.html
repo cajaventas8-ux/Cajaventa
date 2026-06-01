@@ -1,0 +1,640 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caja Ventas - Dashboard</title>
+<script src="/js/ui-protection.js?v=20260428-1" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<link href="/css/date-picker-pro.css?v=20260428-1" rel="stylesheet">
+<link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link href="/css/dashboard-acuses.css?v=20260529-38" rel="stylesheet">
+<link href="/css/table-motion.css?v=20260512-1" rel="stylesheet">
+</head>
+<body>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <div class="dashboard-card">
+    <!-- SIDEBAR dentro del dashboard -->
+    <div class="sidebar-wave">
+      <div class="sidebar-icons">
+        <div class="sidebar-icon" id="btnResumen" onclick="showView('resumen')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span class="tooltip">Dashboard Resumen</span>
+        </div>
+        <div class="sidebar-icon active" id="btnDashboard" onclick="showDashboardPanel('pendientes')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          <span class="tooltip">Caja Pedidos</span>
+        </div>
+        <div class="sidebar-icon" id="btnCalendario" onclick="showView('calendario')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span class="tooltip">Calendario</span>
+        </div>
+        <div class="sidebar-icon" id="btnHistorial" onclick="showView('historial')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="tooltip">Historial de Acciones</span>
+        </div>
+        <div class="sidebar-icon" id="btnCargarDatos" onclick="abrirModalCargarDatos()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+          <span class="tooltip">Cargar Datos</span>
+        </div>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-icon" id="btnSidebarHome" onclick="window.location.href='index.html'">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/></svg>
+          <span class="tooltip">Volver a Menú</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="canvas-wrapper">
+      <div class="canvas">
+
+  <!-- ══════ VISTA DASHBOARD RESUMEN ══════ -->
+  <div id="viewResumen" style="display:none">
+    <div class="header">
+      <h1>Dashboard <span>Resumen</span></h1>
+      <div class="cal-nav summary-period-nav" aria-label="Filtrar resumen por mes">
+        <button class="cal-nav-btn" id="summaryPrevBtn" type="button" onclick="changeSummaryMonth(-1)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span class="cal-nav-month" id="summaryMonthLabel"></span>
+        <button class="cal-nav-btn" id="summaryNextBtn" type="button" onclick="changeSummaryMonth(1)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <button class="cal-today-btn cal-mode-btn" id="summaryWeekToggle" type="button" onclick="toggleSummaryScope()">Semana</button>
+        <button class="cal-today-btn cal-mode-btn" id="summaryAllToggle" type="button" onclick="toggleSummaryAll()">Todo</button>
+      </div>
+    </div>
+
+    <div class="resumen-grid summary-resumen-grid">
+      <div class="resumen-card">
+        <div class="summary-card__header">
+          <div class="summary-card__icon summary-card__icon--blue">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v9l6.2 6.2"/><path d="M12 3a9 9 0 109 9h-9z"/></svg>
+          </div>
+          <div class="summary-card__heading">
+            <h3 id="summaryStatusTitle">Estado de Acuses</h3>
+            <p class="summary-card__subtitle" id="summaryStatusSubtitle">Distribuci&oacute;n porcentual de acuses</p>
+          </div>
+        </div>
+        <div class="summary-card__body summary-card__body--status">
+          <div class="summary-donut-shell"><canvas id="chartDona"></canvas></div>
+          <div class="summary-status-legend" id="summaryStatusLegend"></div>
+        </div>
+      </div>
+      <div class="resumen-card">
+        <div class="summary-card__header">
+          <div class="summary-card__icon summary-card__icon--blue">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21s6-5.686 6-11a6 6 0 10-12 0c0 5.314 6 11 6 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          </div>
+          <div class="summary-card__heading">
+            <h3 id="summaryZonesTitle">Top Clientes</h3>
+            <p class="summary-card__subtitle" id="summaryZonesSubtitle">Top 10 clientes por cantidad de pedidos</p>
+          </div>
+        </div>
+        <div class="summary-card__body">
+          <div class="summary-chart-panel summary-chart-panel--tall">
+            <div class="chart-container"><canvas id="chartZonas"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <div class="resumen-card">
+        <div class="summary-card__header">
+          <div class="summary-card__icon summary-card__icon--green">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3v3m8-3v3M4 9h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/><path d="M8 13h3"/><path d="M13 13h3"/><path d="M8 17h3"/></svg>
+          </div>
+          <div class="summary-card__heading">
+            <h3 id="summaryWeekTitle">Pedidos por Fecha</h3>
+            <p class="summary-card__subtitle" id="summaryWeekSubtitle">Pedidos ingresados por fecha</p>
+          </div>
+        </div>
+        <div class="summary-card__body">
+          <div class="summary-chart-panel">
+            <div class="chart-container"><canvas id="chartCamiones"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <div class="resumen-card">
+        <div class="summary-card__header">
+          <div class="summary-card__icon summary-card__icon--orange">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3v3m8-3v3M4 9h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/><path d="M9 14h6"/><path d="M12 11v6"/></svg>
+          </div>
+          <div class="summary-card__heading">
+            <h3 id="summaryMonthTitle">Pedidos por Vendedor</h3>
+            <p class="summary-card__subtitle" id="summaryMonthSubtitle">Top 10 vendedores por cantidad de pedidos</p>
+          </div>
+        </div>
+        <div class="summary-card__body">
+          <div class="summary-chart-panel">
+            <div class="chart-container"><canvas id="chartCamionesMes"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /viewResumen -->
+
+  <!-- ══════ VISTA DASHBOARD (Gestión de Acuses) ══════ -->
+  <div id="viewDashboard">
+  <div class="header">
+    <h1>Caja <span>Pedidos</span></h1>
+    <div class="panel-month-nav" id="panelMonthNav">
+      <button class="pmn-btn" onclick="changePanelMonth(-1)" aria-label="Mes anterior">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <span class="pmn-label" id="panelMonthLabel"></span>
+      <button class="pmn-btn" onclick="changePanelMonth(1)" aria-label="Mes siguiente">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <button class="pmn-all" id="panelMonthAll" onclick="setPanelMonthAll()">Todo</button>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid" id="dashboardKpiGrid">
+    <div class="kpi-card" data-kpi="pendientes" onclick="selectKPI('pendientes')">
+      <div class="kpi-top-row">
+        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".12"/><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/></svg></div>
+        <div class="kpi-monto" id="monto-pendientes"></div>
+      </div>
+      <div class="kpi-value" id="val-pendientes">0</div>
+      <div class="kpi-label">Caja Pedidos Pendientes</div>
+    </div>
+
+    <div class="kpi-card" data-kpi="anulados" onclick="selectKPI('anulados')">
+      <div class="kpi-top-row">
+        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".12"/><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div>
+        <div class="kpi-monto" id="monto-anulados"></div>
+      </div>
+      <div class="kpi-value" id="val-anulados">0</div>
+      <div class="kpi-label">Anulados</div>
+    </div>
+
+    <div class="kpi-card" data-kpi="entregados" onclick="selectKPI('entregados')">
+      <div class="kpi-top-row">
+        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16l2-1 2 1 2-1 2 1 2-1 2 1 2-1V4l-2 1-2-1-2 1-2-1-2 1-2-1z" fill="currentColor" opacity=".12"/><path d="M4 4v16l2-1 2 1 2-1 2 1 2-1 2 1 2-1V4l-2 1-2-1-2 1-2-1-2 1-2-1z"/><path d="M9 10h6M9 14h4"/></svg></div>
+        <div class="kpi-monto" id="monto-entregados"></div>
+      </div>
+      <div class="kpi-value" id="val-entregados">0</div>
+      <div class="kpi-label">Facturados</div>
+    </div>
+
+    <div class="kpi-card" data-kpi="en_transito" onclick="selectKPI('en_transito')">
+      <div class="kpi-top-row">
+        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2" fill="currentColor" opacity=".12"/><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div>
+        <div class="kpi-monto" id="monto-en_transito"></div>
+      </div>
+      <div class="kpi-value" id="val-en_transito">0</div>
+      <div class="kpi-label">Contabilizados</div>
+    </div>
+
+    <div class="kpi-card" data-kpi="acuses" onclick="selectKPI('acuses')">
+      <div class="kpi-top-row">
+        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" fill="currentColor" opacity=".12"/><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg></div>
+        <div class="kpi-monto" id="monto-acuses"></div>
+      </div>
+      <div class="kpi-value" id="val-acuses">0</div>
+      <div class="kpi-label">Total de Pedidos Caja</div>
+    </div>
+  </div>
+
+  <!-- CONTENT PANEL (cambia según KPI seleccionado) -->
+  <div id="contentPanel" aria-live="polite" aria-atomic="false"></div>
+  </div><!-- /viewDashboard -->
+
+  <!-- ══════ VISTA CALENDARIO ══════ -->
+  <div id="viewCalendario" style="display:none">
+    <div class="cal-top-bar">
+      <h1>Calendario <span>de Pedidos</span></h1>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span class="cal-nav-month" id="calMonthLabel"></span>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <button class="cal-today-btn cal-mode-btn" id="calendarWeekToggle" type="button" onclick="toggleCalendarScope()">Semana</button>
+        <button class="cal-today-btn" onclick="goToday()">Hoy</button>
+      </div>
+    </div>
+
+    <!-- Calendario grande -->
+    <div class="cal-panel">
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--primary)"></div> Hoy</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--warning-soft);border:1.5px solid var(--warning)"></div> Pendiente</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#DBEAFE;border:1.5px solid #3B82F6"></div> Contabilizado</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--success-soft);border:1.5px solid var(--success)"></div> Facturado</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent-soft);border:1.5px solid var(--accent)"></div> Seleccionado</div>
+      </div>
+    </div>
+
+    <!-- Tabla de acuses del día seleccionado (abajo) -->
+    <div id="calDayDetail" aria-live="polite" aria-atomic="false"></div>
+  </div><!-- /viewCalendario -->
+
+  <!-- ══════ VISTA HISTORIAL ══════ -->
+  <div id="viewHistorial" style="display:none">
+    <div class="header">
+      <h1>Historial <span>de Acciones</span></h1>
+      <div class="header-date" id="currentDate3"></div>
+    </div>
+
+    <div class="content-panel">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <div class="panel-title"><span class="dot" style="background:var(--accent)"></span> Registro de Actividad</div>
+          <div class="filter-wrap filter-date-wrap filter-wrap--date-pro">
+            <input type="date" id="histDateInput" onchange="pickHistDateFilter(this.value)">
+          </div>
+          <div class="filter-wrap filter-wrap--entity filter-wrap--history-user" id="filter-hist-user">
+            <div class="filter-trigger" onclick="toggleHistFilter('filter-hist-user','usuario')">
+              <div class="f-dot"></div>
+              <div class="f-main"><span class="f-val">Filtrar usuario...</span></div>
+              <div class="f-actions">
+                <button class="f-clr" onclick="event.stopPropagation();clearHistFilter('usuario')" title="Limpiar">
+                  <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+                <svg class="f-arr" width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="filter-dd" id="filter-hist-user-dd">
+              <div class="filter-search">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                <input type="text" placeholder="Buscar usuario..." oninput="renderHistFilterItems('usuario',this.value)" autocomplete="off" spellcheck="false"/>
+              </div>
+              <div class="filter-list" id="filter-hist-user-list"></div>
+            </div>
+          </div>
+          <div class="filter-wrap filter-wrap--entity filter-wrap--history-client" id="filter-hist-client">
+            <div class="filter-trigger" onclick="toggleHistFilter('filter-hist-client','cliente')">
+              <div class="f-dot"></div>
+              <div class="f-main"><span class="f-val">Filtrar cliente...</span></div>
+              <div class="f-actions">
+                <button class="f-clr" onclick="event.stopPropagation();clearHistFilter('cliente')" title="Limpiar">
+                  <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+                <svg class="f-arr" width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="filter-dd" id="filter-hist-client-dd">
+              <div class="filter-search">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                <input type="text" placeholder="Buscar cliente..." oninput="renderHistFilterItems('cliente',this.value)" autocomplete="off" spellcheck="false"/>
+              </div>
+              <div class="filter-list" id="filter-hist-client-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-header-right">
+          <button class="btn-action btn-clear-filters" type="button" onclick="clearHistoryFiltersAll(this)">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m14.356 2A8 8 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.343 15m13.076 0H15"/></svg>
+            <span class="btn-action__label">Limpiar filtros</span>
+          </button>
+        </div>
+      </div>
+      <div class="historial-shell">
+        <div class="historial-list" id="histList" aria-live="polite" aria-atomic="false"></div>
+      </div>
+      <div id="histPagination"></div>
+    </div>
+  </div><!-- /viewHistorial -->
+      </div><!-- /canvas -->
+    </div><!-- /canvas-wrapper -->
+  </div><!-- /dashboard-card -->
+</div><!-- /layout -->
+
+<!-- ═══════════════════ MOBILE TAB BAR ═══════════════════ -->
+<nav class="mob-tab-bar" id="mobTabBar" aria-label="Navegación móvil">
+  <button class="mob-tab-item" data-mob-view="resumen" onclick="mob_switchTab('resumen')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    Resumen
+  </button>
+  <button class="mob-tab-item active" data-mob-view="acuses" onclick="mob_switchTab('acuses')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+    Pedidos
+  </button>
+  <button class="mob-tab-item" data-mob-view="calendario" onclick="mob_switchTab('calendario')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    Calendario
+  </button>
+  <button class="mob-tab-item" data-mob-view="historial" onclick="mob_switchTab('historial')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    Historial
+  </button>
+  <button class="mob-tab-item" onclick="abrirModalCargarDatos()">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+    Cargar
+  </button>
+</nav>
+
+
+<!-- Chart.js primero: los scripts siguientes dependen de window.Chart -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+  onerror="window.__chartJsFailed=true"></script>
+<script src="/js/alas-sso-config.js"></script>
+<script src="/js/alas-auth-client.js?v=20260601-2"></script>
+<script src="/js/api.js?v=20260430-2"></script>
+<script src="/js/shared/alas-shared.js?v=20260512-1"></script>
+<script src="/js/storage-utils.js?v=20260511-1"></script>
+<script src="/js/date-picker-pro.js?v=20260428-1"></script>
+<script src="/js/dashboard-acuses.js?v=20260601-1"></script>
+<script src="/js/dashboard-mobile.js?v=20260428-1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/js/supabase.js?v=20260601-1"></script>
+<script src="/js/pedidos-data.js?v=20260529-3"></script>
+<script src="/js/pedidos-ui.js?v=20260529-2"></script>
+
+<!-- TOOLTIP GLOBAL animado -->
+<style>
+@keyframes gtipIn {
+  0%   { opacity:0; transform:translateY(8px) scale(.82); }
+  55%  { opacity:1; transform:translateY(-3px) scale(1.06); }
+  75%  { transform:translateY(1px) scale(.97); }
+  100% { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes gtipOut {
+  to { opacity:0; transform:translateY(6px) scale(.88); }
+}
+#globalTip {
+  position:fixed; pointer-events:none; z-index:99999;
+  color:#fff; font:700 12px/1 'DM Sans',sans-serif;
+  padding:7px 14px; border-radius:20px;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);
+  white-space:nowrap; display:none;
+}
+#globalTip::after {
+  content:''; position:absolute; top:100%; left:50%;
+  transform:translateX(-50%);
+  border:5px solid transparent;
+  border-top-color:inherit;
+  filter:brightness(.85);
+}
+</style>
+<div id="globalTip"></div>
+<script>
+(function(){
+  var tip = document.getElementById('globalTip');
+  var COLOR = { 'act-contabilizar':'#2563EB', 'act-delete':'#DC2626', 'act-facturar':'#16A34A', 'act-wa':'#25D366' };
+  var hideTimer;
+
+  function show(btn) {
+    clearTimeout(hideTimer);
+    var label = btn.querySelector('.tip');
+    if (!label) return;
+    var cls = Object.keys(COLOR).find(function(c){ return btn.classList.contains(c); });
+    var color = COLOR[cls] || '#1e293b';
+    tip.textContent = label.textContent;
+    tip.style.background = color;
+    tip.style.borderTopColor = color;
+    tip.style.display = 'block';
+    tip.style.animation = 'none';
+    void tip.offsetWidth; // reflow para reiniciar animación
+    var r = btn.getBoundingClientRect();
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    tip.style.left = Math.max(6, r.left + r.width/2 - tw/2) + 'px';
+    tip.style.top  = (r.top - th - 12) + 'px';
+    tip.style.animation = 'gtipIn .35s cubic-bezier(.175,.885,.32,1.275) forwards';
+  }
+
+  function hide() {
+    tip.style.animation = 'gtipOut .18s ease forwards';
+    hideTimer = setTimeout(function(){ tip.style.display = 'none'; }, 180);
+  }
+
+  var currentBtn = null;
+
+  function findTipBtn(el) {
+    return el.closest('.tbl-btn') || el.closest('.tbl-group-wa-btn');
+  }
+
+  document.addEventListener('mouseover', function(e){
+    var btn = findTipBtn(e.target);
+    if (btn && btn !== currentBtn) { currentBtn = btn; show(btn); }
+  });
+  document.addEventListener('mouseout', function(e){
+    var btn = findTipBtn(e.target);
+    if (btn && !btn.contains(e.relatedTarget)) { currentBtn = null; hide(); }
+  });
+})();
+</script>
+
+<!-- MODAL PEDIDO CONTADO -->
+<div class="pc-modal-backdrop" id="pedidoContadoModal" onclick="if(event.target===this)cerrarPedidoContado()">
+  <div class="pc-modal-dialog">
+    <button class="pc-modal-close" onclick="cerrarPedidoContado()" aria-label="Cerrar">&times;</button>
+    <div class="pc-card" id="pedidoContadoCard">
+      <div class="pc-logo-wrap">
+        <img src="/assets/img/alas_logo.png" alt="Logo" class="pc-logo">
+      </div>
+      <h2 class="pc-title">Pedido Contado</h2>
+      <div class="pc-info">
+        <div class="pc-info-row"><span class="pc-info-label">Fecha</span><span id="pc-fecha" class="pc-info-val"></span></div>
+        <div class="pc-info-row"><span class="pc-info-label">Solic.</span><span id="pc-cod" class="pc-info-val"></span></div>
+        <div class="pc-info-row"><span class="pc-info-label">Nombre cliente</span><strong id="pc-nombre" class="pc-info-val"></strong></div>
+        <div class="pc-info-row"><span class="pc-info-label">Vendedor</span><span id="pc-vendedor" class="pc-info-val"></span></div>
+      </div>
+      <table class="pc-table">
+        <thead><tr><th>Entrega</th><th>Estado</th><th>Monto</th></tr></thead>
+        <tbody id="pc-entregas"></tbody>
+        <tfoot><tr><td colspan="2" class="pc-td-total-label">Total</td><td class="pc-td pc-td--monto"><strong id="pc-total"></strong></td></tr></tfoot>
+      </table>
+      <div class="pc-actions">
+        <button class="pc-btn pc-btn--pdf" onclick="descargarPedidoPdf()">Descargar PDF</button>
+        <button class="pc-btn pc-btn--wa" onclick="compartirPedidoWhatsApp()">WhatsApp</button>
+      </div>
+      <p class="pc-hint">Descargá el PDF o compartí por WhatsApp.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CARGAR DATOS -->
+<div class="modal-backdrop" id="cargarDatosModalWrapper">
+  <dialog class="modal-carga" id="cargarDatosModal" aria-modal="true" aria-labelledby="cargarDatosTitle">
+    <button class="modal-carga__close" type="button" onclick="cerrarModalCargarDatos()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <div class="modal-carga__body" id="modalCargaBody">
+      <!-- ESTADO INICIAL: Dropzone -->
+      <div class="carga-state" id="cargaStateDrop">
+        <div class="carga-icon-wrap">
+          <svg class="carga-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5 5 5M12 15V3"/></svg>
+        </div>
+        <h2 class="carga-title">Importar pedidos</h2>
+        <p class="carga-desc">Seleccioná el archivo Excel con los datos de tus pedidos</p>
+        <button class="carga-btn" onclick="document.getElementById('importFileInput').click()">Seleccionar archivo</button>
+        <p class="carga-hint">Formato .xlsm · Se procesa en tu navegador, nada se sube a internet</p>
+        <input type="file" id="importFileInput" accept=".xlsm,.xlsx,.xls" style="display:none" onchange="handleImportFile(this)">
+      </div>
+
+      <!-- ESTADO CARGANDO: Progreso -->
+      <div class="carga-state" id="cargaStateProgress" style="display:none">
+        <div class="carga-ring-wrap">
+          <svg class="carga-ring" viewBox="0 0 100 100">
+            <circle class="carga-ring__bg" cx="50" cy="50" r="42"/>
+            <circle class="carga-ring__fill" id="cargaRingFill" cx="50" cy="50" r="42" style="stroke-dashoffset: 263.89; stroke-dasharray: 263.89;"/>
+          </svg>
+          <span class="carga-ring__pct" id="cargaRingPct">0%</span>
+        </div>
+        <h2 class="carga-title" id="cargaProgressTitle">Leyendo archivo...</h2>
+        <p class="carga-desc" id="cargaProgressDesc">Preparando datos para importar</p>
+        <div class="carga-bar-track">
+          <div class="carga-bar-fill" id="cargaBarFill"></div>
+        </div>
+      </div>
+
+      <!-- ESTADO COMPLETADO -->
+      <div class="carga-state" id="cargaStateDone" style="display:none">
+        <div class="carga-check-wrap">
+          <svg class="carga-check" viewBox="0 0 52 52">
+            <circle class="carga-check__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="carga-check__check" fill="none" d="M14 27l7 7 16-16"/>
+          </svg>
+        </div>
+        <h2 class="carga-title">Importación completada</h2>
+        <p class="carga-desc" id="cargaDoneDesc">Se importaron los datos correctamente</p>
+        <div class="carga-done-stats" id="cargaDoneStats"></div>
+        <div class="carga-done-actions">
+          <button class="carga-btn carga-btn--secondary" onclick="cerrarModalCargarDatos()">Cerrar</button>
+          <button class="carga-btn" onclick="cerrarModalCargarDatos()">Ver pedidos</button>
+        </div>
+      </div>
+
+      <!-- ESTADO ERROR -->
+      <div class="carga-state" id="cargaStateError" style="display:none">
+        <div class="carga-error-icon">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <h2 class="carga-title">Error al importar</h2>
+        <p class="carga-desc" id="cargaErrorDesc">Ocurrió un error al procesar el archivo</p>
+        <button class="carga-btn" onclick="volverAlDropzone()">Intentar de nuevo</button>
+      </div>
+    </div>
+  </dialog>
+</div>
+
+<script>
+  window.abrirModalCargarDatos = function () {
+    const wrapper = document.getElementById('cargarDatosModalWrapper');
+    const dialog = document.getElementById('cargarDatosModal');
+    document.getElementById('importFileInput').value = '';
+    volverAlDropzone();
+    wrapper.classList.add('modal-backdrop--open');
+    dialog.showModal();
+    wrapper.addEventListener('click', function handler(e) {
+      if (e.target === wrapper) { cerrarModalCargarDatos(); wrapper.removeEventListener('click', handler); }
+    });
+  };
+
+  window.cerrarModalCargarDatos = function () {
+    const wrapper = document.getElementById('cargarDatosModalWrapper');
+    wrapper.classList.remove('modal-backdrop--open');
+    document.getElementById('cargarDatosModal').close();
+    setTimeout(function () { window.selectKPI('acuses'); }, 300);
+  };
+
+  window.volverAlDropzone = function () {
+    showCargaState('drop');
+    document.getElementById('importFileInput').value = '';
+  };
+
+  function showCargaState(state) {
+    var states = ['drop', 'progress', 'done', 'error'];
+    states.forEach(function (s) {
+      var el = document.getElementById('cargaState' + s.charAt(0).toUpperCase() + s.slice(1));
+      if (el) el.style.display = 'none';
+    });
+    var target = document.getElementById('cargaState' + state.charAt(0).toUpperCase() + state.slice(1));
+    if (target) { target.style.display = ''; target.style.animation = 'none'; void target.offsetHeight; target.style.animation = ''; }
+  }
+
+  function setCargaProgress(pct, title, desc) {
+    var ring = document.getElementById('cargaRingFill');
+    var pctEl = document.getElementById('cargaRingPct');
+    var bar = document.getElementById('cargaBarFill');
+    var tEl = document.getElementById('cargaProgressTitle');
+    var dEl = document.getElementById('cargaProgressDesc');
+    var circumference = 2 * Math.PI * 42;
+    var offset = circumference - (circumference * pct / 100);
+    if (ring) ring.style.strokeDashoffset = offset;
+    if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+    if (bar) bar.style.width = pct + '%';
+    if (tEl && title) tEl.textContent = title;
+    if (dEl && desc) dEl.textContent = desc;
+  }
+
+  window.handleImportFile = function (input) {
+    var file = input.files[0];
+    if (!file) return;
+
+    showCargaState('progress');
+    setCargaProgress(0, 'Preparando...', 'Iniciando lectura del archivo');
+
+    var reader = new FileReader();
+
+    reader.onprogress = function (e) {
+      if (e.lengthComputable) {
+        var pct = Math.min(Math.round((e.loaded / e.total) * 70), 70);
+        setCargaProgress(pct, 'Leyendo archivo...', (e.loaded / 1024).toFixed(0) + ' KB de ' + (e.total / 1024).toFixed(0) + ' KB');
+      }
+    };
+
+    reader.onload = function (e) {
+      setCargaProgress(75, 'Procesando datos...', 'Analizando estructura del Excel');
+
+      setTimeout(function () {
+        try {
+          var data = new Uint8Array(e.target.result);
+          setCargaProgress(85, 'Procesando datos...', 'Parseando hojas del archivo');
+
+          setTimeout(function () {
+            PedidosData.importarExcelDesdeBuffer(data).then(function (res) {
+              setCargaProgress(100, 'Guardando...', 'Subiendo datos a Supabase');
+              setTimeout(function () {
+                var stats = document.getElementById('cargaDoneStats');
+                stats.innerHTML =
+                  '<div class="carga-stat"><span class="carga-stat__num">' + res.importados + '</span><span class="carga-stat__label">Nuevos</span></div>' +
+                  '<div class="carga-stat"><span class="carga-stat__num">' + res.actualizados + '</span><span class="carga-stat__label">Actualizados</span></div>' +
+                  '<div class="carga-stat"><span class="carga-stat__num">' + res.total + '</span><span class="carga-stat__label">Total</span></div>';
+                document.getElementById('cargaDoneDesc').textContent = res.total + ' pedidos importados correctamente';
+                showCargaState('done');
+              }, 400);
+            }).catch(function (err) {
+              document.getElementById('cargaErrorDesc').textContent = err;
+              showCargaState('error');
+            });
+          }, 300);
+        } catch (err) {
+          document.getElementById('cargaErrorDesc').textContent = err.message || 'Error al procesar el archivo';
+          showCargaState('error');
+        }
+      }, 400);
+    };
+
+    reader.onerror = function () {
+      document.getElementById('cargaErrorDesc').textContent = 'Error al leer el archivo';
+      showCargaState('error');
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,837 @@
+/* SUPABASE - Capa de datos para Caja Ventas (sin CDN, usa fetch nativo) */
+(function () {
+  'use strict';
+
+  var URL = 'https://bihtbhulcqvlwadatxbk.supabase.co';
+  var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpaHRiaHVsY3F2bHdhZGF0eGJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjA5NTUsImV4cCI6MjA5NTM5Njk1NX0.lsoHg2HPEOv_Ie4FPdDNYGn3zoSu5SWTcejvz6KPAdM';
+  var REST = URL + '/rest/v1';
+
+  function headers(extra) {
+    var h = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
+    if (extra) for (var k in extra) h[k] = extra[k];
+    return h;
+  }
+
+  function logErr(ctx, err) { console.error('[Supabase] ' + ctx + ':', err); }
+
+  async function get(table, qs) {
+    var url = REST + '/' + table + (qs ? '?' + qs : '');
+    var r = await fetch(url, { headers: headers() });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' GET ' + table);
+    return r.json();
+  }
+
+  async function getOne(table, field, value) {
+    var r = await get(table, field + '=eq.' + encodeURIComponent(value) + '&limit=1');
+    return r && r.length ? r[0] : null;
+  }
+
+  async function post(table, body) {
+    var r = await fetch(REST + '/' + table, {
+      method: 'POST',
+      headers: headers({ 'Prefer': 'return=representation' }),
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' POST ' + table);
+    return r.json();
+  }
+
+  async function upsert(table, body, conflict) {
+    var url = REST + '/' + table + '?on_conflict=' + encodeURIComponent(conflict);
+    var r = await fetch(url, {
+      method: 'POST',
+      headers: headers({ 'Prefer': 'resolution=merge-duplicates' }),
+      body: JSON.stringify(Array.isArray(body) ? body : [body])
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' UPSERT ' + table);
+    return r.json();
+  }
+
+  async function del(table, field, value) {
+    var r = await fetch(REST + '/' + table + '?' + field + '=eq.' + encodeURIComponent(value), {
+      method: 'DELETE',
+      headers: headers({ 'Prefer': 'return=representation' })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' DELETE ' + table);
+    return r.json();
+  }
+
+  async function update(table, field, value, body) {
+    var r = await fetch(REST + '/' + table + '?' + field + '=eq.' + encodeURIComponent(value), {
+      method: 'PATCH',
+      headers: headers(),
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' PATCH ' + table);
+    if (r.status === 204 || r.headers.get('content-length') === '0') return {};
+    try { return await r.json(); } catch (_) { return {}; }
+  }
+
+  /* ---- NORMALIZAR ---- */
+  function normPedido(row) {
+    return {
+      entrega: row.entrega,
+      pedido: row.pedido || '',
+      solicitud: row.solicitud || '',
+      cliente: row.cliente || '',
+      vendedor: row.vendedor || '',
+      fecha: row.fecha || '',
+      usuarioEmpaque: row.usuario_empaque || '',
+      almacen: row.almacen || '',
+      observacion: row.observacion || '',
+      monto: Number(row.monto) || 0,
+      estado: row.estado || 'pendiente',
+      fechaImportacion: row.fecha_importacion || null,
+      fechaActualizacion: row.fecha_actualizacion || null,
+      items: row.items || []
+    };
+  }
+
+  function normItem(row) {
+    return {
+      material: row.material || '',
+      denominacion: row.denominacion || '',
+      cantidad: Number(row.cantidad) || 0,
+      unidad: row.unidad || '',
+      contEntr: Number(row.cont_entr) || 0,
+      contArt: Number(row.cont_art) || 0
+    };
+  }
+
+  function normalizeText(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/_/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function normalizePedidoEstado(value) {
+    var estado = normalizeText(value);
+    if (estado === 'entregado' || estado === 'terminado' || estado === 'completado') return 'contabilizado';
+    if (estado === 'en transito' || estado === 'en reparto' || estado === 'transito') return 'facturado';
+    if (estado === 'anulado' || estado === 'anulada' || estado === 'cancelado') return 'anulado';
+    if (estado === 'contabilizado' || estado === 'facturado') return estado;
+    return 'pendiente';
+  }
+
+  function normalizeApiEstado(value) {
+    var estado = normalizePedidoEstado(value);
+    if (estado === 'contabilizado') return 'entregado';
+    if (estado === 'facturado') return 'en_transito';
+    return estado;
+  }
+
+  function repartidorToApi(row) {
+    row = row || {};
+    return {
+      ID: row.id,
+      ID_Repartidor: row.id,
+      Codigo_Repartidor: row.codigo || row.id || '',
+      Nombre_Repartidor: row.nombre || '',
+      Estado_Repartidor: row.estado || 'Activo',
+      id: row.id,
+      nombre: row.nombre,
+      codigo: row.codigo,
+      estado: row.estado
+    };
+  }
+
+  function findRepartidorByPedido(pedido, repartidores) {
+    var vendedor = normalizeText(pedido && pedido.vendedor);
+    if (!vendedor || !Array.isArray(repartidores)) return null;
+    return repartidores.find(function (rep) {
+      return normalizeText(rep.nombre) === vendedor || normalizeText(rep.codigo) === vendedor || String(rep.id || '') === String(pedido.vendedor || '');
+    }) || null;
+  }
+
+  function pedidoToAcuse(pedido, repartidores) {
+    var p = pedido || {};
+    var rep = findRepartidorByPedido(p, repartidores);
+    var detalles = (p.items || []).map(function (item) {
+      return {
+        Cod_Mercaderia: item.material || '',
+        Descr_SAP: item.denominacion || '',
+        Cantidad: Number(item.cantidad) || 0,
+        UM: item.unidad || '',
+        Nota: '',
+        Status_SAP: '',
+        Jerarquia_SAP: ''
+      };
+    });
+    var total = detalles.reduce(function (sum, item) { return sum + (Number(item.Cantidad) || 0); }, 0);
+    var id = p.entrega || p.ID_Acuse || '';
+
+    return {
+      ID_Acuse: id,
+      Nro_Acuse: id,
+      entrega: p.entrega || '',
+      pedido: p.pedido || '',
+      solicitud: p.solicitud || '',
+      Fecha_Emision: p.fecha || '',
+      Fecha_Creacion: p.fechaImportacion || null,
+      Fecha_Entrega: null,
+      Estado: normalizeApiEstado(p.estado),
+      Almacen: p.almacen || '',
+      Observacion: p.observacion || '',
+      Monto: Number(p.monto) || 0,
+      Usuario_Creacion: p.usuarioEmpaque || '',
+      Cod_Cliente: p.cliente || '',
+      Nom_Cliente: p.cliente || '',
+      Ruc_Cliente: '',
+      Telefono_Cliente: '',
+      Direc_Cliente: '',
+      Ciudad_Cliente: '',
+      Zona: '',
+      Zona_Cliente: '',
+      ID_Repartidor: rep ? rep.id : '',
+      Codigo_Repartidor: rep ? (rep.codigo || rep.id || '') : '',
+      Nombre_Repartidor: rep ? rep.nombre : (p.vendedor || ''),
+      Observacion: '',
+      Detalle_Items: detalles.length,
+      Detalle_Cantidad_Total: total,
+      detalles: detalles,
+      historial: [],
+      acciones: []
+    };
+  }
+
+  function buildAcuseSummary(rows) {
+    var summary = { pendiente: 0, en_transito: 0, entregado: 0 };
+    (rows || []).forEach(function (pedido) {
+      var estado = normalizeApiEstado(pedido.estado);
+      if (summary.hasOwnProperty(estado)) summary[estado]++;
+    });
+    return summary;
+  }
+
+  function acusePayloadToPedido(body) {
+    body = body || {};
+    return {
+      entrega: body.ID_Acuse || body.Nro_Acuse || body.entrega || String(Date.now()),
+      pedido: body.Pedido || body.pedido || '',
+      solicitud: body.Solicitud || body.solicitud || '',
+      cliente: body.Nom_Cliente || body.Cod_Cliente || body.cliente || '',
+      vendedor: body.Nombre_Repartidor || body.ID_Repartidor || body.vendedor || '',
+      fecha: body.Fecha_Emision || body.fecha || null,
+      usuarioEmpaque: body.Usuario || body.Usuario_Creacion || '',
+      items: (body.detalles || body.items || []).map(function (item) {
+        return {
+          material: item.Cod_Mercaderia || item.material || '',
+          denominacion: item.Descr_SAP || item.denominacion || item.Cod_Mercaderia || '',
+          cantidad: Number(item.Cantidad || item.cantidad || 0) || 0,
+          unidad: item.UM || item.unidad || '',
+          contEntr: Number(item.Cont_Entr || item.contEntr || 0) || 0,
+          contArt: Number(item.Cont_Art || item.contArt || 0) || 0
+        };
+      })
+    };
+  }
+
+  /* ---- PEDIDOS ---- */
+  var Pedidos = {};
+
+  Pedidos.importar = async function (rows) {
+    var importados = 0, actualizados = 0;
+    var grupos = {};
+    rows.forEach(function (r) {
+      var key = String(r.Entrega || '').trim();
+      if (!key) return;
+      if (!grupos[key]) {
+        grupos[key] = {
+          entrega: key,
+          pedido: String(r.Pedido || '').trim(),
+          solicitud: String(r['Solic.'] || r.Solic || '').trim(),
+          cliente: String(r.Nombre || '').trim(),
+          vendedor: String(r['Nombre Vend.'] || r.Nombre_Vend || '').trim(),
+          fecha: formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')),
+          usuarioEmpaque: String(r['Usuario Empaque'] || r.Usuario_Empaque || '').trim(),
+          items: []
+        };
+      }
+      grupos[key].items.push({
+        material: String(r.Material || '').trim(),
+        denominacion: String(r.Denomin || r.Denominacion || '').trim(),
+        cantidad: Number(String(r['Ctd.entr.'] || r.Ctd_entr || '0').replace(',', '.')) || 0,
+        unidad: String(r.Unidad || '').trim(),
+        contEntr: Number(String(r['Cont.Entr'] || r.Cont_Entr || '0').replace(',', '.')) || 0,
+        contArt: Number(String(r['Cont.Art'] || r.Cont_Art || '0').replace(',', '.')) || 0
+      });
+    });
+
+    var entregas = Object.keys(grupos);
+    for (var i = 0; i < entregas.length; i++) {
+      var g = grupos[entregas[i]];
+      var existing = await getOne('pedidos', 'entrega', g.entrega);
+      var estado = existing ? existing.estado : 'pendiente';
+
+      try {
+        await upsert('pedidos', {
+          entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud,
+          cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null,
+          usuario_empaque: g.usuarioEmpaque, almacen: g.almacen || '', estado: estado
+        }, 'entrega');
+      } catch (e) { logErr('importar.pedidos', e); continue; }
+
+      try {
+        await del('pedido_items', 'pedido_entrega', g.entrega);
+        if (g.items.length) {
+          var itemsPayload = g.items.map(function (it) {
+            return { pedido_entrega: g.entrega, material: it.material, denominacion: it.denominacion, cantidad: it.cantidad, unidad: it.unidad, cont_entr: it.contEntr, cont_art: it.contArt };
+          });
+          await post('pedido_items', itemsPayload);
+        }
+      } catch (e) { logErr('importar.items', e); }
+
+      if (existing) actualizados++; else importados++;
+    }
+
+    await registrarAuditoria('importacion_excel', 'sistema', null, null, 'Importados ' + importados + ' nuevos, ' + actualizados + ' actualizados');
+    return { importados: importados, actualizados: actualizados, total: entregas.length };
+  };
+
+  Pedidos.getAll = async function (filters) {
+    var qs = 'select=*&order=fecha.desc.nullslast,entrega.desc.nullslast';
+    if (filters) {
+      if (filters.estado) qs += '&estado=eq.' + encodeURIComponent(filters.estado);
+      if (filters.cliente) qs += '&cliente=ilike.*' + encodeURIComponent(filters.cliente) + '*';
+      if (filters.q) {
+        var q = encodeURIComponent(filters.q);
+        qs += '&or=(entrega.ilike.*' + q + '*,pedido.ilike.*' + q + '*,cliente.ilike.*' + q + '*)';
+      }
+      if (filters.fecha) qs += '&fecha=eq.' + encodeURIComponent(filters.fecha);
+      if (filters.fechaDesde) qs += '&fecha=gte.' + encodeURIComponent(filters.fechaDesde);
+      if (filters.fechaHasta) qs += '&fecha=lte.' + encodeURIComponent(filters.fechaHasta);
+      if (filters.vendedor) qs += '&vendedor=ilike.*' + encodeURIComponent(filters.vendedor) + '*';
+    }
+    try {
+      var data = await get('pedidos', qs);
+      return (data || []).map(normPedido);
+    } catch (e) { logErr('getAll', e); return []; }
+  };
+
+  Pedidos.getVendedoresUnicos = async function (query) {
+    try {
+      var qs = 'select=vendedor&order=vendedor.asc.nullslast&vendedor=not.is.null';
+      if (query) qs += '&vendedor=ilike.*' + encodeURIComponent(query) + '*';
+      var data = await get('pedidos', qs);
+      var seen = new Set();
+      return (data || [])
+        .map(function (r) { return r.vendedor; })
+        .filter(function (v) { return v && !seen.has(v) && seen.add(v); })
+        .map(function (v) { return { ID: v, Nombre_Repartidor: v, Codigo_Repartidor: '' }; });
+    } catch (e) { logErr('getVendedoresUnicos', e); return []; }
+  };
+
+  Pedidos.getClientesUnicos = async function (query) {
+    try {
+      var qs = 'select=cliente&order=cliente.asc.nullslast&cliente=not.is.null';
+      if (query) qs += '&cliente=ilike.*' + encodeURIComponent(query) + '*';
+      var data = await get('pedidos', qs);
+      var seen = new Set();
+      return (data || [])
+        .map(function (r) { return r.cliente; })
+        .filter(function (c) { return c && !seen.has(c) && seen.add(c); })
+        .map(function (c) { return { Cod_Cliente: c, Nom_Cliente: c }; });
+    } catch (e) { logErr('getClientesUnicos', e); return []; }
+  };
+
+  Pedidos.getByEntrega = async function (entrega) {
+    try {
+      var pedido = await getOne('pedidos', 'entrega', entrega);
+      if (!pedido) return null;
+      var items = await get('pedido_items', 'pedido_entrega=eq.' + encodeURIComponent(entrega));
+      pedido.items = (items || []).map(normItem);
+      return normPedido(pedido);
+    } catch (e) { logErr('getByEntrega', e); return null; }
+  };
+
+  Pedidos.getByEstado = async function (estado) {
+    return Pedidos.getAll({ estado: estado });
+  };
+
+  Pedidos.getResumen = async function () {
+    try {
+      var data = await get('pedidos', 'select=estado');
+      var r = { pendientes: 0, contabilizados: 0, facturados: 0, anulados: 0, total: (data || []).length };
+      var keys = {
+        pendiente: 'pendientes',
+        contabilizado: 'contabilizados',
+        facturado: 'facturados',
+        anulado: 'anulados'
+      };
+      (data || []).forEach(function (p) {
+        var key = keys[p.estado];
+        if (key) r[key]++;
+      });
+      return r;
+    } catch (e) { logErr('getResumen', e); return { pendientes: 0, contabilizados: 0, facturados: 0, anulados: 0, total: 0 }; }
+  };
+
+  Pedidos.cambiarEstado = async function (entrega, nuevoEstado, usuario, observacion) {
+    try {
+      await update('pedidos', 'entrega', entrega, { estado: nuevoEstado });
+      await post('pedidos_historial', { entrega: entrega, estado: nuevoEstado, usuario: usuario || 'sistema', observacion: observacion || '' });
+      await registrarAuditoria('cambio_estado', usuario, null, entrega, 'Estado cambiado a ' + nuevoEstado);
+      return true;
+    } catch (e) { logErr('cambiarEstado', e); throw e; }
+  };
+
+  Pedidos.eliminar = async function (entrega, usuario, observacion) {
+    try {
+      await post('pedidos_historial', { entrega: entrega, estado: 'anulado', usuario: usuario || 'sistema', observacion: observacion || 'Anulado del sistema' });
+      await update('pedidos', 'entrega', entrega, { estado: 'anulado' });
+      await registrarAuditoria('anulacion', usuario, null, entrega, observacion || 'Pedido anulado');
+      return true;
+    } catch (e) { logErr('eliminar', e); throw e; }
+  };
+
+  Pedidos.crearPedido = async function (data) {
+    var entrega = data.entrega || String(Date.now());
+    try {
+      await post('pedidos', {
+        entrega: entrega, pedido: data.pedido || '', solicitud: data.solicitud || '',
+        cliente: data.cliente || '', vendedor: data.vendedor || '',
+        fecha: data.fecha || null, usuario_empaque: data.usuarioEmpaque || '', estado: 'pendiente'
+      });
+      if (data.items && data.items.length) {
+        var itemsPayload = data.items.map(function (it) {
+          return { pedido_entrega: entrega, material: it.material || '', denominacion: it.denominacion || '', cantidad: it.cantidad || 0, unidad: it.unidad || '', cont_entr: it.contEntr || 0, cont_art: it.contArt || 0 };
+        });
+        await post('pedido_items', itemsPayload);
+      }
+      await registrarAuditoria('creacion', data.usuario || 'sistema', null, entrega, 'Pedido creado');
+      return entrega;
+    } catch (e) { logErr('crearPedido', e); throw e; }
+  };
+
+  Pedidos.actualizarPedido = async function (entrega, data) {
+    try {
+      var payload = {};
+      if (data.pedido !== undefined) payload.pedido = data.pedido;
+      if (data.solicitud !== undefined) payload.solicitud = data.solicitud;
+      if (data.cliente !== undefined) payload.cliente = data.cliente;
+      if (data.vendedor !== undefined) payload.vendedor = data.vendedor;
+      if (data.fecha !== undefined) payload.fecha = data.fecha;
+      if (data.usuarioEmpaque !== undefined) payload.usuario_empaque = data.usuarioEmpaque;
+      if (Object.keys(payload).length) await update('pedidos', 'entrega', entrega, payload);
+      if (data.items) {
+        await del('pedido_items', 'pedido_entrega', entrega);
+        var itemsPayload = data.items.map(function (it) {
+          return { pedido_entrega: entrega, material: it.material || '', denominacion: it.denominacion || '', cantidad: it.cantidad || 0, unidad: it.unidad || '', cont_entr: it.contEntr || 0, cont_art: it.contArt || 0 };
+        });
+        await post('pedido_items', itemsPayload);
+      }
+      return true;
+    } catch (e) { logErr('actualizarPedido', e); throw e; }
+  };
+
+  /* ---- DASHBOARD / SUMMARY ---- */
+  var Dashboard = {};
+
+  Dashboard.getSummary = async function (scope, year, month) {
+    var Y = year || new Date().getFullYear();
+    var M = month || new Date().getMonth() + 1;
+    try {
+      // Una sola query con todos los campos necesarios
+      var allData = await get('pedidos', 'select=estado,fecha,cliente,vendedor,almacen,monto');
+
+      // Normalizar fechas primero
+      (allData || []).forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
+
+      // Filtrar por mes si corresponde
+      var mesFiltro = scope !== 'all' ? (Y + '-' + String(M).padStart(2, '0')) : null;
+      var data = mesFiltro
+        ? (allData || []).filter(function (p) { return p.fecha && p.fecha.substring(0, 7) === mesFiltro; })
+        : (allData || []);
+
+      // ── KPIs ──
+      var kpis = {
+        pendientes: 0, entregados: 0, en_transito: 0, anulados: 0, acuses: 0, total: 0,
+        monto_pendientes: 0, monto_entregados: 0, monto_en_transito: 0, monto_anulados: 0, monto_total: 0
+      };
+      data.forEach(function (p) {
+        var m = Number(p.monto) || 0;
+        kpis.total++;
+        kpis.monto_total += m;
+        if (p.estado === 'pendiente')          { kpis.pendientes++;  kpis.monto_pendientes  += m; }
+        else if (p.estado === 'contabilizado') { kpis.entregados++;  kpis.monto_entregados  += m; }
+        else if (p.estado === 'facturado')     { kpis.en_transito++; kpis.monto_en_transito += m; }
+        else if (p.estado === 'anulado')       { kpis.anulados++;    kpis.monto_anulados    += m; }
+      });
+      kpis.acuses = kpis.pendientes + kpis.entregados + kpis.en_transito;
+
+      // ── DONUT: distribución de estados (mismo conjunto filtrado) ──
+      var donut = { pendientes: 0, entregados: 0, en_transito: 0, anulados: 0, total: 0 };
+      data.forEach(function (p) {
+        if (p.estado === 'pendiente')      donut.pendientes++;
+        else if (p.estado === 'contabilizado') donut.entregados++;
+        else if (p.estado === 'facturado')    donut.en_transito++;
+        else if (p.estado === 'anulado')      donut.anulados++;
+      });
+      donut.total = donut.pendientes + donut.entregados + donut.en_transito + donut.anulados;
+      donut.porcentajeEntregados = donut.total > 0 ? Math.round(donut.entregados / donut.total * 100) : 0;
+      donut.porcentajePendientes = donut.total > 0 ? Math.round(donut.pendientes / donut.total * 100) : 0;
+      donut.porcentajeTransito   = donut.total > 0 ? Math.round(donut.en_transito / donut.total * 100) : 0;
+
+      // ── TOP CLIENTES: por total de pedidos ──
+      var clienteCount = {};
+      data.forEach(function (p) {
+        var c = p.cliente || 'S/C';
+        clienteCount[c] = (clienteCount[c] || 0) + 1;
+      });
+      var zonas = Object.keys(clienteCount)
+        .map(function (c) { return { label: c, value: clienteCount[c] }; })
+        .sort(function (a, b) { return b.value - a.value; })
+        .slice(0, 10);
+
+      // ── POR VENDEDOR ──
+      var vendedorCount = {};
+      data.forEach(function (p) {
+        var v = p.vendedor || 'Sin vendedor';
+        vendedorCount[v] = (vendedorCount[v] || 0) + 1;
+      });
+      var porVendedor = Object.keys(vendedorCount)
+        .map(function (v) { return { label: v, value: vendedorCount[v] }; })
+        .sort(function (a, b) { return b.value - a.value; })
+        .slice(0, 10);
+
+      // ── POR MES: todos los pedidos ──
+      var acusesPorDia = {}, acusesPorMes = {};
+      data.forEach(function (p) {
+        if (!p.fecha) return;
+        acusesPorDia[p.fecha] = (acusesPorDia[p.fecha] || 0) + 1;
+        var m = p.fecha.substring(0, 7);
+        acusesPorMes[m] = (acusesPorMes[m] || 0) + 1;
+      });
+
+      return {
+        kpis: kpis,
+        donut: donut,
+        zonas: zonas,
+        porVendedor: porVendedor,
+        acusesPorDia:  Object.keys(acusesPorDia).sort().map(function (k) { return { fecha: k, total: acusesPorDia[k] }; }),
+        acusesPorMes:  Object.keys(acusesPorMes).sort().map(function (k) { return { mes: k, total: acusesPorMes[k] }; }),
+        acusesPorSemana: []
+      };
+    } catch (e) { logErr('getSummary', e); return { kpis: {}, donut: {}, zonas: [], porVendedor: [] }; }
+  };
+
+  /* ---- CALENDARIO ---- */
+  var Calendario = {};
+
+  Calendario.getMonth = async function (year, month) {
+    var Y = year || new Date().getFullYear();
+    var M = month || new Date().getMonth() + 1;
+    var inicio = Y + '-' + String(M).padStart(2, '0') + '-01';
+    var ultimoDia = new Date(Y, M, 0).getDate();
+    var fin = Y + '-' + String(M).padStart(2, '0') + '-' + String(ultimoDia).padStart(2, '0');
+    try {
+      var data = await get('pedidos', 'select=entrega,fecha,cliente,estado&fecha=gte.' + inicio + '&fecha=lte.' + fin);
+      var days = {};
+      (data || []).forEach(function (p) {
+        if (!p.fecha) return;
+        if (!days[p.fecha]) days[p.fecha] = { fecha: p.fecha, total: 0, pendientes: 0, contabilizados: 0, facturados: 0 };
+        days[p.fecha].total++;
+        if (days[p.fecha].hasOwnProperty(p.estado)) days[p.fecha][p.estado]++;
+      });
+      return {
+        days: Object.keys(days).map(function (k) { return days[k]; }),
+        summary: { total: (data || []).length }
+      };
+    } catch (e) { logErr('calendario', e); return { days: [], summary: {} }; }
+  };
+
+  Calendario.getDayDetail = async function (fecha) {
+    return Pedidos.getAll({ fecha: fecha });
+  };
+
+  /* ---- HISTORIAL ---- */
+  var Historial = {};
+
+  Historial.getAll = async function (page, limit, filters) {
+    page = page || 1; limit = limit || 50;
+    var from = (page - 1) * limit;
+    var qs = 'select=*&order=fecha.desc.nullslast&limit=' + limit + '&offset=' + from;
+    if (filters) {
+      if (filters.fecha) qs += '&fecha=gte.' + filters.fecha + 'T00:00:00&fecha=lte.' + filters.fecha + 'T23:59:59';
+      if (filters.usuario) qs += '&usuario=ilike.*' + encodeURIComponent(filters.usuario) + '*';
+      if (filters.cliente) qs += '&cliente=ilike.*' + encodeURIComponent(filters.cliente) + '*';
+    }
+    try {
+      var items = await get('auditoria', qs);
+      return {
+        items: items || [],
+        total: (items || []).length,
+        suggestions: { usuario: [], cliente: [] }
+      };
+    } catch (e) { logErr('historial', e); return { items: [], total: 0, suggestions: { usuario: [], cliente: [] } }; }
+  };
+
+  /* ---- REPARTIDORES ---- */
+  var Repartidores = {};
+
+  Repartidores.getAll = async function () {
+    try {
+      return await get('repartidores', 'select=*&estado=eq.Activo&order=nombre');
+    } catch (e) { logErr('repartidores.getAll', e); return []; }
+  };
+
+  Repartidores.crear = async function (nombre) {
+    try {
+      var d = await post('repartidores', { nombre: nombre, estado: 'Activo' });
+      await registrarAuditoria('creacion_repartidor', 'sistema', null, null, 'Repartidor: ' + nombre);
+      return Array.isArray(d) ? d[0] : d;
+    } catch (e) { logErr('repartidores.crear', e); throw e; }
+  };
+
+  /* ---- CATÁLOGOS ---- */
+  var Catalogos = {};
+
+  Catalogos.getClientes = async function (query) {
+    try {
+      var qs = 'select=*&order=nom_cliente&limit=20';
+      if (query) qs += '&or=(cod_cliente.ilike.*' + encodeURIComponent(query) + '*,nom_cliente.ilike.*' + encodeURIComponent(query) + '*)';
+      var data = await get('clientes', qs);
+      return (data || []).map(function (c) {
+        return { Cod_Cliente: c.cod_cliente, Nom_Cliente: c.nom_cliente, Ruc_Cliente: c.ruc_cliente, Direc_Cliente: c.direc_cliente, Telefono_Cliente: c.telefono_cliente, Ciudad_Cliente: c.ciudad_cliente, Zona_Cliente: c.zona_cliente };
+      });
+    } catch (e) { logErr('clientes', e); return []; }
+  };
+
+  Catalogos.getArticulos = async function (query) {
+    try {
+      var qs = 'select=*&order=descr_sap&limit=20';
+      if (query) qs += '&or=(material_sap.ilike.*' + encodeURIComponent(query) + '*,descr_sap.ilike.*' + encodeURIComponent(query) + '*)';
+      var data = await get('articulos', qs);
+      return (data || []).map(function (a) { return { Material_SAP: a.material_sap, Descr_SAP: a.descr_sap, UM_SAP: a.um_sap }; });
+    } catch (e) { logErr('articulos', e); return []; }
+  };
+
+  /* ---- AUDITORÍA ---- */
+  async function registrarAuditoria(accion, usuario, cliente, entrega, detalle) {
+    try { await post('auditoria', { accion: accion, usuario: usuario || 'sistema', cliente: cliente || null, entrega: entrega || null, detalle: detalle || '' }); }
+    catch (e) { logErr('auditoria', e); }
+  }
+
+  /* ---- HELPERS ---- */
+  function formatearFecha(val) {
+    if (!val) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+    var m = val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m) return m[3] + '-' + m[2] + '-' + m[1];
+    var n = Number(val);
+    if (!isNaN(n) && n > 40000) { var d = new Date((n - 25569) * 86400 * 1000); return d.toISOString().split('T')[0]; }
+    return val;
+  }
+
+  /* ---- EXPORT ---- */
+  window.Supabase = {
+    Pedidos: Pedidos, Dashboard: Dashboard, Calendario: Calendario,
+    Historial: Historial, Repartidores: Repartidores, Catalogos: Catalogos,
+    registrarAuditoria: registrarAuditoria
+  };
+
+  async function getRepartidoresApi() {
+    var reps = await Repartidores.getAll();
+    return (reps || []).map(repartidorToApi);
+  }
+
+  async function getAcusesApiResponse(params) {
+    params = params || {};
+    var filters = {};
+
+    if (params.estado && params.estado !== 'all') filters.estado = normalizePedidoEstado(params.estado);
+    if (params.fecha) filters.fecha = params.fecha;
+    if (params.fechaDesde) filters.fechaDesde = params.fechaDesde;
+    if (params.fechaHasta) filters.fechaHasta = params.fechaHasta;
+    if (params.q) filters.q = params.q;
+    if (params.codCliente || params.cliente) filters.cliente = params.codCliente || params.cliente;
+
+    var pedidos = await Pedidos.getAll(filters);
+    var repartidores = [];
+    try { repartidores = await Repartidores.getAll(); } catch (_) {}
+
+    if (params.idRepartidor || params.repartidor) {
+      var repId = String(params.idRepartidor || params.repartidor);
+      var rep = (repartidores || []).find(function (item) {
+        return String(item.id || '') === repId || String(item.codigo || '') === repId || normalizeText(item.nombre) === normalizeText(repId);
+      });
+      pedidos = pedidos.filter(function (pedido) {
+        if (rep) return normalizeText(pedido.vendedor) === normalizeText(rep.nombre) || normalizeText(pedido.vendedor) === normalizeText(rep.codigo);
+        return String(pedido.vendedor || '') === repId;
+      });
+    }
+
+    var total = pedidos.length;
+    var offset = Math.max(Number(params.offset || 0) || 0, 0);
+    var requestedLimit = Number(params.limit || 0) || 0;
+    var limit = requestedLimit > 0 ? requestedLimit : total;
+    var page = limit > 0 ? pedidos.slice(offset, offset + limit) : pedidos;
+
+    return {
+      items: page.map(function (pedido) { return pedidoToAcuse(pedido, repartidores); }),
+      total: total,
+      limit: limit,
+      offset: offset,
+      summary: buildAcuseSummary(pedidos)
+    };
+  }
+
+  function normalizeApiGetRequest(path, params) {
+    var mergedParams = {};
+
+    try {
+      var url = new window.URL(path, window.location.origin);
+      url.searchParams.forEach(function (value, key) {
+        if (mergedParams[key] === undefined) mergedParams[key] = value;
+      });
+      if (params) {
+        Object.keys(params).forEach(function (key) {
+          mergedParams[key] = params[key];
+        });
+      }
+      return { path: url.pathname, params: mergedParams };
+    } catch (_) {
+      return { path: path, params: params || {} };
+    }
+  }
+
+  /* ---- API INTERCEPTOR ---- */
+  function hookAcuseAPI() {
+    if (!window.AcuseAPI || !window.AcuseAPI.get) return;
+    var origGet = window.AcuseAPI.get, origPost = window.AcuseAPI.post;
+    var origPut = window.AcuseAPI.put, origPatch = window.AcuseAPI.patch;
+    var origDelete = window.AcuseAPI.delete || window.AcuseAPI.del;
+
+    window.AcuseAPI.get = async function (path, params) {
+      var rawPath = path;
+      var rawParams = params;
+      var request = normalizeApiGetRequest(path, params);
+      path = request.path;
+      params = request.params;
+
+      // Dashboard summary
+      if (path === '/api/dashboard/interactivo/summary') {
+        var scopeP = (params && params.scope) || 'month';
+        var yearP, monthP;
+        if (params && params.year && params.month) {
+          yearP  = Number(params.year);
+          monthP = Number(params.month);
+        } else {
+          var d = new Date((params && params.anchor) || undefined);
+          yearP  = d.getFullYear();
+          monthP = d.getMonth() + 1;
+        }
+        return await Dashboard.getSummary(scopeP, yearP, monthP);
+      }
+      // Dashboard resumen
+      if (path === '/api/dashboard/resumen') {
+        var r = await Pedidos.getResumen();
+        var reps = []; try { reps = await Repartidores.getAll(); } catch (_) {}
+        return { resumen: { total: r.total, pendientes: r.pendientes, repartidores: reps.length } };
+      }
+      // Calendar day detail
+      if (path === '/api/dashboard/interactivo/panel/acuses') {
+        return await getAcusesApiResponse(params && params.fecha ? params : { limit: 500 });
+      }
+      // Panel items
+      var pm = path.match(/^\/api\/dashboard\/interactivo\/panel\/(\w+)$/);
+      if (pm) {
+        // Todos los paneles traen TODAS las entregas — el filtro por estado general se hace client-side
+        return await getAcusesApiResponse(params);
+      }
+      // Pedidos list
+      if (path === '/api/acuses') {
+        return await getAcusesApiResponse(params);
+      }
+      // Single pedido
+      var sm = path.match(/^\/api\/acuses\/(.+)$/);
+      if (sm) {
+        var p = await Pedidos.getByEntrega(decodeURIComponent(sm[1]));
+        if (!p) throw new Error('Pedido no encontrado');
+        var singleReps = []; try { singleReps = await Repartidores.getAll(); } catch (_) {}
+        return pedidoToAcuse(p, singleReps);
+      }
+      // Calendar
+      if (path === '/api/dashboard/interactivo/calendar') {
+        return await Calendario.getMonth(Number(params && params.year) || new Date().getFullYear(), Number(params && params.month) || new Date().getMonth() + 1);
+      }
+      // Historial
+      if (path === '/api/auditoria') {
+        return await Historial.getAll((params && params.page) || 1, (params && params.limit) || 50, params);
+      }
+      // Clientes
+      if (path === '/api/clientes') return { items: await Pedidos.getClientesUnicos((params && params.q) || '') };
+      if (path === '/api/vendedores') return { items: await Pedidos.getVendedoresUnicos((params && params.q) || '') };
+      // Articulos
+      if (path === '/api/articulos') return { items: await Catalogos.getArticulos((params && params.q) || '') };
+      // Repartidores
+      if (path === '/api/repartidores') return { items: await getRepartidoresApi() };
+
+      return origGet(rawPath, rawParams);
+    };
+
+    window.AcuseAPI.post = async function (path, body) {
+      if (path === '/api/acuses') {
+        var id = await Pedidos.crearPedido(acusePayloadToPedido(body));
+        var created = await Pedidos.getByEntrega(id);
+        return pedidoToAcuse(created);
+      }
+      if (/^\/api\/dashboard\/interactivo\/acuses\/.+\/print$/.test(path)) {
+        var printId = decodeURIComponent(path.split('/').slice(-2)[0]);
+        await registrarAuditoria('impresion', (body && body.Usuario) || localStorage.getItem('acuse.currentUser') || 'sistema', null, printId, (body && body.Observacion) || 'Impresion de acuse');
+        return { success: true };
+      }
+      if (path === '/api/repartidores') return repartidorToApi(await Repartidores.crear(body.Nombre_Repartidor || body.nombre));
+      return origPost(path, body);
+    };
+
+    window.AcuseAPI.put = async function (path, body) {
+      var m = path.match(/^\/api\/acuses\/(.+)$/);
+      if (m) {
+        var id = decodeURIComponent(m[1]);
+        await Pedidos.actualizarPedido(id, acusePayloadToPedido({ ...body, entrega: id }));
+        var updated = await Pedidos.getByEntrega(id);
+        return pedidoToAcuse(updated);
+      }
+      return origPut(path, body);
+    };
+
+    window.AcuseAPI.patch = async function (path, body) {
+      var mEstado = path.match(/^\/api\/acuses\/(.+)\/estado$/);
+      if (mEstado) {
+        var entrega = decodeURIComponent(mEstado[1]);
+        await Pedidos.cambiarEstado(entrega, normalizePedidoEstado(body.Estado), body.Usuario || localStorage.getItem('acuse.currentUser') || 'sistema', body.Observacion || '');
+        var changed = await Pedidos.getByEntrega(entrega);
+        return changed ? pedidoToAcuse(changed) : { ID_Acuse: entrega, Nro_Acuse: entrega, Estado: normalizeApiEstado(body.Estado) };
+      }
+      var mObs = path.match(/^\/api\/acuses\/(.+)\/observacion$/);
+      if (mObs) {
+        var entregaObs = decodeURIComponent(mObs[1]);
+        await update('pedidos', 'entrega', entregaObs, { observacion: body.Observacion || '' });
+        return { success: true };
+      }
+      var mMonto = path.match(/^\/api\/acuses\/(.+)\/monto$/);
+      if (mMonto) {
+        var entregaMonto = decodeURIComponent(mMonto[1]);
+        await update('pedidos', 'entrega', entregaMonto, { monto: Number(body.Monto) || 0 });
+        return { success: true };
+      }
+      return origPatch(path, body);
+    };
+
+    window.AcuseAPI.delete = async function (path, body) {
+      var m = path.match(/^\/api\/acuses\/(.+)$/);
+      if (m) {
+        await Pedidos.eliminar(decodeURIComponent(m[1]), (body && body.Usuario) || localStorage.getItem('acuse.currentUser') || 'sistema', (body && body.Observacion) || '');
+        return { success: true };
+      }
+      return origDelete(path, body);
+    };
+    window.AcuseAPI.del = window.AcuseAPI.delete;
+  }
+
+  hookAcuseAPI();
+})();
