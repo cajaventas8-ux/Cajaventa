@@ -440,7 +440,10 @@
   function hideLoader() {
     const loader = document.getElementById('catalogLoader');
     if (!loader) return;
-    setTimeout(() => loader.classList.remove('catalog-loader--active'), 700);
+    setTimeout(() => {
+      loader.classList.remove('catalog-loader--active');
+      document.getElementById('layout-root')?.classList.add('alas-ready');
+    }, 700);
   }
 
   function loaderPause(ms) {

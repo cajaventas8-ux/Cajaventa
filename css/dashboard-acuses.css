@@ -3725,4 +3725,44 @@ tr.acuse-row-new::after {
   .panel-month-nav { display: none; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   ALAS Motion System — Page Entrance
+   dashboard-Cajaventa.html: entrada fluida con stagger sidebar / contenido
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Keyframes base */
+@keyframes alasAppear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes alasSidebarIn {
+  from { transform: translateX(-12px); }
+  to   { transform: none; }
+}
+@keyframes alasContentIn {
+  from { transform: translateY(10px) scale(0.992); }
+  to   { transform: none; }
+}
+
+/* 1. Contenedor: fade rápido — solo opacity, hijos hacen el movimiento */
+.dashboard-card {
+  animation: alasAppear 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 2. Sidebar: desliza desde la izquierda */
+.dashboard-card .sidebar-wave {
+  animation: alasSidebarIn 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 3. Área de contenido: sube desde abajo con pequeño delay */
+.dashboard-card .canvas-wrapper {
+  animation: alasContentIn 0.56s cubic-bezier(0.16, 1, 0.3, 1) 0.07s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-card,
+  .dashboard-card .sidebar-wave,
+  .dashboard-card .canvas-wrapper { animation: none; }
+}
+
 
