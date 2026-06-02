@@ -56,7 +56,6 @@
     background-attachment: fixed;
     color: var(--gray-700);
     height: 100vh;
-    overflow: hidden;
     position: relative;
   }
 
