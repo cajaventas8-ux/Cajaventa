@@ -71,6 +71,7 @@ document.addEventListener("DOMContentLoaded", function() {
                class="sidebar__item"
                title="Volver al Launcher ALAS"
                style="color: #0B5F8D; font-weight: 500;"
+               onclick="if(window.ALASTransition){event.preventDefault();ALASTransition.exitToLauncher(this.href);}"
             >
               <span class="sidebar__icon">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
@@ -133,20 +134,10 @@ document.addEventListener("DOMContentLoaded", function() {
       }, 10);
     }
 
-    // ALASMotionBridge — entrada desde la izquierda e interceptar link de regreso
+    // ALASMotionBridge — entrada desde la izquierda
     if (window.ALASTransition) {
-      // Pequeño delay para asegurar que el DOM esté pintado antes de animar
       setTimeout(function () {
         ALASTransition.enterProject();
-
-        // Interceptar el <a> "Menú principal" del sidebar para salida hacia derecha
-        var launcherLink = rootElement.querySelector('.sidebar__nav a[href*="launcher"]');
-        if (launcherLink) {
-          launcherLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            ALASTransition.exitToLauncher(launcherLink.href);
-          });
-        }
       }, 0);
     }
   }
