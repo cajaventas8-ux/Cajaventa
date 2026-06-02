@@ -69,9 +69,9 @@ document.addEventListener("DOMContentLoaded", function() {
           <div style="padding: 6px 8px 8px; border-bottom: 1px solid rgba(226,232,240,0.55); margin-bottom: 4px;">
             <a href="https://launcher-tawny.vercel.app"
                class="sidebar__item"
+               id="alasLauncherLink"
                title="Volver al Launcher ALAS"
                style="color: #0B5F8D; font-weight: 500;"
-               onclick="if(window.ALASTransition){event.preventDefault();ALASTransition.exitToLauncher(this.href);}"
             >
               <span class="sidebar__icon">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
@@ -118,6 +118,24 @@ document.addEventListener("DOMContentLoaded", function() {
   if (rootElement) {
     const originalMain = document.querySelector(".main-content__container");
     rootElement.innerHTML = layoutHTML;
+
+    // ALASMotionBridge — botón "Volver al Launcher"
+    // Se registra sincrónicamente justo después de inyectar el HTML,
+    // cuando el <a> ya existe en el DOM pero antes de cualquier repaint.
+    var launcherLink = document.getElementById("alasLauncherLink");
+    if (launcherLink) {
+      launcherLink.addEventListener("click", function(e) {
+        var url = launcherLink.getAttribute("href") || "https://launcher-tawny.vercel.app";
+        if (window.ALASTransition) {
+          e.preventDefault();
+          try {
+            ALASTransition.exitToLauncher(url);
+          } catch (_) {
+            window.location.href = url;
+          }
+        }
+      });
+    }
 
     if (originalMain) {
       originalMain.classList.add("main-content__container--app-layout");
