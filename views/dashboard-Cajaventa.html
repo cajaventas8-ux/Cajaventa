@@ -42,7 +42,7 @@
           <span class="tooltip">Cargar Datos</span>
         </div>
         <div class="sidebar-spacer"></div>
-        <a class="sidebar-icon" id="btnSidebarHome" href="https://launcher-tawny.vercel.app">
+        <a class="sidebar-icon" id="btnSidebarHome" href="https://launcher-tawny.vercel.app" onclick="alasGoToLauncher(); return false;">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/></svg>
           <span class="tooltip">Volver al Menú</span>
         </a>
@@ -337,6 +337,23 @@
 <!-- Chart.js primero: los scripts siguientes dependen de window.Chart -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
   onerror="window.__chartJsFailed=true"></script>
+<script src="/js/alas-transition.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    ALASTransition.init({ root: '.dashboard-card' });
+    setTimeout(function () { ALASTransition.enterProject(); }, 20);
+  });
+  function alasGoToLauncher() {
+    var url = (typeof ALAS_SSO_CONFIG !== 'undefined' && ALAS_SSO_CONFIG.launcherUrl)
+      ? ALAS_SSO_CONFIG.launcherUrl
+      : 'https://launcher-tawny.vercel.app';
+    if (window.ALASTransition) {
+      ALASTransition.exitToLauncher(url);
+    } else {
+      window.location.href = url;
+    }
+  }
+</script>
 <script src="/js/alas-sso-config.js"></script>
 <script src="/js/alas-auth-client.js?v=20260601-2"></script>
 <script src="/js/api.js?v=20260430-2"></script>

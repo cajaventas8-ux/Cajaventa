@@ -125,14 +125,6 @@ document.addEventListener("DOMContentLoaded", function() {
       document.getElementById("dynamic-main-content").appendChild(originalMain);
       originalMain.style.display = "";
       setupPageTopbar(page, originalMain);
-
-      setTimeout(function() {
-        document.querySelectorAll(".card").forEach(function(card, index) {
-          card.style.opacity = "0";
-          card.style.transform = "translateY(24px)";
-          card.style.animation = `slideUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 80}ms forwards`;
-        });
-      }, 10);
     }
   }
 
