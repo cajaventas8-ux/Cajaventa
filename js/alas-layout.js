@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
           <div style="padding: 6px 8px 10px; border-bottom: 1px solid rgba(226,232,240,0.55); margin-bottom: 4px;">
             <button
               type="button"
-              onclick="window.location.href='https://launcher-tawny.vercel.app'"
+              onclick="alasGoToLauncher()"
               title="Volver al Launcher ALAS"
               style="display:flex;align-items:center;gap:10px;padding:9px 12px;width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:8px;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;"
             >

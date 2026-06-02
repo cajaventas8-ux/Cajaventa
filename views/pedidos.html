@@ -574,6 +574,14 @@
 
   <script src="/js/alas-transition.js"></script>
   <script src="/js/alas-sso-config.js"></script>
+  <script>
+    function alasGoToLauncher() {
+      var url = (typeof ALAS_SSO_CONFIG !== 'undefined' && ALAS_SSO_CONFIG.launcherUrl)
+        ? ALAS_SSO_CONFIG.launcherUrl
+        : 'https://launcher-tawny.vercel.app';
+      window.location.href = url;
+    }
+  </script>
   <script src="/js/alas-auth-client.js?v=20260601-2"></script>
   <script src="/js/alas-layout.js?v=20260602-1"></script>
   <script src="/js/api.js?v=20260428-1"></script>
