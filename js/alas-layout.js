@@ -61,6 +61,23 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>
 
         <nav class="sidebar__nav" aria-label="Navegacion principal">
+          <div style="padding: 6px 8px 8px; border-bottom: 1px solid rgba(226,232,240,0.55); margin-bottom: 4px;">
+            <a href="https://launcher-tawny.vercel.app"
+               class="sidebar__item"
+               title="Volver al Launcher ALAS"
+               style="color: #0B5F8D; font-weight: 500;"
+            >
+              <span class="sidebar__icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+                  <rect width="7" height="7" x="3" y="3" rx="1.5"/>
+                  <rect width="7" height="7" x="14" y="3" rx="1.5"/>
+                  <rect width="7" height="7" x="14" y="14" rx="1.5"/>
+                  <rect width="7" height="7" x="3" y="14" rx="1.5"/>
+                </svg>
+              </span>
+              <span class="sidebar__label">Menú principal</span>
+            </a>
+          </div>
           ${menuHTML}
         </nav>
 
@@ -110,7 +127,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
       }, 10);
     }
-
   }
 
   ensureSessionManager();

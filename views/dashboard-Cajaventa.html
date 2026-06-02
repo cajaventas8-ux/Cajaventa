@@ -337,7 +337,6 @@
 <!-- Chart.js primero: los scripts siguientes dependen de window.Chart -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
   onerror="window.__chartJsFailed=true"></script>
-<script src="/js/alas-transition.js"></script>
 <script src="/js/alas-sso-config.js"></script>
 <script src="/js/alas-auth-client.js?v=20260601-2"></script>
 <script src="/js/api.js?v=20260430-2"></script>
@@ -625,24 +624,6 @@
 
     reader.readAsArrayBuffer(file);
   };
-</script>
-
-<script>
-  /* ALASMotionBridge — dashboard */
-  document.addEventListener('DOMContentLoaded', function () {
-    if (!window.ALASTransition) return;
-    ALASTransition.init({ root: '.dashboard-card' });
-    // El dashboard no tiene loader propio, entra directo al montar
-    ALASTransition.enterProject();
-    // Interceptar botón "Volver al Menú" del sidebar
-    var homeBtn = document.getElementById('btnSidebarHome');
-    if (homeBtn) {
-      homeBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        ALASTransition.exitToLauncher(homeBtn.href);
-      });
-    }
-  });
 </script>
 </body>
 </html>
