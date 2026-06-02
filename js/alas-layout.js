@@ -118,21 +118,19 @@ document.addEventListener("DOMContentLoaded", function() {
     const originalMain = document.querySelector(".main-content__container");
     rootElement.innerHTML = layoutHTML;
 
-    // ALASMotionBridge — botón "Volver al Launcher"
-    // Event delegation sobre rootElement: captura clicks en el <a> Y en sus hijos
-    // (el usuario puede hacer clic en el SVG o el span que están dentro del link).
+    // ALAS Exit — animación de salida al Launcher.
+    // Animación directa sobre rootElement: no depende de window.ALASTransition
+    // para que el botón funcione incluso si el bridge falla por cualquier razón.
     rootElement.addEventListener("click", function(e) {
       var link = e.target.closest ? e.target.closest('a[href*="launcher-tawny"]') : null;
       if (!link) return;
+      e.preventDefault();
       var url = link.getAttribute("href") || "https://launcher-tawny.vercel.app";
-      if (window.ALASTransition) {
-        e.preventDefault();
-        try {
-          window.ALASTransition.exitToLauncher(url);
-        } catch (_) {
-          window.location.href = url;
-        }
-      }
+      rootElement.style.transition = "opacity 420ms cubic-bezier(0.55,0,0.8,0.35), transform 420ms cubic-bezier(0.55,0,0.8,0.35)";
+      void rootElement.offsetHeight;
+      rootElement.style.opacity = "0";
+      rootElement.style.transform = "translateX(110px) scale(0.96)";
+      setTimeout(function() { window.location.href = url; }, 460);
     });
 
     if (originalMain) {
