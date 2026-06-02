@@ -4,11 +4,6 @@
  * Centraliza navbar, sidebar y notificaciones para las pantallas reales.
  */
 document.addEventListener("DOMContentLoaded", function() {
-  // ALASMotionBridge — oculta el root mientras se construye el layout
-  if (window.ALASTransition) {
-    ALASTransition.init({ root: '#layout-root' });
-  }
-
   ensureInterFont();
 
   const path = window.location.pathname;
@@ -118,21 +113,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const originalMain = document.querySelector(".main-content__container");
     rootElement.innerHTML = layoutHTML;
 
-    // ALAS Exit — animación de salida al Launcher.
-    // Animación directa sobre rootElement: no depende de window.ALASTransition
-    // para que el botón funcione incluso si el bridge falla por cualquier razón.
-    rootElement.addEventListener("click", function(e) {
-      var link = e.target.closest ? e.target.closest('a[href*="launcher-tawny"]') : null;
-      if (!link) return;
-      e.preventDefault();
-      var url = link.getAttribute("href") || "https://launcher-tawny.vercel.app";
-      rootElement.style.transition = "opacity 420ms cubic-bezier(0.55,0,0.8,0.35), transform 420ms cubic-bezier(0.55,0,0.8,0.35)";
-      void rootElement.offsetHeight;
-      rootElement.style.opacity = "0";
-      rootElement.style.transform = "translateX(110px) scale(0.96)";
-      setTimeout(function() { window.location.href = url; }, 460);
-    });
-
     if (originalMain) {
       originalMain.classList.add("main-content__container--app-layout");
       document.getElementById("dynamic-main-content").appendChild(originalMain);
@@ -148,12 +128,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }, 10);
     }
 
-    // ALASMotionBridge — entrada desde la izquierda
-    if (window.ALASTransition) {
-      setTimeout(function () {
-        ALASTransition.enterProject();
-      }, 0);
-    }
   }
 
   ensureSessionManager();
