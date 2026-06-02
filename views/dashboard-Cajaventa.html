@@ -339,8 +339,10 @@
   onerror="window.__chartJsFailed=true"></script>
 <script src="/js/alas-transition.js"></script>
 <script>
-  // Sincrónico — corre antes del primer paint, oculta .dashboard-card sin flash
-  ALASTransition.init({ root: '.dashboard-card' });
+  // Sincrónico — corre antes del primer paint, oculta .layout sin flash
+  // Igual que Calendario usa .app-container (hijo directo de body, sin overflow:hidden)
+  // .layout es el equivalente: no tiene overflow:hidden, blur y slide funcionan sin cortes
+  ALASTransition.init({ root: '.layout' });
   document.addEventListener('DOMContentLoaded', function () {
     ALASTransition.enterProject();
   });
