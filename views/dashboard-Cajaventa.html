@@ -348,6 +348,8 @@
       ? ALAS_SSO_CONFIG.launcherUrl
       : 'https://launcher-tawny.vercel.app';
     if (window.ALASTransition) {
+      document.documentElement.style.overflow = 'visible';
+      document.body.style.overflow = 'visible';
       ALASTransition.exitToLauncher(url);
     } else {
       window.location.href = url;
