@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", function() {
                class="sidebar__item"
                title="Volver al Launcher ALAS"
                style="color: #0B5F8D; font-weight: 500;"
+               onclick="alasGoToLauncher(); return false;"
             >
               <span class="sidebar__icon">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
@@ -112,6 +113,12 @@ document.addEventListener("DOMContentLoaded", function() {
   if (rootElement) {
     const originalMain = document.querySelector(".main-content__container");
     rootElement.innerHTML = layoutHTML;
+
+    // ALASMotionBridge — init DESPUÉS de inyectar el HTML (igual que Calendario)
+    if (window.ALASTransition) {
+      ALASTransition.init({ root: '#layout-root' });
+      setTimeout(function() { ALASTransition.enterProject(); }, 0);
+    }
 
     if (originalMain) {
       originalMain.classList.add("main-content__container--app-layout");
