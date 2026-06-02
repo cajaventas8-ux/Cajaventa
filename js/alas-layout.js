@@ -61,22 +61,6 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>
 
         <nav class="sidebar__nav" aria-label="Navegacion principal">
-          <div style="padding: 6px 8px 10px; border-bottom: 1px solid rgba(226,232,240,0.55); margin-bottom: 4px;">
-            <button
-              type="button"
-              onclick="alasGoToLauncher()"
-              title="Volver al Launcher ALAS"
-              style="display:flex;align-items:center;gap:10px;padding:9px 12px;width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:8px;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
-                <rect width="7" height="7" x="3" y="3" rx="1.5"/>
-                <rect width="7" height="7" x="14" y="3" rx="1.5"/>
-                <rect width="7" height="7" x="14" y="14" rx="1.5"/>
-                <rect width="7" height="7" x="3" y="14" rx="1.5"/>
-              </svg>
-              Menú principal
-            </button>
-          </div>
           ${menuHTML}
         </nav>
 
