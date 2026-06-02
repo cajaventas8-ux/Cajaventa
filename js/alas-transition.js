@@ -1,28 +1,37 @@
 /**
- * ALASMotionBridge — alas-transition.js  v1.1
+ * ALASMotionBridge — alas-transition.js  v1.2
  * Transición estándar del ecosistema ALAS.
+ * Estilo "Empuje desde la derecha" — como PowerPoint / iOS navigation.
+ *
+ * Entrada:  contenido llega DESDE LA DERECHA → se asienta al centro
+ * Salida:   contenido vuelve HACIA LA DERECHA → (regresa de donde vino)
  *
  * Uso:
  *   ALASTransition.init({ root: '.mi-contenedor' })
  *   ALASTransition.enterProject()
  *   ALASTransition.exitToLauncher(url)
  *
- * Compatible: HTML puro, Vanilla JS, Vite, React, CommonJS.
+ * Compatible: HTML puro, Vanilla JS, Vite, React.
  * No toca: SSO, Supabase, sesiones, lógica de negocio.
  */
 ;(function (global) {
   'use strict'
 
-  // ── Configuración ──────────────────────────────────────────────────────────
   var _rootSel = null
 
-  // Entrada: slide desde izquierda + scale sutil + fade + blur
-  var DUR_IN   = 520
-  var EASE_IN  = 'cubic-bezier(0.22, 1, 0.36, 1)'   // expo.out suave — premium sin rebote
+  // ── Valores del movimiento ─────────────────────────────────────────────────
+  // El contenido "vive" a la derecha cuando no está en pantalla
+  var X_OUT   = '72px'    // desplazamiento horizontal fuera de pantalla
+  var SC_OUT  = '0.96'    // escala ligeramente reducida cuando está fuera
+  var BL_OUT  = '5px'     // blur suave cuando está fuera
 
-  // Salida: slide hacia derecha + scale sutil + fade
-  var DUR_OUT  = 300
-  var EASE_OUT = 'cubic-bezier(0.55, 0, 1, 0.45)'   // ease-in curvado — salida decisiva
+  // Entrada: desde derecha → centro, suave y fluida
+  var DUR_IN  = 480                             // ms
+  var ESE_IN  = 'cubic-bezier(0.22, 1, 0.36, 1)'  // expo.out premium
+
+  // Salida: desde centro → derecha, rápida y decisiva
+  var DUR_OUT = 300                              // ms
+  var ESE_OUT = 'cubic-bezier(0.55, 0, 0.8, 0.35)' // ease-in curvado
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function reduced() {
@@ -35,11 +44,11 @@
     return _rootSel
   }
 
-  function applyInitialState(el) {
-    if (!el || reduced()) return
+  // Estado inicial: oculto a la derecha (listo para entrar)
+  function setOffscreenRight(el) {
     el.style.opacity    = '0'
-    el.style.transform  = 'translateX(-52px) scale(0.96)'
-    el.style.filter     = 'blur(6px)'
+    el.style.transform  = 'translateX(' + X_OUT + ') scale(' + SC_OUT + ')'
+    el.style.filter     = 'blur(' + BL_OUT + ')'
     el.style.willChange = 'opacity, transform, filter'
   }
 
@@ -47,14 +56,17 @@
   var ALASTransition = {
 
     /**
-     * Inicializa el bridge y oculta el contenedor raíz (anti-flash).
-     * @param {{ root: string|Element }} opts
+     * Inicializa el bridge.
+     * Mueve el contenedor fuera de pantalla hacia la derecha (anti-flash).
      */
     init: function (opts) {
       opts     = opts || {}
       _rootSel = opts.root || null
 
-      function setup() { applyInitialState(getEl()) }
+      function setup() {
+        var el = getEl()
+        if (el && !reduced()) setOffscreenRight(el)
+      }
 
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', setup, { once: true })
@@ -65,7 +77,7 @@
     },
 
     /**
-     * Anima la entrada del contenedor desde la izquierda.
+     * Anima la entrada desde la derecha hacia el centro.
      * Llamar cuando el contenido principal esté listo en el DOM.
      */
     enterProject: function () {
@@ -73,31 +85,30 @@
       if (!el) return this
 
       if (reduced()) {
-        el.style.opacity    = ''
-        el.style.transform  = ''
-        el.style.filter     = ''
-        el.style.transition = ''
-        el.style.willChange = ''
+        // Sin animación: mostrar inmediatamente
+        el.style.opacity = el.style.transform = el.style.filter =
+          el.style.transition = el.style.willChange = ''
         return this
       }
 
-      // Forzar reflow desde el estado inicial oculto
+      // Forzar reflow desde el estado desplazado a la derecha
       void el.offsetHeight
 
+      // Animar hacia el centro
       el.style.transition = [
-        'opacity '   + DUR_IN + 'ms ' + EASE_IN,
-        'transform ' + DUR_IN + 'ms ' + EASE_IN,
-        'filter '    + (DUR_IN * 0.7 | 0) + 'ms ' + EASE_IN
+        'opacity '   + DUR_IN + 'ms ' + ESE_IN,
+        'transform ' + DUR_IN + 'ms ' + ESE_IN,
+        'filter '    + Math.round(DUR_IN * 0.65) + 'ms ' + ESE_IN
       ].join(', ')
 
       el.style.opacity   = '1'
       el.style.transform = 'translateX(0) scale(1)'
       el.style.filter    = 'blur(0px)'
 
+      // Limpiar estilos inline al terminar
       setTimeout(function () {
         el.style.transition = ''
         el.style.willChange = ''
-        // Limpiar valores inline para no interferir con el CSS del proyecto
         el.style.transform  = ''
         el.style.filter     = ''
       }, DUR_IN + 80)
@@ -106,9 +117,9 @@
     },
 
     /**
-     * Anima la salida del contenedor hacia la derecha y navega al Launcher.
+     * Anima la salida de vuelta hacia la derecha y navega al Launcher.
+     * El contenido "vuelve de donde vino" — misma dirección que la entrada.
      * No cierra sesión ni toca el SSO.
-     * @param {string} url  URL del Launcher ALAS.
      */
     exitToLauncher: function (url) {
       if (!url) {
@@ -127,18 +138,20 @@
       el.style.opacity   = '1'
       el.style.transform = 'translateX(0) scale(1)'
       el.style.filter    = 'blur(0px)'
+      el.style.willChange = 'opacity, transform, filter'
 
       void el.offsetHeight
 
+      // Animar de vuelta a la derecha (misma dirección que la entrada)
       el.style.transition = [
-        'opacity '   + DUR_OUT + 'ms ' + EASE_OUT,
-        'transform ' + DUR_OUT + 'ms ' + EASE_OUT,
-        'filter '    + (DUR_OUT * 0.6 | 0) + 'ms ' + EASE_OUT
+        'opacity '   + DUR_OUT + 'ms ' + ESE_OUT,
+        'transform ' + DUR_OUT + 'ms ' + ESE_OUT,
+        'filter '    + Math.round(DUR_OUT * 0.6) + 'ms ' + ESE_OUT
       ].join(', ')
 
       el.style.opacity   = '0'
-      el.style.transform = 'translateX(52px) scale(0.97)'
-      el.style.filter    = 'blur(4px)'
+      el.style.transform = 'translateX(' + X_OUT + ') scale(' + SC_OUT + ')'
+      el.style.filter    = 'blur(' + BL_OUT + ')'
 
       setTimeout(function () {
         window.location.href = url
