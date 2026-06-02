@@ -103,6 +103,8 @@
     position: relative;
     height: calc(100vh - 32px);
     max-height: calc(100vh - 32px);
+    /* ALASMotionBridge: empieza invisible para evitar flash antes de que init() corra */
+    opacity: 0;
   }
 
   /* ═══════════════════ SIDEBAR — Expandible Slide Smooth ═══════════════════ */

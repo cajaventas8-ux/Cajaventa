@@ -105,7 +105,10 @@
         setLoader(100, 'Listo', 'Catalogos cargados correctamente.');
         sessionStorage.setItem(startupLoaderKey, '1');
         await loaderPause(450);
-        hideLoader();
+        hideLoader(); // llama enterProject() después de 700ms (fade out del loader)
+      } else {
+        // Sin loader — entrar directo cuando los datos están listos
+        if (window.ALASTransition) ALASTransition.enterProject();
       }
       await maybeRestoreDraftOnInit();
       await handleEmbedAction();
