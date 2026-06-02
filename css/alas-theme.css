@@ -6765,23 +6765,4 @@ thead .table__row:hover > .table__cell,
   .table-skeleton__cell { animation: none; }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ALAS Motion System — Page Entrance para pedidos.html
-   #layout-root empieza invisible y se activa cuando el loader se oculta
-   ═══════════════════════════════════════════════════════════════════════════ */
-#layout-root {
-  opacity: 0;
-  transform: translateY(10px) scale(0.99);
-  transition:
-    opacity   0.55s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-#layout-root.alas-ready {
-  opacity: 1;
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #layout-root { transition: none; opacity: 1; transform: none; }
-}
+/* ALASMotionBridge maneja la entrada de #layout-root — ver alas-transition.js */

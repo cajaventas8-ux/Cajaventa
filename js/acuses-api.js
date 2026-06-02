@@ -442,7 +442,9 @@
     if (!loader) return;
     setTimeout(() => {
       loader.classList.remove('catalog-loader--active');
-      document.getElementById('layout-root')?.classList.add('alas-ready');
+      if (window.ALASTransition) {
+        ALASTransition.enterProject();
+      }
     }, 700);
   }
 

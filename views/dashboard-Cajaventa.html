@@ -339,9 +339,10 @@
   onerror="window.__chartJsFailed=true"></script>
 <script src="/js/alas-transition.js"></script>
 <script>
+  // Sincrónico — corre antes del primer paint, oculta .dashboard-card sin flash
+  ALASTransition.init({ root: '.dashboard-card' });
   document.addEventListener('DOMContentLoaded', function () {
-    ALASTransition.init({ root: '.dashboard-card' });
-    setTimeout(function () { ALASTransition.enterProject(); }, 20);
+    ALASTransition.enterProject();
   });
   function alasGoToLauncher() {
     var url = (typeof ALAS_SSO_CONFIG !== 'undefined' && ALAS_SSO_CONFIG.launcherUrl)
