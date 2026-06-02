@@ -4,6 +4,11 @@
  * Centraliza navbar, sidebar y notificaciones para las pantallas reales.
  */
 document.addEventListener("DOMContentLoaded", function() {
+  // ALASMotionBridge — oculta el root mientras se construye el layout
+  if (window.ALASTransition) {
+    ALASTransition.init({ root: '#layout-root' });
+  }
+
   ensureInterFont();
 
   const path = window.location.pathname;
@@ -126,6 +131,23 @@ document.addEventListener("DOMContentLoaded", function() {
           card.style.animation = `slideUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 80}ms forwards`;
         });
       }, 10);
+    }
+
+    // ALASMotionBridge — entrada desde la izquierda e interceptar link de regreso
+    if (window.ALASTransition) {
+      // Pequeño delay para asegurar que el DOM esté pintado antes de animar
+      setTimeout(function () {
+        ALASTransition.enterProject();
+
+        // Interceptar el <a> "Menú principal" del sidebar para salida hacia derecha
+        var launcherLink = rootElement.querySelector('.sidebar__nav a[href*="launcher"]');
+        if (launcherLink) {
+          launcherLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            ALASTransition.exitToLauncher(launcherLink.href);
+          });
+        }
+      }, 0);
     }
   }
 
