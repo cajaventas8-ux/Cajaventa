@@ -5,14 +5,6 @@
  * NO bloquea DevTools: hacerlo rompe lectores de pantalla,
  * extensiones de accesibilidad y flujos legítimos de depuración.
  *
- * Características:
- *   - Banner visual con marca ALAS
- *   - Advertencia "Detente — zona restringida"
- *   - Mensaje anti-phishing (Self-XSS)
- *   - Usuario y rol si están disponibles en sesión
- *   - Sin loops, sin intervals, sin bloqueos
- *   - Compatible: logistic-launcher (React), módulos vanilla JS
- *
  * Carga: <script src="/js/ui-protection.js" defer></script>
  */
 ;(function () {
@@ -22,21 +14,20 @@
 
   // ── Colores del ecosistema ALAS ──────────────────────────────────────────
   var C_BRAND  = '#0B5F8D';  // azul primario
-  var C_DANGER = '#dc2626';  // rojo advertencia
-  var C_DARK   = '#0f172a';  // texto oscuro
-  var C_MUTED  = '#64748b';  // texto secundario
+  var C_RED    = '#dc2626';  // rojo terminal
+  var C_MUTED  = '#64748b';  // gris secundario
+  var C_DARK   = '#1e293b';  // texto principal
+  var MONO     = 'font-family:ui-monospace,"Cascadia Code","Fira Code",monospace;';
 
   // ── Leer sesión activa (sin romper si no existe) ─────────────────────────
   function getSession() {
     try {
-      // Módulos vanilla con SSO client cargado
       if (window.AlasAuthClient && window.AlasAuthClient.isAuthenticated) {
         return {
           name: window.AlasAuthClient.getCurrentUser(),
           role: window.AlasAuthClient.getRole()
         };
       }
-      // Sesión en caché (localStorage) — funciona en todos los módulos
       var raw = localStorage.getItem('alas.sso.session');
       if (raw) {
         var s = JSON.parse(raw);
@@ -44,55 +35,66 @@
           return { name: s.name || s.email, role: s.role };
         }
       }
-    } catch (_) { /* sin acceso a localStorage o JSON inválido */ }
+    } catch (_) {}
     return null;
   }
 
-  // ── Banner principal ──────────────────────────────────────────────────────
+  // ── Banner ────────────────────────────────────────────────────────────────
   function showBanner() {
     var session = getSession();
 
-    // Línea 1 — marca
-    console.log(
-      '%c⬡  ALAS · Sistema Logístico',
-      'font-size:11px;font-weight:700;color:' + C_BRAND + ';letter-spacing:0.06em;'
-    );
+    // Marca ALAS
+    console.log('%c⬡  ALAS · Sistema Logístico',
+      MONO + 'color:' + C_BRAND + ';font-size:11px;font-weight:700;letter-spacing:0.08em;');
 
-    // Línea 2 — advertencia principal
-    console.log(
-      '%cDetente — zona restringida.',
-      'font-size:22px;font-weight:800;color:' + C_DANGER + ';line-height:1.3;'
-    );
+    console.log('');
 
-    // Línea 3 — mensaje de seguridad (anti-Self-XSS)
-    console.log(
-      '%cEsta consola es solo para personal técnico autorizado de ALAS.\n' +
-      'Si alguien te pidió pegar código aquí, es un ataque de robo de datos.',
-      'font-size:13px;font-weight:500;color:' + C_DARK + ';line-height:1.55;'
-    );
+    // Detección
+    console.log('%c🔍  Detectando curioso...',
+      MONO + 'color:' + C_RED + ';font-size:13px;font-weight:600;');
 
-    // Línea 4 — sesión activa (opcional — solo si hay datos disponibles)
+    console.log('');
+
+    // Barra de progreso estilo terminal
+    console.log('%c██████████████████  100%',
+      MONO + 'color:' + C_RED + ';font-size:12px;letter-spacing:0.02em;');
+
+    console.log('');
+
+    // Resultado
+    console.log('%cResultado:',
+      MONO + 'color:' + C_MUTED + ';font-size:10px;letter-spacing:0.06em;text-transform:uppercase;');
+
+    console.log('%cUsuario extremadamente curioso detectado.',
+      MONO + 'color:' + C_DARK + ';font-size:12px;');
+
+    console.log('');
+
+    // Nivel de amenaza
+    console.log('%cNivel de amenaza:',
+      MONO + 'color:' + C_MUTED + ';font-size:10px;letter-spacing:0.06em;text-transform:uppercase;');
+
+    console.log('%cInofensivo 😄',
+      MONO + 'color:' + C_MUTED + ';font-size:12px;');
+
+    console.log('');
+
+    // Usuario y rol (solo si hay sesión)
     if (session && session.name) {
-      console.log(
-        '%cSesión activa: ' + session.name + '  ·  Rol: ' + (session.role || '—'),
-        'font-size:11px;color:' + C_MUTED + ';'
-      );
+      var roleLabel = (session.role || '—').toUpperCase();
+      console.log('%c👤  ' + session.name + '  ·  ' + roleLabel,
+        MONO + 'color:' + C_BRAND + ';font-size:11px;font-weight:700;letter-spacing:0.04em;');
+      console.log('');
     }
-
-    // Línea 5 — versión y ecosistema
-    console.log(
-      '%cui-protection.js  v' + VERSION + '  ·  ecosistema ALAS',
-      'font-size:10px;color:' + C_MUTED + ';opacity:0.65;'
-    );
   }
 
-  // ── Ejecución en idle — no bloquea render ni transiciones ────────────────
+  // ── Ejecución en idle — sin impacto en render ni transiciones ────────────
   try {
     if (typeof requestIdleCallback === 'function') {
       requestIdleCallback(showBanner, { timeout: 3000 });
     } else {
       setTimeout(showBanner, 0);
     }
-  } catch (_) { /* entorno sin timer API */ }
+  } catch (_) {}
 
 }());
