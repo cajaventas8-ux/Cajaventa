@@ -6319,24 +6319,33 @@ thead .table__row:hover > .table__cell,
   }
 }
 
+/* ALASTransition: mientras #layout-root tiene will-change activo (solo durante la animación
+   de entrada/salida), desactivar backdrop-filter en navbar para evitar el conflicto GPU
+   de filter-en-padre + backdrop-filter-en-hijo. Se restaura solo al terminar el cleanup. */
+#layout-root[style*="will-change"] .navbar {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 .catalog-loader {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   background: var(--loader-overlay);
   backdrop-filter: blur(5px);
   opacity: 0;
-  transition: opacity 0.42s ease, visibility 0.42s ease;
+  pointer-events: none;
+  transition: opacity 0.42s ease;
   visibility: hidden;
 }
 
 .catalog-loader--active {
-  display: flex;
   opacity: 1;
+  pointer-events: auto;
   visibility: visible;
 }
 
