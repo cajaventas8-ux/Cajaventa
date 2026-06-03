@@ -820,11 +820,15 @@
   function wireSidebarHome() {
     const home = document.getElementById('btnSidebarHome');
     if (home) {
-      home.onclick = function () {
-        if (typeof alasGoToLauncher === 'function') {
-          alasGoToLauncher();
+      home.onclick = function (e) {
+        if (e) e.preventDefault();
+        var url = (typeof ALAS_SSO_CONFIG !== 'undefined' && ALAS_SSO_CONFIG.launcherUrl)
+          ? ALAS_SSO_CONFIG.launcherUrl
+          : 'https://launcher-tawny.vercel.app';
+        if (window.ALASTransition) {
+          ALASTransition.exitToLauncher(url);
         } else {
-          window.location.href = '/';
+          window.location.href = url;
         }
       };
     }
