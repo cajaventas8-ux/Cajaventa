@@ -42,6 +42,18 @@
           <span class="tooltip">Cargar Datos</span>
         </div>
         <div class="sidebar-spacer"></div>
+
+        <!-- Usuario SSO — populado por initDashUserCard() -->
+        <div class="sidebar-icon" style="cursor:default;pointer-events:none;">
+          <div id="dashUserAvatar" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid rgba(255,255,255,.25);position:relative;">
+            ?<span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;background:#10B981;border-radius:50%;border:2px solid #1e3a5f;display:block;"></span>
+          </div>
+          <span class="tooltip">
+            <span id="dashUserName" style="font-size:13px;font-weight:600;">Cargando...</span>
+            <span id="dashUserRole" style="font-size:11px;opacity:.65;display:block;margin-top:2px;"></span>
+          </span>
+        </div>
+
         <a class="sidebar-icon" id="btnSidebarHome" href="https://launcher-tawny.vercel.app" onclick="alasGoToLauncher(); return false;">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/></svg>
           <span class="tooltip">Volver al Menú</span>
@@ -619,6 +631,32 @@
 
     reader.readAsArrayBuffer(file);
   };
+</script>
+
+<script>
+// Popula el avatar del sidebar con el usuario SSO
+(function initDashUserCard() {
+  var ROLE_MAP = { admin:'Administrador', supervisor:'Supervisor', operador:'Operador', invitado:'Invitado' };
+
+  function render() {
+    if (!window.AlasAuthClient || !window.AlasAuthClient.isAuthenticated) return;
+    var name  = window.AlasAuthClient.getCurrentUser() || 'Usuario';
+    var role  = window.AlasAuthClient.getRole() || '';
+    var av    = document.getElementById('dashUserAvatar');
+    var nm    = document.getElementById('dashUserName');
+    var rl    = document.getElementById('dashUserRole');
+    if (av) av.firstChild.textContent = name.charAt(0).toUpperCase();
+    if (nm) nm.textContent = name;
+    if (rl) rl.textContent = ROLE_MAP[role] || role;
+  }
+
+  // DOMContentLoaded garantiza que alas-auth-client.js ya completó su init()
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+}());
 </script>
 </body>
 </html>
