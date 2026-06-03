@@ -821,7 +821,11 @@
     const home = document.getElementById('btnSidebarHome');
     if (home) {
       home.onclick = function () {
-        window.location.href = '/';
+        if (typeof alasGoToLauncher === 'function') {
+          alasGoToLauncher();
+        } else {
+          window.location.href = '/';
+        }
       };
     }
   }
