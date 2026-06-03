@@ -98,6 +98,18 @@
     } catch (e) { /* ignore */ }
   }
 
+  /* ── BroadcastChannel — sincroniza logout entre pestañas del mismo origen ── */
+  var _bc = null;
+  try {
+    _bc = new BroadcastChannel('alas-session');
+    _bc.onmessage = function (e) {
+      if (e.data === 'logout') {
+        clearSession();
+        redirectToLauncher('Logout en otra pestaña');
+      }
+    };
+  } catch (_) {}
+
   /* ── Redirección al Launcher ───────────────────────────────────────────── */
   function redirectToLauncher(reason) {
     console.warn('[ALAS SSO] ' + (reason || 'Sin sesión') + '. Redirigiendo al Launcher...');
@@ -125,6 +137,7 @@
                session.permissions.indexOf(key) !== -1;
       },
       logout: function () {
+        try { if (_bc) _bc.postMessage('logout'); } catch (_) {}
         clearSession();
         redirectToLauncher('Logout desde CajaVenta');
       },
