@@ -61,7 +61,22 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>
 
         <nav class="sidebar__nav" aria-label="Navegacion principal">
-          <div style="padding: 6px 8px 8px; border-bottom: 1px solid rgba(226,232,240,0.55); margin-bottom: 4px;">
+          ${menuHTML}
+        </nav>
+
+        <div class="sidebar__footer">
+          <button type="button" class="sidebar__user-card" id="sidebarUserCard" title="Ver sesión activa">
+            <span style="position:relative;display:inline-flex;flex-shrink:0;">
+              <span class="sidebar__user-avatar" id="sidebarUserAvatar">OP</span>
+              <span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;background:#10B981;border-radius:50%;border:2px solid #fff;display:block;"></span>
+            </span>
+            <span class="sidebar__user-meta">
+              <span class="sidebar__user-name" id="sidebarUserName">Configurar operador</span>
+              <span class="sidebar__user-status" id="sidebarUserStatus">Click para definir operador</span>
+            </span>
+            <span class="sidebar__user-logout"><i class="fas fa-sign-out-alt"></i></span>
+          </button>
+          <div style="padding: 4px 8px 6px; border-top: 1px solid rgba(226,232,240,0.55); margin-top: 4px;">
             <a href="https://launcher-tawny.vercel.app"
                class="sidebar__item"
                title="Volver al Launcher ALAS"
@@ -76,21 +91,9 @@ document.addEventListener("DOMContentLoaded", function() {
                   <rect width="7" height="7" x="3" y="14" rx="1.5"/>
                 </svg>
               </span>
-              <span class="sidebar__label">Menú principal</span>
+              <span class="sidebar__label">Volver al Menú</span>
             </a>
           </div>
-          ${menuHTML}
-        </nav>
-
-        <div class="sidebar__footer">
-          <button type="button" class="sidebar__user-card" id="sidebarUserCard" title="Cambiar operador actual">
-            <span class="sidebar__user-avatar" id="sidebarUserAvatar">OP</span>
-            <span class="sidebar__user-meta">
-              <span class="sidebar__user-name" id="sidebarUserName">Configurar operador</span>
-              <span class="sidebar__user-status" id="sidebarUserStatus">Click para definir operador</span>
-            </span>
-            <span class="sidebar__user-logout"><i class="fas fa-sign-out-alt"></i></span>
-          </button>
         </div>
       </aside>
 
@@ -128,6 +131,11 @@ document.addEventListener("DOMContentLoaded", function() {
   if (window.AlasAuthClient && window.AlasAuthClient.isAuthenticated) {
     const ssoUser = window.AlasAuthClient.getCurrentUser();
     if (ssoUser) window.AlasSession.setCurrentUser(ssoUser);
+    // Mostrar rol en lugar de "Se usa en auditoria"
+    const roleMap = { admin: 'Administrador', supervisor: 'Supervisor', operador: 'Operador', invitado: 'Invitado' };
+    const role = window.AlasAuthClient.getRole();
+    const statusNode = document.getElementById('sidebarUserStatus');
+    if (statusNode && role) statusNode.textContent = roleMap[role] || role;
   }
 
   const sbToggle = document.getElementById("sidebarToggle");
