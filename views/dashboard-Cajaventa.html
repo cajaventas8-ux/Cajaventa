@@ -309,30 +309,6 @@
   </div><!-- /dashboard-card -->
 </div><!-- /layout -->
 
-<!-- ═══════════════════ MOBILE TAB BAR ═══════════════════ -->
-<nav class="mob-tab-bar" id="mobTabBar" aria-label="Navegación móvil">
-  <button class="mob-tab-item" data-mob-view="resumen" onclick="mob_switchTab('resumen')">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-    Resumen
-  </button>
-  <button class="mob-tab-item active" data-mob-view="acuses" onclick="mob_switchTab('acuses')">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-    Pedidos
-  </button>
-  <button class="mob-tab-item" data-mob-view="calendario" onclick="mob_switchTab('calendario')">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-    Calendario
-  </button>
-  <button class="mob-tab-item" data-mob-view="historial" onclick="mob_switchTab('historial')">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    Historial
-  </button>
-  <button class="mob-tab-item" onclick="abrirModalCargarDatos()">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
-    Cargar
-  </button>
-</nav>
-
 
 <!-- Chart.js primero: los scripts siguientes dependen de window.Chart -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
@@ -364,7 +340,6 @@
 <script src="/js/storage-utils.js?v=20260511-1"></script>
 <script src="/js/date-picker-pro.js?v=20260428-1"></script>
 <script src="/js/dashboard-acuses.js?v=20260603-1"></script>
-<script src="/js/dashboard-mobile.js?v=20260428-1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="/js/supabase.js?v=20260601-1"></script>
 <script src="/js/pedidos-data.js?v=20260529-3"></script>

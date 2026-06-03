@@ -20,17 +20,17 @@
   var _rootSel = null
 
   // ── Valores del movimiento ─────────────────────────────────────────────────
-  var X_OUT  = '110px'   // distancia horizontal fuera de pantalla (push dramático)
-  var SC_OUT = '0.94'    // escala reducida cuando está fuera
-  var BL_OUT = '8px'     // blur al estar fuera
+  var X_OUT  = '80px'    // Distancia reducida para evitar saltos bruscos
+  var SC_OUT = '0.96'    // Escala sutil
+  var BL_OUT = '5px'     // Blur suavizado para mejor rendimiento
 
-  // Entrada: desde derecha → centro, lenta y cinematográfica
-  var DUR_IN  = 800
-  var ESE_IN  = 'cubic-bezier(0.22, 1, 0.36, 1)'
+  // Entrada: desde derecha → centro, muy rápida inicialmente con desaceleración larga (expo.out)
+  var DUR_IN  = 680
+  var ESE_IN  = 'cubic-bezier(0.16, 1, 0.3, 1)'
 
-  // Salida: desde centro → derecha, fluida pero decisiva
-  var DUR_OUT = 550
-  var ESE_OUT = 'cubic-bezier(0.55, 0, 0.8, 0.35)'
+  // Salida: desde centro → derecha, salida limpia y decidida
+  var DUR_OUT = 420
+  var ESE_OUT = 'cubic-bezier(0.3, 0, 0.8, 0.15)'
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function reduced() {
