@@ -90,6 +90,7 @@
     z-index: 1;
     display: flex;
     align-items: stretch;
+    overflow: hidden;
     /* ALASMotionBridge: empieza invisible — backup anti-flash antes de que init() corra */
     opacity: 0;
   }
