@@ -6340,13 +6340,11 @@ thead .table__row:hover > .table__cell,
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.42s ease;
-  visibility: hidden;
 }
 
 .catalog-loader--active {
   opacity: 1;
   pointer-events: auto;
-  visibility: visible;
 }
 
 .catalog-loader__panel {
