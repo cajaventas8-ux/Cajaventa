@@ -114,12 +114,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const originalMain = document.querySelector(".main-content__container");
     rootElement.innerHTML = layoutHTML;
 
-    // ALASMotionBridge — oculta el root; enterProject se llama desde acuses-api.js
-    // cuando el catalog-loader termina, igual que Calendario llama enterProject al fin del bootstrap
-    if (window.ALASTransition) {
-      ALASTransition.init({ root: '#layout-root' });
-    }
-
     if (originalMain) {
       originalMain.classList.add("main-content__container--app-layout");
       document.getElementById("dynamic-main-content").appendChild(originalMain);

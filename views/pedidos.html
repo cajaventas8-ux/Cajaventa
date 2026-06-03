@@ -10,10 +10,16 @@
   <link href="/css/alas-theme.css?v=20260602-1" rel="stylesheet">
   <link href="/css/table-motion.css?v=20260512-1" rel="stylesheet">
   <link href="/css/date-picker-pro.css" rel="stylesheet">
+  <script src="/js/alas-transition.js"></script>
 </head>
 <body class="page-wrapper">
 
   <div id="layout-root"></div>
+  <script>
+    /* ALASMotionBridge — oculta #layout-root antes del primer paint, igual que Calendario
+       oculta .app-container. El contenido que inyecta alas-layout.js hereda opacity:0. */
+    if (window.ALASTransition) ALASTransition.init({ root: '#layout-root' });
+  </script>
   <div class="catalog-loader" id="catalogLoader" aria-live="polite">
     <div class="catalog-loader__panel">
       <img src="/assets/img/alas_logo.png" alt="Caja Ventas" class="catalog-loader__logo">
@@ -572,7 +578,6 @@
 
   </div>
 
-  <script src="/js/alas-transition.js"></script>
   <script src="/js/alas-sso-config.js"></script>
   <script>
     /* ALASMotionBridge — igual que Calendario Tareas */
