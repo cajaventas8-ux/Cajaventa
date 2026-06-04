@@ -147,7 +147,6 @@ svg {
     border-color var(--dur-normal) var(--ease-in-out),
     background   var(--dur-normal) var(--ease-in-out) !important;
   will-change: transform;
-  transform: translateZ(0);
   backface-visibility: hidden;
   cursor: pointer;
 }
@@ -183,7 +182,6 @@ svg {
     box-shadow var(--dur-normal) var(--ease-out-quart),
     transform  var(--dur-fast)   var(--ease-spring) !important;
   will-change: transform;
-  transform: translateZ(0);
 }
 
 .sidebar-icon:hover {
@@ -258,7 +256,6 @@ svg {
     box-shadow  var(--dur-normal) var(--ease-out-quart),
     color       var(--dur-fast)   var(--ease-out-quart) !important;
   will-change: transform;
-  transform: translateZ(0);
   backface-visibility: hidden;
 }
 
