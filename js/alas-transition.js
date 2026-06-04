@@ -129,7 +129,7 @@
       ].join(', ')
 
       el.style.opacity   = '0'
-      el.style.transform = 'translateX(' + X_OUT + ') scale(' + SC_OUT + ')'
+      el.style.transform = 'translateX(' + X_OUT + ')'
       el.style.filter    = 'blur(' + BL_OUT + ')'
 
       setTimeout(function () {
