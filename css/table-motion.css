@@ -6,7 +6,6 @@
   -webkit-overflow-scrolling: touch;
   will-change: scroll-position;
   scrollbar-gutter: stable;
-  transform: translateZ(0);
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
 }
