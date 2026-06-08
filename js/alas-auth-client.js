@@ -27,12 +27,8 @@
     try {
       var res  = await fetch(VERIFY_URL, {
         method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'apikey':        SUPABASE_ANON,
-          'Authorization': 'Bearer ' + SUPABASE_ANON,
-        },
-        body: JSON.stringify({ token: token }),
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+        body:    JSON.stringify({ token: token }),
       });
       var data = await res.json();
       if (!data.valid) {
