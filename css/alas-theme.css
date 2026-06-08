@@ -4,9 +4,9 @@
 
 :root {
   /* Colores Primarios - Azul */
-  --color-primary: #3B82F6;           /* Azul Principal */
-  --color-primary-dark: #1D4ED8;      /* Azul Hover */
-  --color-primary-light: rgba(59, 130, 246, 0.08);     /* Azul Background muy claro */
+  --color-primary: #0B5F8D;           /* Azul Principal ALAS */
+  --color-primary-dark: #084f78;      /* Azul Hover */
+  --color-primary-light: rgba(11, 95, 141, 0.08);      /* Azul Background muy claro */
   --color-structural-blue: #005FA8;
   --color-structural-blue-dark: #004F8F;
   --color-table-blue: #006DB6;
