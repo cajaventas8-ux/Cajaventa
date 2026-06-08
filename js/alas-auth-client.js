@@ -19,7 +19,6 @@
   var SSO_SECRET   = _cfg.secret      || 'REEMPLAZAR-EN-PRODUCCION';
   var SESSION_KEY  = 'alas.sso.session';
   var USER_KEY     = 'acuse.currentUser';             // clave que ya usa supabase.js para auditoría
-  var DEBUG        = window.ALAS_DEBUG === true;
 
   /* ── Utilidades base64url ──────────────────────────────────────────────── */
   function fromBase64url(str) {
@@ -150,7 +149,7 @@
         if (window.Supabase && window.Supabase.registrarAuditoria) {
           window.Supabase.registrarAuditoria(action, userName, null, null, details || '');
         }
-        if (DEBUG) console.info('[ALAS AUDIT] ' + action);
+        console.info('[ALAS AUDIT] ' + action + ' | ' + userName + ' | ' + (details || ''));
       }
     };
   }
@@ -171,7 +170,7 @@
       if (payload) {
         saveSession(payload);
         buildAuthClient(payload);
-        if (DEBUG) console.info('[ALAS SSO] Sesión establecida.');
+        console.info('[ALAS SSO] Sesión establecida. Usuario:', payload.name, '| Rol:', payload.role);
         return; // ✅ Autenticado
       }
       // Token inválido → intentar sesión guardada antes de redirigir
@@ -184,7 +183,7 @@
       // Refrescar la clave de auditoría por si se limpió manualmente
       try { localStorage.setItem(USER_KEY, stored.name || stored.email || 'Operador'); } catch (e) {}
       buildAuthClient(stored);
-      if (DEBUG) console.info('[ALAS SSO] Sesión restaurada.');
+      console.info('[ALAS SSO] Sesión restaurada. Usuario:', stored.name);
       return; // ✅ Autenticado desde caché
     }
 
