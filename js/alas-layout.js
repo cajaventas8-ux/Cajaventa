@@ -127,15 +127,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
   ensureSessionManager();
 
-  // Si hay sesión SSO activa, sincroniza el sidebar con el usuario del Launcher
-  if (window.AlasAuthClient && window.AlasAuthClient.isAuthenticated) {
-    const ssoUser = window.AlasAuthClient.getCurrentUser();
-    if (ssoUser) window.AlasSession.setCurrentUser(ssoUser);
-    // Mostrar rol en lugar de "Se usa en auditoria"
-    const roleMap = { admin: 'Administrador', supervisor: 'Supervisor', operador: 'Operador', invitado: 'Invitado' };
-    const role = window.AlasAuthClient.getRole();
-    const statusNode = document.getElementById('sidebarUserStatus');
-    if (statusNode && role) statusNode.textContent = roleMap[role] || role;
+  // Sincroniza el sidebar con el usuario SSO.
+  // Espera __alasAuthReady porque verifyToken ahora es async (fetch a Edge Function).
+  var applySSO = function() {
+    if (window.AlasAuthClient && window.AlasAuthClient.isAuthenticated) {
+      var ssoUser = window.AlasAuthClient.getCurrentUser();
+      if (ssoUser) window.AlasSession.setCurrentUser(ssoUser);
+      var roleMap = { admin: 'Administrador', supervisor: 'Supervisor', operador: 'Operador', invitado: 'Invitado' };
+      var role = window.AlasAuthClient.getRole();
+      var statusNode = document.getElementById('sidebarUserStatus');
+      if (statusNode && role) statusNode.textContent = roleMap[role] || role;
+    }
+  };
+  if (window.__alasAuthReady && typeof window.__alasAuthReady.then === 'function') {
+    window.__alasAuthReady.then(applySSO);
+  } else {
+    applySSO();
   }
 
   const sbToggle = document.getElementById("sidebarToggle");

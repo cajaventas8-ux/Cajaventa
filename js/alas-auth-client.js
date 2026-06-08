@@ -165,7 +165,8 @@
     redirectToLauncher('Sin sesión válida');
   }
 
-  init().catch(function (e) {
+  // Exponer promesa para que alas-layout.js pueda esperar a que la auth esté lista.
+  window.__alasAuthReady = init().catch(function (e) {
     console.error('[ALAS SSO] Error crítico:', e.message);
     redirectToLauncher('Error en autenticación');
   });
