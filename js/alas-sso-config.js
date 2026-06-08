@@ -3,6 +3,6 @@
  * Ver alas-sso-config.example.js para instrucciones.
  */
 window.ALAS_SSO_CONFIG = {
-  secret: 'b526922500372bfa54a63c8e7bf92402b2dda357e07fd146c013dc79d5204bad',
+  secret: 'eeb7511965fcbeca664e189a3167a67f67d1cf805f1bf43bdfb12d9b4d311f72',
   launcherUrl: 'https://launcher-tawny.vercel.app',
 };
