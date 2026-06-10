@@ -385,11 +385,11 @@
           will-change: transform, opacity;
         }
         .dash-toast.show {
-          animation: dashToastDropIn .3s cubic-bezier(.22,1,.36,1) forwards;
+          animation: dashToastDropIn var(--alas-dur-normal) var(--alas-ease) forwards;
           pointer-events: auto;
         }
         .dash-toast.hide {
-          animation: dashToastLiftOut .24s ease forwards;
+          animation: dashToastLiftOut var(--alas-dur-fast) var(--alas-ease-in) forwards;
         }
         .dash-toast.success { --dash-toast-accent: #10B981; --dash-toast-icon-bg: #ECFDF5; --dash-toast-icon-border: #A7F3D0; }
         .dash-toast.error { --dash-toast-accent: #EF4444; --dash-toast-icon-bg: #FEF2F2; --dash-toast-icon-border: #FECACA; }
@@ -451,7 +451,7 @@
           to { opacity: 0; transform: translateY(calc(-100% - 18px)) scale(.98); }
         }
         .view-enter {
-          animation: dashboardViewIn 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+          animation: dashboardViewIn var(--alas-dur-page) var(--alas-ease);
           transform-origin: top center;
         }
         @keyframes dashboardViewIn {
@@ -475,7 +475,7 @@
           visibility: hidden;
           pointer-events: none;
           transition:
-            opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+            opacity var(--alas-dur-fast) var(--alas-ease),
             visibility 0s linear 180ms;
           will-change: opacity;
         }
@@ -494,7 +494,7 @@
           background: rgba(15, 36, 64, 0.34);
           backdrop-filter: blur(1.5px);
           opacity: 0;
-          transition: opacity 170ms cubic-bezier(0.22, 1, 0.36, 1);
+          transition: opacity var(--alas-dur-fast) var(--alas-ease);
           will-change: opacity;
         }
         .embed-overlay.open .embed-overlay__backdrop {
@@ -511,8 +511,8 @@
           opacity: 0;
           transform: translate3d(0, 10px, 0) scale(0.992);
           transition:
-            transform 190ms cubic-bezier(0.22, 1, 0.36, 1),
-            opacity 170ms cubic-bezier(0.22, 1, 0.36, 1);
+            transform var(--alas-dur-fast) var(--alas-ease),
+            opacity   var(--alas-dur-fast) var(--alas-ease);
           will-change: transform, opacity;
           backface-visibility: hidden;
         }
@@ -531,7 +531,7 @@
           background: transparent;
           border-radius: 24px;
           opacity: 0;
-          transition: opacity 140ms cubic-bezier(0.22, 1, 0.36, 1);
+          transition: opacity var(--alas-dur-fast) var(--alas-ease);
         }
         .embed-overlay.ready .embed-overlay__frame {
           opacity: 1;
@@ -650,7 +650,7 @@
           padding: 26px 24px 22px;
           text-align: center;
           transform: translateY(10px) scale(0.98);
-          transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+          transition: transform var(--alas-dur-fast) var(--alas-ease);
         }
         .export-confirm.open .export-confirm__card {
           transform: translateY(0) scale(1);

@@ -1,0 +1,136 @@
+/* ============================================================
+   ALAS · SISTEMA DE MOVIMIENTO CANÓNICO  v2.0
+   Fuente de verdad para TODOS los módulos del ecosistema.
+
+   Importar PRIMERO en cada módulo, antes de cualquier otro CSS:
+     <link rel="stylesheet" href="/alas-motion.css">   (vanilla)
+     import './alas-motion.css'                         (React/Vite)
+
+   REGLA ABSOLUTA: nunca redefinir curvas ni duraciones en otros
+   archivos. Siempre usar var(--alas-*).
+   ============================================================ */
+
+:root {
+  /* ── CURVAS DE EASING ─────────────────────────────────────────
+     Solo existen estas cuatro. No definir otras en el proyecto.
+     ─────────────────────────────────────────────────────────── */
+  --alas-ease:        cubic-bezier(0.16, 1, 0.3, 1);     /* expo.out  · estándar, casi todo */
+  --alas-ease-in:     cubic-bezier(0.4, 0, 1, 1);        /* ease-in   · salidas de pantalla */
+  --alas-ease-inout:  cubic-bezier(0.65, 0.05, 0.36, 1); /* simétrica · loops y movimientos largos */
+  --alas-ease-spring: cubic-bezier(0.34, 1.15, 0.64, 1); /* spring    · SOLO micro-interacciones, NUNCA páginas */
+
+  /* ── DURACIONES ───────────────────────────────────────────────
+     Cuatro niveles. page y module son distintos y no se intercambian.
+     ─────────────────────────────────────────────────────────── */
+  --alas-dur-fast:   150ms;  /* hover, tap, focus, badges */
+  --alas-dur-normal: 280ms;  /* dropdowns, toasts, toggles, tabs */
+  --alas-dur-page:   420ms;  /* secciones internas dentro de un módulo */
+  --alas-dur-module: 680ms;  /* ALASTransition entre módulos — DUR_IN canónico */
+
+  /* ── EXTRAS ───────────────────────────────────────────────── */
+  --alas-stagger: 40ms;  /* retardo entre hijos consecutivos en stagger */
+  --alas-rise:    10px;  /* desplazamiento vertical al entrar */
+}
+
+/* ── ACCESIBILIDAD ────────────────────────────────────────────────────────
+   Respeta prefers-reduced-motion. Siempre presente, no se puede sobreescribir.
+   ─────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --alas-dur-fast:   0ms;
+    --alas-dur-normal: 0ms;
+    --alas-dur-page:   0ms;
+    --alas-dur-module: 0ms;
+    --alas-stagger:    0ms;
+  }
+  *, *::before, *::after {
+    animation-duration:        0.01ms !important;
+    animation-iteration-count: 1      !important;
+    transition-duration:       0.01ms !important;
+    scroll-behavior:           auto   !important;
+  }
+}
+
+/* ============================================================
+   KEYFRAMES CANÓNICOS
+   Usar estos y solo estos. No crear nuevos en otros archivos.
+   ============================================================ */
+@keyframes mo-fade-up  {
+  from { opacity: 0; transform: translateY(var(--alas-rise)); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes mo-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes mo-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes mo-page-in {
+  from { opacity: 0; transform: translateY(var(--alas-rise)) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes mo-page-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-8px) scale(0.99); }
+}
+
+/* ============================================================
+   UTILIDADES — clases listas para usar en cualquier módulo HTML
+   ============================================================ */
+
+/* Entradas individuales */
+.mo-enter      { animation: mo-fade-up  var(--alas-dur-normal) var(--alas-ease)        both; }
+.mo-enter-fade { animation: mo-fade     var(--alas-dur-normal) var(--alas-ease)        both; }
+.mo-enter-pop  { animation: mo-scale-in var(--alas-dur-normal) var(--alas-ease-spring) both; }
+
+/* Stagger: ponés .mo-stagger en el contenedor padre.
+   Cada hijo directo recibe su retardo automáticamente (hasta 12). */
+.mo-stagger > *        { animation: mo-fade-up var(--alas-dur-normal) var(--alas-ease) both; }
+.mo-stagger > *:nth-child(1)  { animation-delay: calc(var(--alas-stagger) * 0);  }
+.mo-stagger > *:nth-child(2)  { animation-delay: calc(var(--alas-stagger) * 1);  }
+.mo-stagger > *:nth-child(3)  { animation-delay: calc(var(--alas-stagger) * 2);  }
+.mo-stagger > *:nth-child(4)  { animation-delay: calc(var(--alas-stagger) * 3);  }
+.mo-stagger > *:nth-child(5)  { animation-delay: calc(var(--alas-stagger) * 4);  }
+.mo-stagger > *:nth-child(6)  { animation-delay: calc(var(--alas-stagger) * 5);  }
+.mo-stagger > *:nth-child(7)  { animation-delay: calc(var(--alas-stagger) * 6);  }
+.mo-stagger > *:nth-child(8)  { animation-delay: calc(var(--alas-stagger) * 7);  }
+.mo-stagger > *:nth-child(9)  { animation-delay: calc(var(--alas-stagger) * 8);  }
+.mo-stagger > *:nth-child(10) { animation-delay: calc(var(--alas-stagger) * 9);  }
+.mo-stagger > *:nth-child(11) { animation-delay: calc(var(--alas-stagger) * 10); }
+.mo-stagger > *:nth-child(12) { animation-delay: calc(var(--alas-stagger) * 11); }
+
+/* Transición de PÁGINA (sección interna dentro de un módulo) */
+.mo-page       { animation: mo-page-in  var(--alas-dur-page) var(--alas-ease)    both; }
+.mo-page-leave { animation: mo-page-out var(--alas-dur-page) var(--alas-ease-in) both; }
+
+/* Transición de propiedad estándar — siempre transform+opacity, nunca width/height/box-shadow */
+.mo-t      { transition: transform var(--alas-dur-normal) var(--alas-ease),
+                         opacity   var(--alas-dur-normal) var(--alas-ease); }
+.mo-t-fast { transition: transform var(--alas-dur-fast) var(--alas-ease),
+                         opacity   var(--alas-dur-fast) var(--alas-ease); }
+
+/* Lift de hover canónico — tarjetas, tiles, filas clickeables */
+.mo-lift       { transition: transform var(--alas-dur-normal) var(--alas-ease); will-change: transform; }
+.mo-lift:hover { transform: translateY(-3px); }
+
+/* ============================================================
+   PATRÓN GPU-SAFE PARA SOMBRA EN HOVER
+   Usar en vez de animar box-shadow directamente (causa repaint).
+
+   En el HTML: <div class="mo-card"> ... </div>
+   El ::after con la sombra es estático; solo animamos opacity → 0 repaint.
+   ============================================================ */
+.mo-card { position: relative; }
+.mo-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--alas-dur-normal) var(--alas-ease);
+}
+.mo-card:hover::after { opacity: 1; }
