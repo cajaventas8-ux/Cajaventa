@@ -65,17 +65,10 @@ document.addEventListener("DOMContentLoaded", function() {
         </nav>
 
         <div class="sidebar__footer">
-          <button type="button" class="sidebar__user-card" id="sidebarUserCard" title="Ver sesión activa">
-            <span style="position:relative;display:inline-flex;flex-shrink:0;">
-              <span class="sidebar__user-avatar" id="sidebarUserAvatar">OP</span>
-              <span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;background:#10B981;border-radius:50%;border:2px solid #fff;display:block;"></span>
-            </span>
-            <span class="sidebar__user-meta">
-              <span class="sidebar__user-name" id="sidebarUserName">Configurar operador</span>
-              <span class="sidebar__user-status" id="sidebarUserStatus">Click para definir operador</span>
-            </span>
-            <span class="sidebar__user-logout"><i class="fas fa-sign-out-alt"></i></span>
-          </button>
+          <div id="ssoUserChip" style="display:flex;width:100%;padding:6px 12px;align-items:center;gap:13px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;flex-shrink:0;margin-bottom:4px;pointer-events:none;cursor:default;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="21" height="21" stroke-width="1.6" style="flex-shrink:0;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+            <span id="sidebarUserName" style="font-size:12px;font-weight:600;letter-spacing:.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Usuario</span>
+          </div>
           <div style="padding: 4px 8px 6px; border-top: 1px solid rgba(226,232,240,0.55); margin-top: 4px;">
             <a href="https://launcher-tawny.vercel.app"
                class="sidebar__item"
