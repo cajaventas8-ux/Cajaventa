@@ -585,7 +585,7 @@
 
       // ── DONUT ──
       var donut = { pendientes: 0, entregados: 0, en_transito: 0, anulados: 0, total: 0 };
-      data.forEach(function (p) {
+      kpiData.forEach(function (p) {
         if (p.estado === 'pendiente')          donut.pendientes++;
         else if (p.estado === 'contabilizado') donut.entregados++;
         else if (p.estado === 'facturado')     donut.en_transito++;
@@ -598,7 +598,7 @@
 
       // ── TOP CLIENTES ──
       var clienteCount = {};
-      data.forEach(function (p) {
+      kpiData.forEach(function (p) {
         var c = p.cliente || 'S/C';
         clienteCount[c] = (clienteCount[c] || 0) + 1;
       });
@@ -609,7 +609,7 @@
 
       // ── POR VENDEDOR ──
       var vendedorCount = {};
-      data.forEach(function (p) {
+      kpiData.forEach(function (p) {
         var v = p.vendedor || 'Sin vendedor';
         vendedorCount[v] = (vendedorCount[v] || 0) + 1;
       });
