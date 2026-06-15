@@ -4235,13 +4235,14 @@
 
   function renderAlmacenBadge(almacen) {
     const val = String(almacen || '').trim().toUpperCase();
-    if (!val) return '<span style="color:#cbd5e1;font-size:12px;font-weight:600;">—</span>';
+    if (!val) return '<span class="alm-badge__empty">—</span>';
     const isFabrica = val === 'FABRICA';
-    // FABRICA → azul oscuro   DEPOSITO → azul normal
-    const bg     = isFabrica ? '#1e3a8a' : '#dbeafe';
-    const color  = isFabrica ? '#e0eaff' : '#1d4ed8';
-    const border = isFabrica ? '#1e40af' : '#93c5fd';
-    return `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;letter-spacing:.03em;background:${bg};color:${color};border:1px solid ${border}">${escapeHtml(val)}</span>`;
+    const cls   = isFabrica ? 'alm-badge--fabrica' : 'alm-badge--deposito';
+    const label = isFabrica ? 'Fábrica' : 'Depósito';
+    const icon  = isFabrica
+      ? '<svg class="alm-badge__icon" viewBox="0 0 14 12" fill="none"><path d="M1 11V6l3.5-2.5V6L8 3.5V6l3.5-2.5V11H1z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/></svg>'
+      : '<svg class="alm-badge__icon" viewBox="0 0 14 12" fill="none"><path d="M1 5.5L7 2l6 3.5V11H1V5.5z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M5 11V8h4v3" stroke="currentColor" stroke-width="1.25"/></svg>';
+    return `<span class="alm-badge ${cls}">${icon}${label}</span>`;
   }
 
   function renderStatusBadge(estado) {
