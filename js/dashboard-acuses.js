@@ -1932,7 +1932,7 @@
   function renderPanel(kpi, response, options = {}) {
     const preserveShell = Boolean(options.preserveShell);
     const cfg = PANEL_CONFIG[kpi];
-    const colCount = 12;
+    const colCount = 11;
     _selectedEntregas.clear();
     updateBulkBar();
     const rowsHtml = renderPanelRows(kpi, response.items || []);
@@ -2059,9 +2059,9 @@
   function panelTableHeaders(kpi) {
     const cbHead = '<th class="th-cb"><label class="cb-all-wrap"><input type="checkbox" id="cb-select-all" onclick="cvSelectAll(this)"></label></th>';
     if (kpi === 'anulados') {
-      return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Estado</th><th></th><th>Motivo de anulacion</th>';
+      return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th></th><th>Motivo de anulacion</th>';
     }
-    return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Detalles</th><th>Estado</th><th>Acciones</th>';
+    return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Detalles</th><th>Acciones</th>';
   }
 
   let _gruposMap = new Map();
@@ -2324,7 +2324,7 @@
         ? `<button class="tbl-group-wa-btn act-wa" onclick="event.stopPropagation();abrirPedidoContado('${clienteJs}')"><span class="tip">Enviar Pedido</span>${waIcon}</button>`
         : '';
 
-      html += `<tr class="group-header-row ${rowCls}"><td colspan="12">
+      html += `<tr class="group-header-row ${rowCls}"><td colspan="11">
         <div class="group-header-content">
           <div class="group-vendor-name">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -2388,7 +2388,6 @@
       <td class="monto-cell" onclick="event.stopPropagation();abrirMonto(this,'${acuseId}')" title="Click para ingresar monto">${renderMontoCell(item.Monto)}</td>
       <td class="obs-cell" onclick="event.stopPropagation();abrirObservacion(this,'${acuseId}')" title="Click para editar observación">${renderObservacionCell(item.Observacion)}</td>
       <td><button class="tbl-btn-ver" onclick="openDetalleModal('${acuseId}')">Ver detalles</button></td>
-      <td>${renderStatusBadge(item.Estado)}</td>
       <td>${accionesHtml}</td>
     </tr>`;
   }
