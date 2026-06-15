@@ -864,7 +864,7 @@
   }
 
   function syncSidebarActiveState() {
-    const ids = ['btnResumen', 'btnDashboard', 'btnCalendario', 'btnHistorial'];
+    const ids = ['btnResumen', 'btnDashboard', 'btnCalendario', 'btnHistorial', 'btnCargarDatos'];
     ids.forEach((id) => document.getElementById(id)?.classList.remove('active'));
 
     if (state.currentView === 'resumen') {
@@ -881,6 +881,10 @@
     }
     if (state.currentView === 'historial') {
       document.getElementById('btnHistorial')?.classList.add('active');
+      return;
+    }
+    if (state.currentView === 'cargarDatos') {
+      document.getElementById('btnCargarDatos')?.classList.add('active');
     }
   }
 
@@ -3384,7 +3388,7 @@
     state.currentView = view;
     saveDashboardState();
 
-    ['viewResumen', 'viewDashboard', 'viewCalendario', 'viewHistorial'].forEach((id) => {
+    ['viewResumen', 'viewDashboard', 'viewCalendario', 'viewHistorial', 'viewCargarDatos'].forEach((id) => {
       const node = document.getElementById(id);
       if (node) node.style.display = 'none';
     });
@@ -3433,6 +3437,18 @@
       syncSidebarActiveState();
       playViewEntrance(node);
       await loadHistorial();
+      return;
+    }
+
+    if (view === 'cargarDatos') {
+      const node = document.getElementById('viewCargarDatos');
+      if (node) {
+        node.style.display = 'flex';
+        syncSidebarActiveState();
+        playViewEntrance(node);
+        if (window.volverAlDropzone) volverAlDropzone();
+      }
+      return;
     }
   }
 

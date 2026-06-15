@@ -39,7 +39,7 @@
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span class="tooltip">Historial de Acciones</span>
         </div>
-        <div class="sidebar-icon" id="btnCargarDatos" onclick="abrirModalCargarDatos()">
+        <div class="sidebar-icon" id="btnCargarDatos" onclick="showView('cargarDatos')">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
           <span class="tooltip">Cargar Datos</span>
         </div>
@@ -329,6 +329,131 @@
       <div id="histPagination"></div>
     </div>
   </div><!-- /viewHistorial -->
+
+  <!-- ══════ VISTA CARGAR DATOS ══════ -->
+  <div id="viewCargarDatos" style="display:none">
+    <div class="header">
+      <h1>Cargar <span>Datos</span></h1>
+    </div>
+    <div class="carga-view-layout">
+
+      <!-- PANEL IZQUIERDO: Zona de carga -->
+      <div class="carga-view-upload">
+        <!-- Drop -->
+        <div class="carga-state" id="cargaStateDrop">
+          <div class="carga-drop-zone" id="cargaDropZone"
+               ondragover="event.preventDefault(); this.classList.add('drag-over')"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="handleCargaDrop(event)"
+               onclick="document.getElementById('importFileInput').click()">
+            <div class="carga-drop-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5 5 5M12 15V3"/></svg>
+            </div>
+            <p class="carga-drop-title">Arrastrá el archivo aquí</p>
+            <p class="carga-drop-sub">o hacé clic para seleccionar</p>
+            <div class="carga-drop-badge">.xlsm &nbsp;·&nbsp; .xlsx &nbsp;·&nbsp; .xls</div>
+          </div>
+          <input type="file" id="importFileInput" accept=".xlsm,.xlsx,.xls" style="display:none" onchange="handleImportFile(this)">
+          <p class="carga-privacy-note">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            El archivo se procesa en tu navegador — nada se sube a internet
+          </p>
+        </div>
+
+        <!-- Progreso -->
+        <div class="carga-state" id="cargaStateProgress" style="display:none">
+          <div class="carga-ring-wrap">
+            <svg class="carga-ring" viewBox="0 0 100 100">
+              <circle class="carga-ring__bg" cx="50" cy="50" r="42"/>
+              <circle class="carga-ring__fill" id="cargaRingFill" cx="50" cy="50" r="42" style="stroke-dashoffset: 263.89; stroke-dasharray: 263.89;"/>
+            </svg>
+            <span class="carga-ring__pct" id="cargaRingPct">0%</span>
+          </div>
+          <h2 class="carga-title" id="cargaProgressTitle">Leyendo archivo...</h2>
+          <p class="carga-desc" id="cargaProgressDesc">Preparando datos para importar</p>
+          <div class="carga-bar-track"><div class="carga-bar-fill" id="cargaBarFill"></div></div>
+        </div>
+
+        <!-- Completado -->
+        <div class="carga-state" id="cargaStateDone" style="display:none">
+          <div class="carga-check-wrap">
+            <svg class="carga-check" viewBox="0 0 52 52">
+              <circle class="carga-check__circle" cx="26" cy="26" r="25" fill="none"/>
+              <path class="carga-check__check" fill="none" d="M14 27l7 7 16-16"/>
+            </svg>
+          </div>
+          <h2 class="carga-title">Importación completada</h2>
+          <p class="carga-desc" id="cargaDoneDesc">Se importaron los datos correctamente</p>
+          <div class="carga-done-stats" id="cargaDoneStats"></div>
+          <div class="carga-done-actions">
+            <button class="carga-btn carga-btn--secondary" onclick="volverAlDropzone()">Nueva importación</button>
+            <button class="carga-btn" onclick="showView('dashboard')">Ver pedidos</button>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div class="carga-state" id="cargaStateError" style="display:none">
+          <div class="carga-error-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <h2 class="carga-title">Error al importar</h2>
+          <p class="carga-desc" id="cargaErrorDesc">Ocurrió un error al procesar el archivo</p>
+          <button class="carga-btn" onclick="volverAlDropzone()">Intentar de nuevo</button>
+        </div>
+      </div>
+
+      <!-- PANEL DERECHO: Guía de formato -->
+      <div class="carga-view-guide">
+        <div class="carga-guide-hdr">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Formato del Excel
+        </div>
+        <p class="carga-guide-intro">La primera hoja debe tener <strong>una fila por ítem de entrega</strong>. Las entregas se agrupan automáticamente por número de Entrega.</p>
+
+        <div class="carga-guide-section">
+          <div class="carga-guide-section-title">Columnas del archivo</div>
+          <div class="carga-cols-list">
+            <div class="carga-col-row"><span class="carga-col-name">Entrega</span><span class="carga-col-desc">Número de entrega SAP <span class="carga-col-required">obligatorio</span></span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Pedido</span><span class="carga-col-desc">Número de pedido comercial</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Solic.</span><span class="carga-col-desc">Número de solicitud</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Nombre</span><span class="carga-col-desc">Nombre del cliente</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Nombre Vend.</span><span class="carga-col-desc">Nombre del vendedor</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Fecha Creac</span><span class="carga-col-desc">Fecha de creación del pedido</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Usuario Empaque</span><span class="carga-col-desc">Usuario que realizó el empaque</span></div>
+            <div class="carga-col-row carga-col-row--highlight"><span class="carga-col-name">PuestExped</span><span class="carga-col-desc">Puesto de expedición — define el almacén</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Material</span><span class="carga-col-desc">Código de material (una fila por ítem)</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Denomin.</span><span class="carga-col-desc">Descripción del material</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Ctd.entr.</span><span class="carga-col-desc">Cantidad entregada</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Unidad</span><span class="carga-col-desc">Unidad de medida</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Cont.Entr</span><span class="carga-col-desc">Contenido de entrega</span></div>
+            <div class="carga-col-row"><span class="carga-col-name">Cont.Art</span><span class="carga-col-desc">Contenido del artículo</span></div>
+          </div>
+        </div>
+
+        <div class="carga-guide-tip">
+          <div class="carga-guide-tip-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Lógica de almacén según PuestExped
+          </div>
+          <div class="carga-guide-tip-rows">
+            <div class="carga-tip-row">
+              <span class="carga-tip-chip carga-tip-chip--fabrica">ALDF</span>
+              <span class="carga-tip-arrow">→</span>
+              <span class="carga-tip-label carga-tip-label--fabrica">Fábrica</span>
+            </div>
+            <div class="carga-tip-row">
+              <span class="carga-tip-chip carga-tip-chip--deposito">Otro valor</span>
+              <span class="carga-tip-arrow">→</span>
+              <span class="carga-tip-label carga-tip-label--deposito">Depósito</span>
+            </div>
+          </div>
+          <p class="carga-guide-tip-note">Si una entrega tiene ítems de ambos tipos (mixto), se clasifica como Depósito.</p>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /viewCargarDatos -->
+
       </div><!-- /canvas -->
     </div><!-- /canvas-wrapper -->
   </div><!-- /dashboard-card -->
@@ -565,101 +690,31 @@
   </div>
 </div>
 
-<!-- MODAL CARGAR DATOS -->
-<div class="modal-backdrop" id="cargarDatosModalWrapper">
-  <dialog class="modal-carga" id="cargarDatosModal" aria-modal="true" aria-labelledby="cargarDatosTitle">
-    <button class="modal-carga__close" type="button" onclick="cerrarModalCargarDatos()" aria-label="Cerrar">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-
-    <div class="modal-carga__body" id="modalCargaBody">
-      <!-- ESTADO INICIAL: Dropzone -->
-      <div class="carga-state" id="cargaStateDrop">
-        <div class="carga-icon-wrap">
-          <svg class="carga-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5 5 5M12 15V3"/></svg>
-        </div>
-        <h2 class="carga-title">Importar pedidos</h2>
-        <p class="carga-desc">Seleccioná el archivo Excel con los datos de tus pedidos</p>
-        <button class="carga-btn" onclick="document.getElementById('importFileInput').click()">Seleccionar archivo</button>
-        <p class="carga-hint">Formato .xlsm · Se procesa en tu navegador, nada se sube a internet</p>
-        <input type="file" id="importFileInput" accept=".xlsm,.xlsx,.xls" style="display:none" onchange="handleImportFile(this)">
-      </div>
-
-      <!-- ESTADO CARGANDO: Progreso -->
-      <div class="carga-state" id="cargaStateProgress" style="display:none">
-        <div class="carga-ring-wrap">
-          <svg class="carga-ring" viewBox="0 0 100 100">
-            <circle class="carga-ring__bg" cx="50" cy="50" r="42"/>
-            <circle class="carga-ring__fill" id="cargaRingFill" cx="50" cy="50" r="42" style="stroke-dashoffset: 263.89; stroke-dasharray: 263.89;"/>
-          </svg>
-          <span class="carga-ring__pct" id="cargaRingPct">0%</span>
-        </div>
-        <h2 class="carga-title" id="cargaProgressTitle">Leyendo archivo...</h2>
-        <p class="carga-desc" id="cargaProgressDesc">Preparando datos para importar</p>
-        <div class="carga-bar-track">
-          <div class="carga-bar-fill" id="cargaBarFill"></div>
-        </div>
-      </div>
-
-      <!-- ESTADO COMPLETADO -->
-      <div class="carga-state" id="cargaStateDone" style="display:none">
-        <div class="carga-check-wrap">
-          <svg class="carga-check" viewBox="0 0 52 52">
-            <circle class="carga-check__circle" cx="26" cy="26" r="25" fill="none"/>
-            <path class="carga-check__check" fill="none" d="M14 27l7 7 16-16"/>
-          </svg>
-        </div>
-        <h2 class="carga-title">Importación completada</h2>
-        <p class="carga-desc" id="cargaDoneDesc">Se importaron los datos correctamente</p>
-        <div class="carga-done-stats" id="cargaDoneStats"></div>
-        <div class="carga-done-actions">
-          <button class="carga-btn carga-btn--secondary" onclick="cerrarModalCargarDatos()">Cerrar</button>
-          <button class="carga-btn" onclick="cerrarModalCargarDatos()">Ver pedidos</button>
-        </div>
-      </div>
-
-      <!-- ESTADO ERROR -->
-      <div class="carga-state" id="cargaStateError" style="display:none">
-        <div class="carga-error-icon">
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-        </div>
-        <h2 class="carga-title">Error al importar</h2>
-        <p class="carga-desc" id="cargaErrorDesc">Ocurrió un error al procesar el archivo</p>
-        <button class="carga-btn" onclick="volverAlDropzone()">Intentar de nuevo</button>
-      </div>
-    </div>
-  </dialog>
-</div>
-
 <script>
-  window.abrirModalCargarDatos = function () {
-    const wrapper = document.getElementById('cargarDatosModalWrapper');
-    const dialog = document.getElementById('cargarDatosModal');
-    document.getElementById('importFileInput').value = '';
-    volverAlDropzone();
-    wrapper.classList.add('modal-backdrop--open');
-    dialog.showModal();
-    wrapper.addEventListener('click', function handler(e) {
-      if (e.target === wrapper) { cerrarModalCargarDatos(); wrapper.removeEventListener('click', handler); }
-    });
-  };
-
-  window.cerrarModalCargarDatos = function () {
-    const wrapper = document.getElementById('cargarDatosModalWrapper');
-    wrapper.classList.remove('modal-backdrop--open');
-    document.getElementById('cargarDatosModal').close();
-    setTimeout(function () { window.selectKPI('acuses'); }, 300);
-  };
-
   window.volverAlDropzone = function () {
     showCargaState('drop');
-    document.getElementById('importFileInput').value = '';
+    var fi = document.getElementById('importFileInput');
+    if (fi) fi.value = '';
+  };
+
+  window.handleCargaDrop = function (e) {
+    e.preventDefault();
+    var dz = document.getElementById('cargaDropZone');
+    if (dz) dz.classList.remove('drag-over');
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!file) return;
+    processCargaFile(file);
+  };
+
+  window.handleImportFile = function (input) {
+    var file = input.files[0];
+    if (!file) return;
+    processCargaFile(file);
   };
 
   function showCargaState(state) {
-    var states = ['drop', 'progress', 'done', 'error'];
-    states.forEach(function (s) {
-      var el = document.getElementById('cargaState' + s.charAt(0).toUpperCase() + s.slice(1));
+    ['Drop', 'Progress', 'Done', 'Error'].forEach(function (s) {
+      var el = document.getElementById('cargaState' + s);
       if (el) el.style.display = 'none';
     });
     var target = document.getElementById('cargaState' + state.charAt(0).toUpperCase() + state.slice(1));
@@ -667,75 +722,68 @@
   }
 
   function setCargaProgress(pct, title, desc) {
+    var circumference = 2 * Math.PI * 42;
     var ring = document.getElementById('cargaRingFill');
     var pctEl = document.getElementById('cargaRingPct');
     var bar = document.getElementById('cargaBarFill');
     var tEl = document.getElementById('cargaProgressTitle');
     var dEl = document.getElementById('cargaProgressDesc');
-    var circumference = 2 * Math.PI * 42;
-    var offset = circumference - (circumference * pct / 100);
-    if (ring) ring.style.strokeDashoffset = offset;
+    if (ring) ring.style.strokeDashoffset = circumference - (circumference * pct / 100);
     if (pctEl) pctEl.textContent = Math.round(pct) + '%';
     if (bar) bar.style.width = pct + '%';
     if (tEl && title) tEl.textContent = title;
     if (dEl && desc) dEl.textContent = desc;
   }
 
-  window.handleImportFile = function (input) {
-    var file = input.files[0];
-    if (!file) return;
-
+  function processCargaFile(file) {
     showCargaState('progress');
     setCargaProgress(0, 'Preparando...', 'Iniciando lectura del archivo');
-
     var reader = new FileReader();
-
     reader.onprogress = function (e) {
       if (e.lengthComputable) {
         var pct = Math.min(Math.round((e.loaded / e.total) * 70), 70);
         setCargaProgress(pct, 'Leyendo archivo...', (e.loaded / 1024).toFixed(0) + ' KB de ' + (e.total / 1024).toFixed(0) + ' KB');
       }
     };
-
     reader.onload = function (e) {
       setCargaProgress(75, 'Procesando datos...', 'Analizando estructura del Excel');
-
       setTimeout(function () {
         try {
           var data = new Uint8Array(e.target.result);
           setCargaProgress(85, 'Procesando datos...', 'Parseando hojas del archivo');
-
           setTimeout(function () {
             PedidosData.importarExcelDesdeBuffer(data).then(function (res) {
               setCargaProgress(100, 'Guardando...', 'Subiendo datos a Supabase');
               setTimeout(function () {
                 var stats = document.getElementById('cargaDoneStats');
-                stats.innerHTML =
+                if (stats) stats.innerHTML =
                   '<div class="carga-stat"><span class="carga-stat__num">' + res.importados + '</span><span class="carga-stat__label">Nuevos</span></div>' +
                   '<div class="carga-stat"><span class="carga-stat__num">' + res.actualizados + '</span><span class="carga-stat__label">Actualizados</span></div>' +
                   '<div class="carga-stat"><span class="carga-stat__num">' + res.total + '</span><span class="carga-stat__label">Total</span></div>';
-                document.getElementById('cargaDoneDesc').textContent = res.total + ' pedidos importados correctamente';
+                var desc = document.getElementById('cargaDoneDesc');
+                if (desc) desc.textContent = res.total + ' pedidos importados correctamente';
                 showCargaState('done');
               }, 400);
             }).catch(function (err) {
-              document.getElementById('cargaErrorDesc').textContent = err;
+              var el = document.getElementById('cargaErrorDesc');
+              if (el) el.textContent = err;
               showCargaState('error');
             });
           }, 300);
         } catch (err) {
-          document.getElementById('cargaErrorDesc').textContent = err.message || 'Error al procesar el archivo';
+          var el = document.getElementById('cargaErrorDesc');
+          if (el) el.textContent = err.message || 'Error al procesar el archivo';
           showCargaState('error');
         }
       }, 400);
     };
-
     reader.onerror = function () {
-      document.getElementById('cargaErrorDesc').textContent = 'Error al leer el archivo';
+      var el = document.getElementById('cargaErrorDesc');
+      if (el) el.textContent = 'Error al leer el archivo';
       showCargaState('error');
     };
-
     reader.readAsArrayBuffer(file);
-  };
+  }
 </script>
 
 <script>

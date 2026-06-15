@@ -2846,6 +2846,189 @@ tr.acuse-row-new::after {
   tr.acuse-row-new::after      { display: none; }
 }
 
+/* ═══════ VISTA CARGAR DATOS ═══════ */
+#viewCargarDatos { display: flex; flex-direction: column; }
+.carga-view-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 20px;
+  align-items: start;
+}
+.carga-view-upload {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 320px;
+  justify-content: center;
+}
+.carga-drop-zone {
+  width: 100%;
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 36px 20px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.carga-drop-zone:hover, .carga-drop-zone.drag-over {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+.carga-drop-zone.drag-over { border-style: solid; }
+.carga-drop-icon {
+  width: 64px; height: 64px;
+  background: #eff6ff;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  margin-bottom: 2px;
+}
+.carga-drop-title {
+  font: 700 16px/1.2 'DM Sans', sans-serif;
+  color: #1e293b;
+  margin: 0;
+}
+.carga-drop-sub {
+  font: 400 13px/1 'DM Sans', sans-serif;
+  color: #94a3b8;
+  margin: 0;
+}
+.carga-drop-badge {
+  font: 600 11px 'DM Sans', sans-serif;
+  color: #94a3b8;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 3px 11px;
+  border-radius: 20px;
+  letter-spacing: 0.4px;
+  margin-top: 2px;
+}
+.carga-privacy-note {
+  font: 400 11.5px 'DM Sans', sans-serif;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+
+.carga-view-guide {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 22px 26px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+}
+.carga-guide-hdr {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: 700 14.5px 'Outfit', sans-serif;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+.carga-guide-intro {
+  font: 400 13px/1.6 'DM Sans', sans-serif;
+  color: #64748b;
+  margin: 0 0 18px;
+}
+.carga-guide-intro strong { color: #334155; }
+.carga-guide-section { margin-bottom: 18px; }
+.carga-guide-section-title {
+  font: 700 10.5px 'DM Sans', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+.carga-cols-list { display: flex; flex-direction: column; gap: 1px; }
+.carga-col-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  transition: background 0.12s;
+}
+.carga-col-row:hover { background: #f8fafc; }
+.carga-col-row--highlight { background: #fefce8; }
+.carga-col-row--highlight:hover { background: #fef9c3; }
+.carga-col-name {
+  font: 600 11.5px 'SF Mono', 'Fira Code', monospace;
+  color: #334155;
+  min-width: 128px;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+.carga-col-desc {
+  font: 400 12px 'DM Sans', sans-serif;
+  color: #64748b;
+}
+.carga-col-required {
+  font: 700 10px 'DM Sans', sans-serif;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.carga-guide-tip {
+  background: linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.carga-guide-tip-title {
+  font: 700 12px 'DM Sans', sans-serif;
+  color: #1e40af;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.carga-guide-tip-rows { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.carga-tip-row { display: flex; align-items: center; gap: 10px; }
+.carga-tip-chip {
+  font: 700 11px 'SF Mono', 'Fira Code', monospace;
+  padding: 3px 9px;
+  border-radius: 6px;
+  min-width: 72px;
+  text-align: center;
+}
+.carga-tip-chip--fabrica  { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.carga-tip-chip--deposito { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+.carga-tip-arrow { color: #94a3b8; font-size: 15px; line-height: 1; }
+.carga-tip-label { font: 600 12.5px 'DM Sans', sans-serif; }
+.carga-tip-label--fabrica  { color: #1d4ed8; }
+.carga-tip-label--deposito { color: #0f766e; }
+.carga-guide-tip-note {
+  font: 400 11.5px/1.5 'DM Sans', sans-serif;
+  color: #64748b;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .carga-view-layout { grid-template-columns: 1fr; }
+  .carga-view-guide { max-height: none; }
+}
+
 /* ═══════ MODAL CARGAR DATOS (rediseñado) ═══════ */
 .modal-carga {
   border: none;
