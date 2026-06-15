@@ -265,7 +265,6 @@
         var key = String(r.Entrega || '').trim();
         if (!key) return;
         if (!grupos[key]) {
-          var puestExped = String(r.PuestExped || r['Puest.Exped'] || r['Puest. Exped'] || r['Puesto Exped'] || r['PstExp'] || '').trim();
           grupos[key] = {
             entrega: key,
             pedido: String(r.Pedido || '').trim(),
@@ -275,13 +274,14 @@
             fecha: formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')),
             usuarioEmpaque: String(r['Usuario Empaque'] || r.Usuario_Empaque || '').trim(),
             almacen: '',
-            puestExpedVals: puestExped ? [puestExped] : [],
+            _totalItems: 0,
+            _aldfItems: 0,
             items: []
           };
-        } else if (r.PuestExped || r['Puest.Exped']) {
-          var pe = String(r.PuestExped || r['Puest.Exped'] || '').trim();
-          if (pe) grupos[key].puestExpedVals.push(pe);
         }
+        var pe = String(r.PuestExped || r['Puest.Exped'] || r['Puest. Exped'] || r['Puesto Exped'] || r['PstExp'] || '').trim();
+        grupos[key]._totalItems++;
+        if (pe === 'ALDF') grupos[key]._aldfItems++;
         grupos[key].items.push({
           material: String(r.Material || '').trim(),
           denominacion: String(r.Denomin || r.Denominacion || '').trim(),
@@ -292,13 +292,17 @@
         });
       }
     });
-    // Resolver almacen para formato raw (considerar todos los items)
+    // Resolver almacen para formato raw: FABRICA solo si 100% items tienen PuestExped='ALDF'
     if (!isPreparsed) {
       Object.keys(grupos).forEach(function (k) {
         var g = grupos[k];
-        var vals = (g.puestExpedVals || []).filter(function (v) { return v !== ''; });
-        g.almacen = vals.length === 0 ? '' : vals.every(function (v) { return v === 'ALDF'; }) ? 'FABRICA' : 'DEPOSITO';
-        delete g.puestExpedVals;
+        var total = g._totalItems || 0;
+        var aldf  = g._aldfItems  || 0;
+        if (total === 0)         g.almacen = '';
+        else if (aldf === total) g.almacen = 'FABRICA';
+        else                     g.almacen = 'DEPOSITO';
+        delete g._totalItems;
+        delete g._aldfItems;
       });
     }
 

@@ -76,14 +76,16 @@
           fecha: String(row['Fecha Creac'] || '').trim(),
           usuarioEmpaque: String(row['Usuario Empaque'] || '').trim(),
           almacen: '',
-          puestExpedVals: [],
+          _totalItems: 0,
+          _aldfItems: 0,
           items: [],
           estado: 'pendiente',
           fechaImportacion: new Date().toISOString()
         };
       }
 
-      if (puestExped) entregasMap[entrega].puestExpedVals.push(puestExped);
+      entregasMap[entrega]._totalItems++;
+      if (puestExped === 'ALDF') entregasMap[entrega]._aldfItems++;
 
       entregasMap[entrega].items.push({
         material: String(row['Material'] || '').trim(),
@@ -95,17 +97,16 @@
       });
     });
 
-    // Determinar almacen por entrega considerando TODOS los items
+    // Determinar almacen: FABRICA solo si el 100% de items tiene PuestExped='ALDF'
+    // cualquier item con otro valor o en blanco → DEPOSITO (mixto cuenta como DEPOSITO)
     Object.values(entregasMap).forEach(function (g) {
-      var vals = g.puestExpedVals;
-      if (vals.length === 0) {
-        g.almacen = '';
-      } else if (vals.every(function (v) { return v === 'ALDF'; })) {
-        g.almacen = 'FABRICA';
-      } else {
-        g.almacen = 'DEPOSITO';
-      }
-      delete g.puestExpedVals;
+      var total = g._totalItems || 0;
+      var aldf  = g._aldfItems  || 0;
+      if (total === 0)          g.almacen = '';
+      else if (aldf === total)  g.almacen = 'FABRICA';
+      else                      g.almacen = 'DEPOSITO';
+      delete g._totalItems;
+      delete g._aldfItems;
     });
 
     return Object.values(entregasMap);
