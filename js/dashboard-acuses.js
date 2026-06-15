@@ -61,7 +61,7 @@
       clienteLabel: '',
       repartidorId: '',
       repartidorLabel: '',
-      almacen: ''
+      almacen: 'DEPOSITO'
     },
     panelFilterQuery: {
       cliente: '',
@@ -205,11 +205,12 @@
   window.showView = showView;
   window.showDashboardPanel = showDashboardPanel;
   function setAlmacenFilter(val) {
-    state.panelFilters.almacen = (state.panelFilters.almacen === val) ? '' : val;
+    if (state.panelFilters.almacen === val) return;
+    state.panelFilters.almacen = val;
     const btnDep = document.getElementById('btnAlmacenDeposito');
     const btnFab = document.getElementById('btnAlmacenFabrica');
-    if (btnDep) btnDep.classList.toggle('active', state.panelFilters.almacen === 'DEPOSITO');
-    if (btnFab) btnFab.classList.toggle('active', state.panelFilters.almacen === 'FABRICA');
+    if (btnDep) btnDep.classList.toggle('active', val === 'DEPOSITO');
+    if (btnFab) btnFab.classList.toggle('active', val === 'FABRICA');
     resetPanelPages();
     loadPanel(state.activeKPI, { soft: true }).catch(handleError);
   }
@@ -1790,6 +1791,10 @@
   function syncDashboardChrome() {
     const kpiGrid = document.getElementById('dashboardKpiGrid');
     if (kpiGrid) kpiGrid.classList.remove('is-hidden');
+    const btnDep = document.getElementById('btnAlmacenDeposito');
+    const btnFab = document.getElementById('btnAlmacenFabrica');
+    if (btnDep) btnDep.classList.toggle('active', state.panelFilters.almacen === 'DEPOSITO');
+    if (btnFab) btnFab.classList.toggle('active', state.panelFilters.almacen === 'FABRICA');
   }
 
   async function loadPanel(kpi, options = {}) {
