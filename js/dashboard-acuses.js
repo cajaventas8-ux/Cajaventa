@@ -313,15 +313,19 @@
     document.title = 'Dashboard Acuses - ALAS';
 
     try {
+      // Mostrar dashboard de inmediato (skeleton visible antes del primer API call)
+      void showView('dashboard');
+      // Alinear mes antes que loadPanel (panelMonth debe estar seteado)
       await alignInitialPeriodsToData();
-      await Promise.all([
+      // Cargar todo en paralelo: reducción de ~2 roundtrips a 1
+      await Promise.allSettled([
         loadSummary(),
-        loadKpiSummary()
+        loadKpiSummary(),
+        loadPanel(state.activeKPI),
+        loadCalendarMonth(),
       ]);
-      await loadPanel(state.activeKPI);
-      await loadCalendarMonth();
-      await showView('dashboard');
       window.syncLastImportChip?.();
+      startRealtimeSync();
     } catch (error) {
       handleError(error);
     }
@@ -488,7 +492,7 @@
         @keyframes dashboardViewIn {
           from {
             opacity: 0;
-            transform: translateY(10px) scale(0.992);
+            transform: translateY(5px) scale(0.996);
           }
           to {
             opacity: 1;
@@ -1858,17 +1862,61 @@
     }
   }
 
+  // ── Sincronización en tiempo real (polling + Page Visibility) ──────────────
+  // Mantiene la vista actualizada para todos los usuarios sin recargar la página.
+  function startRealtimeSync() {
+    const POLL_MS     = 20000; // refresco cada 20 s en tab activo
+    const STALE_MS    = 8000;  // si la tab estuvo oculta >8 s, refrescar al volver
+    let _timer        = null;
+    let _lastPoll     = Date.now();
+    let _running      = false;
+
+    async function poll() {
+      if (_running) return;           // evitar solapamiento si la respuesta tarda
+      if (document.visibilityState === 'hidden') { schedule(); return; }
+      _running = true;
+      try {
+        await refreshDashboardData({ softPanel: true, backgroundPoll: true });
+      } catch (_) { /* silencioso — el usuario no ve errores de fondo */ }
+      _lastPoll = Date.now();
+      _running  = false;
+      schedule();
+    }
+
+    function schedule() {
+      clearTimeout(_timer);
+      _timer = setTimeout(poll, POLL_MS);
+    }
+
+    // Al volver a la pestaña, refrescar si los datos tienen más de STALE_MS
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        if (Date.now() - _lastPoll > STALE_MS) {
+          clearTimeout(_timer);
+          poll();
+        }
+      }
+    });
+
+    schedule();
+  }
+
   async function refreshDashboardData(options = {}) {
     if (options.resetPeriod) await alignInitialPeriodsToData();
     const refreshHistory = options.history === true || state.currentView === 'historial';
     const softPanel = options.softPanel !== false;
+    // backgroundPoll: refresh liviano — omite calendario salvo que el usuario lo esté viendo
+    const isBackground = Boolean(options.backgroundPoll);
+
     const tasks = [
       { key: 'summary', run: () => loadSummary() },
-      { key: 'kpis', run: () => loadKpiSummary() },
-      { key: 'panel', run: () => loadPanel(state.activeKPI, { soft: softPanel }) },
-      { key: 'calendar', run: () => loadCalendarMonth() }
+      { key: 'kpis',    run: () => loadKpiSummary() },
+      { key: 'panel',   run: () => loadPanel(state.activeKPI, { soft: softPanel }) },
     ];
 
+    if (!isBackground || state.currentView === 'calendario') {
+      tasks.push({ key: 'calendar', run: () => loadCalendarMonth() });
+    }
     if (refreshHistory) {
       tasks.push({ key: 'history', run: () => loadHistorial() });
     }
@@ -1878,7 +1926,7 @@
       .map((result, index) => ({ result, key: tasks[index].key }))
       .filter(({ result }) => result.status === 'rejected');
 
-    if (failures.length) {
+    if (failures.length && !isBackground) {
       const panelFailure = failures.find(({ key }) => key === 'panel');
       const firstError = panelFailure || failures[0];
       throw firstError.result.reason;
@@ -4490,10 +4538,9 @@
     if (!node) return;
     node.classList.remove('view-enter');
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        node.classList.add('view-enter');
-        window.setTimeout(() => node.classList.remove('view-enter'), 480);
-      });
+      node.classList.add('view-enter');
+      // Limpiar al terminar la animación (--alas-dur-page = 420ms)
+      window.setTimeout(() => node.classList.remove('view-enter'), 440);
     });
   }
 
