@@ -375,13 +375,22 @@
         var q = encodeURIComponent(filters.q);
         qs += '&or=(entrega.ilike.*' + q + '*,pedido.ilike.*' + q + '*,cliente.ilike.*' + q + '*)';
       }
-      if (filters.fecha) qs += '&fecha=eq.' + encodeURIComponent(filters.fecha);
-      if (filters.fechaDesde) qs += '&fecha=gte.' + encodeURIComponent(filters.fechaDesde);
-      if (filters.fechaHasta) qs += '&fecha=lte.' + encodeURIComponent(filters.fechaHasta);
       if (filters.vendedor) qs += '&vendedor=ilike.*' + encodeURIComponent(filters.vendedor) + '*';
+      // NOTE: fecha filters are intentionally NOT sent to Supabase.
+      // Dates may be stored in any text format (ISO, DD/MM/YYYY, DD.MM.YYYY, etc.)
+      // so we normalize client-side via formatearFecha before comparing.
     }
     try {
       var data = await get('pedidos', qs);
+      if (filters && (filters.fecha || filters.fechaDesde || filters.fechaHasta)) {
+        data = (data || []).filter(function (p) {
+          var f = formatearFecha(String(p.fecha || ''));
+          if (filters.fecha && f !== filters.fecha) return false;
+          if (filters.fechaDesde && f < filters.fechaDesde) return false;
+          if (filters.fechaHasta && f > filters.fechaHasta) return false;
+          return true;
+        });
+      }
       return (data || []).map(normPedido);
     } catch (e) { logErr('getAll', e); return []; }
   };
@@ -533,28 +542,25 @@
     var M = month || new Date().getMonth() + 1;
     try {
       var mesFiltro = scope !== 'all' ? (Y + '-' + String(M).padStart(2, '0')) : null;
+      var inicio = mesFiltro ? mesFiltro + '-01' : null;
+      var fin = mesFiltro ? (mesFiltro + '-' + String(new Date(Y, M, 0).getDate()).padStart(2, '0')) : null;
 
-      var mainQs, trendPromise;
-      if (mesFiltro) {
-        // Query principal: solo el mes activo (liviana y rápida)
-        var inicio = mesFiltro + '-01';
-        var ultimoDia = new Date(Y, M, 0).getDate();
-        var fin = mesFiltro + '-' + String(ultimoDia).padStart(2, '0');
-        mainQs = 'select=estado,fecha,cliente,vendedor,almacen,monto&fecha=gte.' + inicio + '&fecha=lte.' + fin;
-        // Query de tendencia: solo fecha para el gráfico de barras histórico
-        trendPromise = get('pedidos', 'select=fecha&order=fecha.asc');
-      } else {
-        mainQs = 'select=estado,fecha,cliente,vendedor,almacen,monto';
-        trendPromise = Promise.resolve(null);
-      }
-
-      var results = await Promise.all([get('pedidos', mainQs), trendPromise]);
+      // Always fetch ALL data — dates may be stored in non-ISO formats (DD.MM.YYYY, etc.)
+      // so we normalize client-side via formatearFecha before any filtering.
+      var results = await Promise.all([
+        get('pedidos', 'select=estado,fecha,cliente,vendedor,almacen,monto'),
+        Promise.resolve(null)
+      ]);
       var data     = results[0] || [];
-      var trendRaw = results[1] || data;
+      var trendRaw = data;
 
-      // Normalizar fechas
+      // Normalizar fechas (handles ISO, DD/MM/YYYY, DD.MM.YYYY, Excel serials)
       data.forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
-      if (results[1]) trendRaw.forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
+
+      // Client-side month filter
+      if (inicio && fin) {
+        data = data.filter(function (p) { return p.fecha >= inicio && p.fecha <= fin; });
+      }
 
       // Filtro de almacén para KPIs (aplica sobre el slice de datos ya filtrado por mes)
       var kpiData = data;
@@ -746,10 +752,11 @@
   function formatearFecha(val) {
     if (!val) return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
-    var m = val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (m) return m[3] + '-' + m[2] + '-' + m[1];
+    // DD/MM/YYYY or DD.MM.YYYY (SAP exports use dots; 1 or 2 digit day/month)
+    var m = val.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/);
+    if (m) return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
     var n = Number(val);
-    if (!isNaN(n) && n > 40000) { var d = new Date((n - 25569) * 86400 * 1000); return d.toISOString().split('T')[0]; }
+    if (!isNaN(n) && n > 40000 && n < 100000) { var d = new Date((n - 25569) * 86400 * 1000); return d.toISOString().split('T')[0]; }
     return val;
   }
 

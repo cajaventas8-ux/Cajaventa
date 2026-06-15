@@ -335,18 +335,29 @@
         scope: 'all',
         anchor: TODAY_ISO
       });
+      // Only accept properly formatted "YYYY-MM" month keys
       const months = (summary && Array.isArray(summary.acusesPorMes) ? summary.acusesPorMes : [])
-        .filter((item) => item && item.mes && Number(item.total || item.value || 0) > 0)
+        .filter((item) => item && item.mes && /^\d{4}-\d{2}$/.test(item.mes) && Number(item.total || item.value || 0) > 0)
         .sort((a, b) => String(a.mes).localeCompare(String(b.mes)));
 
-      if (!months.length) return;
+      if (!months.length) {
+        // No valid month keys found (dates stored in wrong format or no data).
+        // Remove the month filter so all data is visible without a date constraint.
+        state.panelMonth = null;
+        syncPanelMonthLabel();
+        return;
+      }
 
       const currentMonthKey = `${state.panelMonth.year}-${String(state.panelMonth.month).padStart(2, '0')}`;
       if (months.some((item) => item.mes === currentMonthKey)) return;
 
       const latestMonth = String(months[months.length - 1].mes || '');
       const match = latestMonth.match(/^(\d{4})-(\d{2})$/);
-      if (!match) return;
+      if (!match) {
+        state.panelMonth = null;
+        syncPanelMonthLabel();
+        return;
+      }
 
       const year = Number(match[1]);
       const month = Number(match[2]);
