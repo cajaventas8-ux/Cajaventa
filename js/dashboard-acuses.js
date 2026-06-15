@@ -3320,7 +3320,18 @@
       onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}if(event.key==='Escape'){event.preventDefault();event.stopPropagation();this.dataset.cancel='1';this.blur();}"
     />`;
     const inp = cell.querySelector('input');
-    if (inp) { inp.focus(); inp.select(); }
+    if (inp) {
+      inp.focus();
+      inp.select();
+      // Permite pegar montos con formato SAP/PY: "4.239.703", "Gs 4.239.703", "4,239,703"
+      inp.addEventListener('paste', function (e) {
+        e.preventDefault();
+        const raw = (e.clipboardData || window.clipboardData).getData('text');
+        // Quitar prefijo "Gs", puntos/comas de miles y espacios; quedan solo dígitos
+        const clean = raw.replace(/gs\s*/i, '').replace(/[.,\s]/g, '').replace(/\D/g, '');
+        if (clean) this.value = clean;
+      });
+    }
   }
 
   async function guardarMonto(input, acuseId) {
