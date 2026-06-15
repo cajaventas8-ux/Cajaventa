@@ -3382,7 +3382,43 @@ tr.acuse-row-new::after {
   font: 700 10.5px/1 'DM Sans', sans-serif;
   color: #94a3b8; text-transform: uppercase; letter-spacing: .08em;
   margin-bottom: 10px;
+  display: flex; align-items: center; gap: 5px;
 }
+
+/* ── Timeline de seguimiento ── */
+.detalle-timeline { display: flex; flex-direction: column; margin-bottom: 20px; }
+.tl-step { display: flex; gap: 12px; position: relative; }
+.tl-step__track { display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0; }
+.tl-step__dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; z-index: 1;
+}
+.tl-step__dot svg { width: 13px; height: 13px; }
+.tl-step__line { width: 2px; flex: 1; min-height: 14px; margin: 2px 0; }
+.tl-step:last-child .tl-step__line { display: none; }
+.tl-step--done .tl-step__dot {
+  background: #dcfce7; border: 1.5px solid #86efac; color: #16a34a;
+}
+.tl-step--done .tl-step__line { background: #bbf7d0; }
+.tl-step--pending .tl-step__dot {
+  background: #f1f5f9; border: 1.5px dashed #cbd5e1; color: #94a3b8;
+}
+.tl-step--pending .tl-step__line { background: #e2e8f0; }
+.tl-step__content { padding: 4px 0 18px; display: flex; flex-direction: column; gap: 2px; }
+.tl-step__label { font: 700 12.5px 'DM Sans', sans-serif; color: #1e293b; }
+.tl-step--pending .tl-step__label { color: #94a3b8; }
+.tl-step__date { font: 400 11.5px 'DM Sans', sans-serif; color: #64748b; }
+.tl-step__date em { color: #cbd5e1; font-style: normal; }
+
+/* ── Fecha secundaria en tabla (contabilizado/facturado) ── */
+.fecha-cell-wrap { display: flex; flex-direction: column; gap: 3px; }
+.fecha-estado-sub {
+  display: inline-flex; align-items: center; gap: 3px;
+  font: 600 10.5px 'DM Sans', sans-serif; color: #4ade80;
+}
+.fecha-estado-sub svg { opacity: 0.8; }
+.fecha-estado-sub--facturado { color: #60a5fa; }
 
 /* Table */
 .detalle-table-wrap {

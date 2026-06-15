@@ -83,6 +83,8 @@
       estado: row.estado || 'pendiente',
       fechaImportacion: row.fecha_importacion || null,
       fechaActualizacion: row.fecha_actualizacion || null,
+      fechaContabilizado: row.fecha_contabilizado || null,
+      fechaFacturado: row.fecha_facturado || null,
       items: row.items || []
     };
   }
@@ -172,6 +174,8 @@
       Fecha_Emision: p.fecha || '',
       Fecha_Creacion: p.fechaImportacion || null,
       Fecha_Entrega: null,
+      Fecha_Contabilizado: p.fechaContabilizado || null,
+      Fecha_Facturado: p.fechaFacturado || null,
       Estado: normalizeApiEstado(p.estado),
       Almacen: p.almacen || '',
       Observacion: p.observacion || '',
@@ -417,7 +421,11 @@
 
   Pedidos.cambiarEstado = async function (entrega, nuevoEstado, usuario, observacion) {
     try {
-      await update('pedidos', 'entrega', entrega, { estado: nuevoEstado });
+      var updateFields = { estado: nuevoEstado };
+      // DB 'facturado' = UI "Contabilizado" | DB 'contabilizado' = UI "Facturado"
+      if (nuevoEstado === 'facturado')      updateFields.fecha_contabilizado = new Date().toISOString();
+      else if (nuevoEstado === 'contabilizado') updateFields.fecha_facturado = new Date().toISOString();
+      await update('pedidos', 'entrega', entrega, updateFields);
       await post('pedidos_historial', { entrega: entrega, estado: nuevoEstado, usuario: usuario || 'sistema', observacion: observacion || '' });
       await registrarAuditoria('cambio_estado', usuario, null, entrega, 'Estado cambiado a ' + nuevoEstado);
       return true;

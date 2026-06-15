@@ -2412,9 +2412,22 @@
     const pedidoVal = escapeHtml(item.pedido || item.Pedido || '');
     const solicVal  = escapeHtml(item.solicitud || item.Solicitud || '');
     const entregaStr = escapeHtml(item.entrega || String(acuseId));
+
+    // Fecha secundaria de seguimiento según KPI activo
+    let fechaSubHtml = '';
+    if (_renderingKpi === 'en_transito' && item.Fecha_Contabilizado) {
+      fechaSubHtml = `<span class="fecha-estado-sub" title="Fecha de contabilización">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        ${escapeHtml(formatDate(item.Fecha_Contabilizado))}</span>`;
+    } else if (_renderingKpi === 'entregados' && item.Fecha_Facturado) {
+      fechaSubHtml = `<span class="fecha-estado-sub fecha-estado-sub--facturado" title="Fecha de facturación">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        ${escapeHtml(formatDate(item.Fecha_Facturado))}</span>`;
+    }
+
     return `<tr class="tbl-row-selectable" data-acuse-id="${acuseId}" data-entrega="${entregaStr}">
       <td class="td-cb" onclick="event.stopPropagation()"><label class="cb-wrap"><input type="checkbox" class="row-cb" data-entrega="${entregaStr}" onchange="cvToggleSelect('${escapeInlineJs(item.entrega || String(acuseId))}',this)"></label></td>
-      <td>${escapeHtml(formatDate(item.Fecha_Emision))}</td>
+      <td><div class="fecha-cell-wrap">${escapeHtml(formatDate(item.Fecha_Emision))}${fechaSubHtml}</div></td>
       <td>${copyCell(guide)}</td>
       <td>${pedidoVal ? copyCell(pedidoVal) : '<span style="color:#cbd5e1">—</span>'}</td>
       <td>${solicVal  ? copyCell(solicVal) : '<span style="color:#cbd5e1">—</span>'}</td>
@@ -3364,12 +3377,36 @@
           </tr>`).join('')
         : `<tr><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;font-weight:600">Sin líneas registradas</td></tr>`;
 
+      const fContab  = acuse.Fecha_Contabilizado ? escapeHtml(formatDate(acuse.Fecha_Contabilizado)) : null;
+      const fFact    = acuse.Fecha_Facturado     ? escapeHtml(formatDate(acuse.Fecha_Facturado))     : null;
+
+      const timelineStep = (icon, label, dateStr, done) => `
+        <div class="tl-step${done ? ' tl-step--done' : ' tl-step--pending'}">
+          <div class="tl-step__track"><div class="tl-step__dot">${icon}</div><div class="tl-step__line"></div></div>
+          <div class="tl-step__content">
+            <span class="tl-step__label">${label}</span>
+            <span class="tl-step__date">${dateStr || '<em>Pendiente</em>'}</span>
+          </div>
+        </div>`;
+
+      const svgCreado = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      const svgCheck  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+      const svgBill   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>';
+
       if (body) body.innerHTML = `
         <div class="detalle-chips">
           <div class="detalle-chip"><span class="detalle-chip__label">Pedido</span><span class="detalle-chip__val">${pedido}</span></div>
           <div class="detalle-chip"><span class="detalle-chip__label">Solicitud</span><span class="detalle-chip__val">${solicitud}</span></div>
-          <div class="detalle-chip"><span class="detalle-chip__label">Fecha</span><span class="detalle-chip__val">${fecha}</span></div>
           <div class="detalle-chip"><span class="detalle-chip__label">Vendedor</span><span class="detalle-chip__val">${vendedor}</span></div>
+        </div>
+        <div class="detalle-section-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Seguimiento
+        </div>
+        <div class="detalle-timeline">
+          ${timelineStep(svgCreado, 'Creado', fecha, true)}
+          ${timelineStep(svgCheck,  'Contabilizado', fContab, Boolean(fContab))}
+          ${timelineStep(svgBill,   'Facturado',     fFact,   Boolean(fFact))}
         </div>
         <div>
           <div class="detalle-section-title">Líneas de entrega</div>
