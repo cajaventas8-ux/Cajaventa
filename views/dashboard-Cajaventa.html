@@ -162,6 +162,20 @@
     </div>
   </div>
 
+  <!-- ALMACEN FILTER BUTTONS -->
+  <div class="almacen-filter-bar">
+    <button class="almacen-btn" data-almacen="DEPOSITO" id="btnAlmacenDeposito" onclick="setAlmacenFilter('DEPOSITO')" type="button">
+      <span class="almacen-dot" style="background:#0f766e"></span>
+      Depósito
+      <span class="almacen-count" id="val-deposito">0</span>
+    </button>
+    <button class="almacen-btn" data-almacen="FABRICA" id="btnAlmacenFabrica" onclick="setAlmacenFilter('FABRICA')" type="button">
+      <span class="almacen-dot" style="background:#1d4ed8"></span>
+      Fábrica
+      <span class="almacen-count" id="val-fabrica">0</span>
+    </button>
+  </div>
+
   <!-- KPI CARDS -->
   <div class="kpi-grid" id="dashboardKpiGrid">
     <div class="kpi-card" data-kpi="pendientes" onclick="selectKPI('pendientes')">
@@ -180,24 +194,6 @@
       </div>
       <div class="kpi-value" id="val-anulados">0</div>
       <div class="kpi-label">Anulados</div>
-    </div>
-
-    <div class="kpi-card kpi-card--deposito" data-kpi="deposito" onclick="selectKPI('deposito')">
-      <div class="kpi-top-row">
-        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" fill="currentColor" opacity=".12"/><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-        <div class="kpi-monto" id="monto-deposito"></div>
-      </div>
-      <div class="kpi-value" id="val-deposito">0</div>
-      <div class="kpi-label">Depósito</div>
-    </div>
-
-    <div class="kpi-card kpi-card--fabrica" data-kpi="fabrica" onclick="selectKPI('fabrica')">
-      <div class="kpi-top-row">
-        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 20 21 20 21 8 14 8 14 4 10 4 10 8 3 8" fill="currentColor" opacity=".12"/><polygon points="3 20 21 20 21 8 14 8 14 4 10 4 10 8 3 8"/><line x1="7" y1="14" x2="7" y2="17"/><line x1="12" y1="14" x2="12" y2="17"/><line x1="17" y1="14" x2="17" y2="17"/></svg></div>
-        <div class="kpi-monto" id="monto-fabrica"></div>
-      </div>
-      <div class="kpi-value" id="val-fabrica">0</div>
-      <div class="kpi-label">Fábrica</div>
     </div>
 
     <div class="kpi-card" data-kpi="entregados" onclick="selectKPI('entregados')">
