@@ -77,7 +77,8 @@
     highlightedAcuseId: null,
     history: {
       filters: {
-        fecha: '',
+        histDesde: '',
+        histHasta: '',
         usuario: '',
         cliente: ''
       },
@@ -248,7 +249,7 @@
   window.pickHistFilter = pickHistFilter;
   window.clearHistFilter = clearHistFilter;
   window.clearHistoryFiltersAll = clearHistoryFiltersAll;
-  window.pickHistDateFilter = pickHistDateFilter;
+  window.openHistDateModal = openHistDateModal;
   window.closeAcuseEmbed = closeAcuseEmbed;
   window.showDashboardToast = notify;
 
@@ -1005,13 +1006,7 @@
   }
 
   function initDashboardDatePickers() {
-    const historyInput = document.getElementById('histDateInput');
-    if (historyInput && window.DatePickerPro) {
-      window.DatePickerPro.attach(historyInput, {
-        variant: 'filter',
-        placeholder: 'Fecha...'
-      });
-    }
+    // date pickers por módulo — historial usa botón modal, no input nativo
   }
 
   function syncDatePicker(inputId, value) {
@@ -1916,10 +1911,6 @@
   function renderPanel(kpi, response, options = {}) {
     const preserveShell = Boolean(options.preserveShell);
     const cfg = PANEL_CONFIG[kpi];
-    const total = Number(response.total || 0);
-    const badgeText = kpi === 'anulados'
-      ? `${formatNumber(total)} anulados`
-      : `${formatNumber(total)} pedidos`;
     const colCount = 11;
     const rowsHtml = renderPanelRows(kpi, response.items || []);
 
@@ -1927,9 +1918,9 @@
     if (!panel) return;
 
     const innerHtml = kpi === 'acuses'
-      ? `${panelHeaderHTML(kpi, cfg, badgeText)}${rowsHtml || '<div style="padding:40px;text-align:center;color:var(--gray-400);font-weight:600;">Sin datos</div>'}`
+      ? `${panelHeaderHTML(kpi, cfg)}${rowsHtml || '<div style="padding:40px;text-align:center;color:var(--gray-400);font-weight:600;">Sin datos</div>'}`
       : `
-      ${panelHeaderHTML(kpi, cfg, badgeText)}
+      ${panelHeaderHTML(kpi, cfg)}
       <div class="table-wrapper"><table>
         <thead><tr>${panelTableHeaders(kpi)}</tr></thead>
         <tbody>${rowsHtml || `<tr><td colspan="${colCount}" style="text-align:center;padding:32px;color:var(--gray-400);font-weight:600;">Sin resultados para este filtro</td></tr>`}</tbody>
@@ -1951,7 +1942,7 @@
     syncDashboardSelectedRowState({ focus: Boolean(state.highlightedAcuseId), behavior: 'smooth' });
   }
 
-  function panelHeaderHTML(kpi, cfg, badgeText) {
+  function panelHeaderHTML(kpi, cfg) {
     const actionsHtml = `<div class="panel-header-right">
         <button class="btn-action btn-exportar" type="button" onclick="exportCurrentPanel(this)">${excelIcon()}<span class="btn-action__spinner" aria-hidden="true"></span><span class="btn-action__label">Exportar Excel</span></button>
       </div>`;
@@ -1959,7 +1950,6 @@
     return `<div class="panel-header">
       <div class="panel-header-left">
         <div class="panel-title"><span class="dot" style="background:${cfg.dot}"></span> ${cfg.title}</div>
-        <div class="panel-badge" style="background:${cfg.bg};color:${cfg.color}">${badgeText}</div>
         ${panelDateFilterHTML(kpi)}
         ${panelEntityFilterHTML(kpi)}
         <button class="btn-action btn-clear-filters btn-clear-filters--inline" type="button" onclick="clearCurrentPanelFilters(this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m14.356 2A8 8 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.343 15m13.076 0H15"/></svg><span class="btn-action__label">Limpiar filtros</span></button>
@@ -2382,12 +2372,27 @@
     return `Hasta ${fmt(hasta)}`;
   }
 
+  let _dateModalCtx = 'panel';
+
   function openPanelDateModal() {
     const modal = document.getElementById('panelDateModal');
     if (!modal) return;
+    _dateModalCtx = 'panel';
     document.getElementById('panelDateDesde').value = state.panelFilters.fechaDesde || '';
     document.getElementById('panelDateHasta').value = state.panelFilters.fechaHasta || '';
     updatePanelDateFooterInfo(state.panelFilters.fechaDesde, state.panelFilters.fechaHasta);
+    populatePanelDateLabels();
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => modal.classList.add('is-open'));
+  }
+
+  function openHistDateModal() {
+    const modal = document.getElementById('panelDateModal');
+    if (!modal) return;
+    _dateModalCtx = 'hist';
+    document.getElementById('panelDateDesde').value = state.history.filters.histDesde || '';
+    document.getElementById('panelDateHasta').value = state.history.filters.histHasta || '';
+    updatePanelDateFooterInfo(state.history.filters.histDesde, state.history.filters.histHasta);
     populatePanelDateLabels();
     modal.style.display = 'flex';
     requestAnimationFrame(() => modal.classList.add('is-open'));
@@ -2408,11 +2413,30 @@
       notify('La fecha "Desde" no puede ser mayor a "Hasta"', 'error');
       return;
     }
-    state.panelFilters.fechaDesde = desde;
-    state.panelFilters.fechaHasta = hasta;
-    closePanelDateModal();
-    resetPanelPages();
-    loadPanel(state.activeKPI, { soft: true }).catch(handleError);
+    if (_dateModalCtx === 'hist') {
+      state.history.filters.histDesde = desde;
+      state.history.filters.histHasta = hasta;
+      syncHistDateTrigger();
+      closePanelDateModal();
+      state.history.page = 1;
+      loadHistorial().catch(handleError);
+    } else {
+      state.panelFilters.fechaDesde = desde;
+      state.panelFilters.fechaHasta = hasta;
+      closePanelDateModal();
+      resetPanelPages();
+      loadPanel(state.activeKPI, { soft: true }).catch(handleError);
+    }
+  }
+
+  function syncHistDateTrigger() {
+    const btn = document.getElementById('histDateTrigger');
+    const label = document.getElementById('histDateTriggerLabel');
+    if (!btn || !label) return;
+    const d = state.history.filters.histDesde;
+    const h = state.history.filters.histHasta;
+    label.textContent = buildDateTriggerLabel(d, h);
+    btn.classList.toggle('active', !!(d || h));
   }
 
   function applyPanelQuickDate(type) {
@@ -3652,7 +3676,8 @@
         offset
       };
 
-      if (state.history.filters.fecha) params.fecha = state.history.filters.fecha;
+      if (state.history.filters.histDesde) params.fechaDesde = state.history.filters.histDesde;
+      if (state.history.filters.histHasta) params.fechaHasta = state.history.filters.histHasta;
       if (state.history.filters.usuario) params.usuario = state.history.filters.usuario;
       if (state.history.filters.cliente) params.cliente = state.history.filters.cliente;
 
@@ -3765,7 +3790,7 @@
       }
     });
 
-    syncDatePicker('histDateInput', state.history.filters.fecha);
+    syncHistDateTrigger();
   }
 
 
@@ -3835,7 +3860,8 @@
 
   async function clearHistoryFiltersAll(button) {
     await runButtonLoading(button, async () => {
-      state.history.filters.fecha = '';
+      state.history.filters.histDesde = '';
+      state.history.filters.histHasta = '';
       state.history.filters.usuario = '';
       state.history.filters.cliente = '';
       state.history.page = 1;
@@ -3843,12 +3869,6 @@
       renderHistoryTriggerState();
       await loadHistorial();
     });
-  }
-
-  async function pickHistDateFilter(isoValue) {
-    state.history.filters.fecha = isoValue || '';
-    state.history.page = 1;
-    await loadHistorial();
   }
 
   async function clearCurrentPanelFilters(button) {
