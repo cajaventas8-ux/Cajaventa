@@ -25,7 +25,9 @@
     entregados:   { dot: 'var(--success)',        title: 'Facturados',           bg: 'var(--success-soft)',           color: '#047857' },
     acuses:       { dot: 'var(--purple)',         title: 'Total de Pedidos',     bg: 'var(--purple-soft)',            color: '#6D28D9' },
     en_transito:  { dot: 'var(--accent)',         title: 'Contabilizados',       bg: 'var(--accent-soft)',            color: '#1D4ED8' },
-    anulados:     { dot: '#ef4444',               title: 'Anulados',             bg: 'rgba(239,68,68,0.12)',          color: '#dc2626' }
+    anulados:     { dot: '#ef4444',               title: 'Anulados',             bg: 'rgba(239,68,68,0.12)',          color: '#dc2626' },
+    deposito:     { dot: '#0f766e',               title: 'Depósito',             bg: '#ccfbf1',                       color: '#0f766e' },
+    fabrica:      { dot: '#1d4ed8',               title: 'Fábrica',              bg: '#dbeafe',                       color: '#1d4ed8' }
   };
   const COLORS_AVATAR = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316', '#6366F1', '#14B8A6', '#E11D48', '#7C3AED'];
   let embedOverlayCloseTimer = null;
@@ -102,7 +104,7 @@
     },
     charts: {}
   };
-  const PANEL_KPIS = new Set(['pendientes', 'entregados', 'acuses', 'en_transito', 'anulados']);
+  const PANEL_KPIS = new Set(['pendientes', 'entregados', 'acuses', 'en_transito', 'anulados', 'deposito', 'fabrica']);
   const DASHBOARD_KPIS = new Set([...PANEL_KPIS]);
 
   function normalizeDashboardLookup(value) {
@@ -128,6 +130,8 @@
     if (['entregado', 'entregados', 'completado', 'completados'].includes(normalized)) return 'entregados';
     if (['en_transito', 'transito', 'en_reparto', 'reparto'].includes(normalized)) return 'en_transito';
     if (['anulado', 'anulados', 'cancelado', 'cancelados', 'annul', 'delete', 'deleted'].includes(normalized)) return 'anulados';
+    if (['fabrica', 'fabrica', 'factory'].includes(normalized)) return 'fabrica';
+    if (['deposito', 'depositos', 'warehouse'].includes(normalized)) return 'deposito';
     if (PANEL_KPIS.has(normalized)) return normalized;
     return fallback;
   }
@@ -1030,12 +1034,16 @@
     setText('val-acuses',      formatNumber(kpis.acuses      || 0));
     setText('val-en_transito', formatNumber(kpis.en_transito || 0));
     setText('val-anulados',    formatNumber(kpis.anulados    || 0));
+    setText('val-deposito',    formatNumber(kpis.deposito    || 0));
+    setText('val-fabrica',     formatNumber(kpis.fabrica     || 0));
 
     setKpiMonto('monto-pendientes',  kpis.monto_pendientes);
     setKpiMonto('monto-entregados',  kpis.monto_entregados);
     setKpiMonto('monto-en_transito', kpis.monto_en_transito);
     setKpiMonto('monto-anulados',    kpis.monto_anulados);
     setKpiMonto('monto-acuses',      kpis.monto_total);
+    setKpiMonto('monto-deposito',    kpis.monto_deposito);
+    setKpiMonto('monto-fabrica',     kpis.monto_fabrica);
   }
 
   function setKpiMonto(id, value) {
@@ -1863,6 +1871,8 @@
     if (state.panelFilters.fechaHasta) params.fechaHasta = state.panelFilters.fechaHasta;
     if (state.panelFilters.repartidorId) params.idRepartidor = state.panelFilters.repartidorId;
     if (state.panelFilters.clienteCode) params.codCliente = state.panelFilters.clienteCode;
+    if (normalizedKpi === 'fabrica')  params.almacen = 'FABRICA';
+    if (normalizedKpi === 'deposito') params.almacen = 'DEPOSITO';
 
     return params;
   }

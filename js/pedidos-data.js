@@ -60,14 +60,13 @@
       var entrega = String(row['Entrega'] || '').trim();
       if (!entrega) return;
 
+      var puestExped = String(
+        row['PuestExped'] || row['Puest.Exped'] || row['Puest. Exped'] ||
+        row['Puesto Exped'] || row['Puesto de Expedición'] || row['PstExp'] ||
+        row['Puest.Exped.'] || row['Puest Exped'] || ''
+      ).trim();
+
       if (!entregasMap[entrega]) {
-        var puestExped = String(
-          row['PuestExped'] || row['Puest.Exped'] || row['Puest. Exped'] ||
-          row['Puesto Exped'] || row['Puesto de Expedición'] || row['PstExp'] ||
-          row['Puest.Exped.'] || row['Puest Exped'] || ''
-        ).trim();
-        var almacen = puestExped === '' ? '' : (puestExped === 'ALDF' ? 'FABRICA' : 'DEPOSITO');
-        if (puestExped) console.log('[Import] PuestExped detectado:', puestExped, '→', almacen);
         entregasMap[entrega] = {
           entrega: entrega,
           pedido: String(row['Pedido'] || '').trim(),
@@ -76,12 +75,15 @@
           vendedor: String(row['Nombre Vend.'] || '').trim(),
           fecha: String(row['Fecha Creac'] || '').trim(),
           usuarioEmpaque: String(row['Usuario Empaque'] || '').trim(),
-          almacen: almacen,
+          almacen: '',
+          puestExpedVals: [],
           items: [],
           estado: 'pendiente',
           fechaImportacion: new Date().toISOString()
         };
       }
+
+      if (puestExped) entregasMap[entrega].puestExpedVals.push(puestExped);
 
       entregasMap[entrega].items.push({
         material: String(row['Material'] || '').trim(),
@@ -91,6 +93,19 @@
         contEntr: parseFloat(String(row['Cont.Entr'] || '0').replace(',', '.')) || 0,
         contArt: parseFloat(String(row['Cont.Art'] || '0').replace(',', '.')) || 0
       });
+    });
+
+    // Determinar almacen por entrega considerando TODOS los items
+    Object.values(entregasMap).forEach(function (g) {
+      var vals = g.puestExpedVals;
+      if (vals.length === 0) {
+        g.almacen = '';
+      } else if (vals.every(function (v) { return v === 'ALDF'; })) {
+        g.almacen = 'FABRICA';
+      } else {
+        g.almacen = 'DEPOSITO';
+      }
+      delete g.puestExpedVals;
     });
 
     return Object.values(entregasMap);

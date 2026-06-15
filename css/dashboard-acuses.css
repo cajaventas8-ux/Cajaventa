@@ -325,7 +325,7 @@
   /* ═══════════════════ KPI CARDS ═══════════════════ */
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 16px;
     margin-bottom: 28px;
   }
@@ -423,13 +423,19 @@
   .kpi-card[data-kpi="en_transito"] { order: 2; --kpi-color: var(--accent); }
   .kpi-card[data-kpi="en_transito"] .kpi-icon { background: var(--accent-soft); color: var(--accent); }
 
-  .kpi-card[data-kpi="entregados"] { order: 3; --kpi-color: var(--success); }
+  .kpi-card[data-kpi="deposito"] { order: 3; --kpi-color: #0f766e; }
+  .kpi-card[data-kpi="deposito"] .kpi-icon { background: #ccfbf1; color: #0f766e; }
+
+  .kpi-card[data-kpi="fabrica"]  { order: 4; --kpi-color: #1d4ed8; }
+  .kpi-card[data-kpi="fabrica"]  .kpi-icon  { background: #dbeafe; color: #1d4ed8; }
+
+  .kpi-card[data-kpi="entregados"] { order: 5; --kpi-color: var(--success); }
   .kpi-card[data-kpi="entregados"] .kpi-icon { background: var(--success-soft); color: var(--success); }
 
-  .kpi-card[data-kpi="anulados"] { order: 4; --kpi-color: #ef4444; }
+  .kpi-card[data-kpi="anulados"] { order: 6; --kpi-color: #ef4444; }
   .kpi-card[data-kpi="anulados"] .kpi-icon { background: rgba(239,68,68,0.12); color: #dc2626; }
 
-  .kpi-card[data-kpi="acuses"] { order: 5; --kpi-color: var(--purple); }
+  .kpi-card[data-kpi="acuses"] { order: 7; --kpi-color: var(--purple); }
   .kpi-card[data-kpi="acuses"] .kpi-icon { background: var(--purple-soft); color: var(--purple); }
 
   /* ═══════════════════ CONTENT PANEL ═══════════════════ */

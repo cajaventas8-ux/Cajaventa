@@ -235,30 +235,72 @@
   Pedidos.importar = async function (rows) {
     var importados = 0, actualizados = 0;
     var grupos = {};
+    // Detectar si viene pre-parseado (pedidos-data.js) o en formato raw Excel
+    var isPreparsed = rows.length > 0 && typeof rows[0].entrega === 'string' && Array.isArray(rows[0].items);
     rows.forEach(function (r) {
-      var key = String(r.Entrega || '').trim();
-      if (!key) return;
-      if (!grupos[key]) {
+      if (isPreparsed) {
+        var key = String(r.entrega || '').trim();
+        if (!key) return;
         grupos[key] = {
           entrega: key,
-          pedido: String(r.Pedido || '').trim(),
-          solicitud: String(r['Solic.'] || r.Solic || '').trim(),
-          cliente: String(r.Nombre || '').trim(),
-          vendedor: String(r['Nombre Vend.'] || r.Nombre_Vend || '').trim(),
-          fecha: formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')),
-          usuarioEmpaque: String(r['Usuario Empaque'] || r.Usuario_Empaque || '').trim(),
-          items: []
+          pedido: String(r.pedido || '').trim(),
+          solicitud: String(r.solicitud || '').trim(),
+          cliente: String(r.cliente || '').trim(),
+          vendedor: String(r.vendedor || '').trim(),
+          fecha: formatearFecha(String(r.fecha || '')),
+          usuarioEmpaque: String(r.usuarioEmpaque || '').trim(),
+          almacen: String(r.almacen || ''),
+          items: (r.items || []).map(function (it) {
+            return {
+              material: String(it.material || '').trim(),
+              denominacion: String(it.denominacion || '').trim(),
+              cantidad: Number(it.cantidad) || 0,
+              unidad: String(it.unidad || '').trim(),
+              contEntr: Number(it.contEntr) || 0,
+              contArt: Number(it.contArt) || 0
+            };
+          })
         };
+      } else {
+        var key = String(r.Entrega || '').trim();
+        if (!key) return;
+        if (!grupos[key]) {
+          var puestExped = String(r.PuestExped || r['Puest.Exped'] || r['Puest. Exped'] || r['Puesto Exped'] || r['PstExp'] || '').trim();
+          grupos[key] = {
+            entrega: key,
+            pedido: String(r.Pedido || '').trim(),
+            solicitud: String(r['Solic.'] || r.Solic || '').trim(),
+            cliente: String(r.Nombre || '').trim(),
+            vendedor: String(r['Nombre Vend.'] || r.Nombre_Vend || '').trim(),
+            fecha: formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')),
+            usuarioEmpaque: String(r['Usuario Empaque'] || r.Usuario_Empaque || '').trim(),
+            almacen: '',
+            puestExpedVals: puestExped ? [puestExped] : [],
+            items: []
+          };
+        } else if (r.PuestExped || r['Puest.Exped']) {
+          var pe = String(r.PuestExped || r['Puest.Exped'] || '').trim();
+          if (pe) grupos[key].puestExpedVals.push(pe);
+        }
+        grupos[key].items.push({
+          material: String(r.Material || '').trim(),
+          denominacion: String(r.Denomin || r.Denominacion || '').trim(),
+          cantidad: Number(String(r['Ctd.entr.'] || r.Ctd_entr || '0').replace(',', '.')) || 0,
+          unidad: String(r.Unidad || '').trim(),
+          contEntr: Number(String(r['Cont.Entr'] || r.Cont_Entr || '0').replace(',', '.')) || 0,
+          contArt: Number(String(r['Cont.Art'] || r.Cont_Art || '0').replace(',', '.')) || 0
+        });
       }
-      grupos[key].items.push({
-        material: String(r.Material || '').trim(),
-        denominacion: String(r.Denomin || r.Denominacion || '').trim(),
-        cantidad: Number(String(r['Ctd.entr.'] || r.Ctd_entr || '0').replace(',', '.')) || 0,
-        unidad: String(r.Unidad || '').trim(),
-        contEntr: Number(String(r['Cont.Entr'] || r.Cont_Entr || '0').replace(',', '.')) || 0,
-        contArt: Number(String(r['Cont.Art'] || r.Cont_Art || '0').replace(',', '.')) || 0
-      });
     });
+    // Resolver almacen para formato raw (considerar todos los items)
+    if (!isPreparsed) {
+      Object.keys(grupos).forEach(function (k) {
+        var g = grupos[k];
+        var vals = (g.puestExpedVals || []).filter(function (v) { return v !== ''; });
+        g.almacen = vals.length === 0 ? '' : vals.every(function (v) { return v === 'ALDF'; }) ? 'FABRICA' : 'DEPOSITO';
+        delete g.puestExpedVals;
+      });
+    }
 
     var entregas = Object.keys(grupos);
     for (var i = 0; i < entregas.length; i++) {
@@ -449,7 +491,9 @@
       // ── KPIs ──
       var kpis = {
         pendientes: 0, entregados: 0, en_transito: 0, anulados: 0, acuses: 0, total: 0,
-        monto_pendientes: 0, monto_entregados: 0, monto_en_transito: 0, monto_anulados: 0, monto_total: 0
+        fabrica: 0, deposito: 0,
+        monto_pendientes: 0, monto_entregados: 0, monto_en_transito: 0, monto_anulados: 0, monto_total: 0,
+        monto_fabrica: 0, monto_deposito: 0
       };
       data.forEach(function (p) {
         var m = Number(p.monto) || 0;
@@ -459,6 +503,8 @@
         else if (p.estado === 'contabilizado') { kpis.entregados++;  kpis.monto_entregados  += m; }
         else if (p.estado === 'facturado')     { kpis.en_transito++; kpis.monto_en_transito += m; }
         else if (p.estado === 'anulado')       { kpis.anulados++;    kpis.monto_anulados    += m; }
+        if ((p.almacen || '').toUpperCase() === 'FABRICA') { kpis.fabrica++;  kpis.monto_fabrica  += m; }
+        else                                               { kpis.deposito++; kpis.monto_deposito += m; }
       });
       kpis.acuses = kpis.pendientes + kpis.entregados + kpis.en_transito;
 
@@ -556,6 +602,8 @@
     var qs = 'select=*&order=fecha.desc.nullslast&limit=' + limit + '&offset=' + from;
     if (filters) {
       if (filters.fecha) qs += '&fecha=gte.' + filters.fecha + 'T00:00:00&fecha=lte.' + filters.fecha + 'T23:59:59';
+      if (filters.fechaDesde) qs += '&fecha=gte.' + filters.fechaDesde + 'T00:00:00';
+      if (filters.fechaHasta) qs += '&fecha=lte.' + filters.fechaHasta + 'T23:59:59';
       if (filters.usuario) qs += '&usuario=ilike.*' + encodeURIComponent(filters.usuario) + '*';
       if (filters.cliente) qs += '&cliente=ilike.*' + encodeURIComponent(filters.cliente) + '*';
     }
@@ -662,6 +710,12 @@
         if (rep) return normalizeText(pedido.vendedor) === normalizeText(rep.nombre) || normalizeText(pedido.vendedor) === normalizeText(rep.codigo);
         return String(pedido.vendedor || '') === repId;
       });
+    }
+
+    if (params.almacen === 'FABRICA') {
+      pedidos = pedidos.filter(function (p) { return (p.almacen || '').toUpperCase() === 'FABRICA'; });
+    } else if (params.almacen === 'DEPOSITO') {
+      pedidos = pedidos.filter(function (p) { return (p.almacen || '').toUpperCase() !== 'FABRICA'; });
     }
 
     var total = pedidos.length;
