@@ -3901,13 +3901,14 @@ tr.acuse-row-new::after {
 
 /* Botón trigger en la barra de filtros */
 .date-btn-trigger {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--white); border: 1.5px solid var(--gray-200);
-  border-radius: 8px; padding: 6px 12px;
-  font-size: 13px; font-weight: 600; color: var(--gray-600);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--white); border: 1px solid #dbe3ef;
+  border-radius: 14px; padding: 0 14px;
+  font-size: 14px; font-weight: 600; color: #111827;
   cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
-  white-space: nowrap; min-height: 34px;
+  transition: border-color 0.22s ease, color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+  white-space: nowrap; min-height: 44px;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
 }
 .date-btn-trigger svg { color: var(--gray-400); transition: color 0.2s; }
 .date-btn-trigger:hover { border-color: var(--primary); color: var(--primary); }
