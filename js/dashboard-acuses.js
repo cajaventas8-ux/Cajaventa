@@ -2264,24 +2264,6 @@
       displayItems = displayItems.filter(i => ESTADO_POR_KPI[kpi].has(normalizeEstadoValue(i.Estado)));
     }
 
-    // Filtro por DEPOSITO
-    const aplicarFiltroDeposito = ['pendientes', 'en_transito', 'acuses'].includes(kpi);
-    if (aplicarFiltroDeposito) {
-      const clientesConDeposito = new Set();
-      const hayDatosAlmacen = displayItems.some((item) => String(item.Almacen || '').trim() !== '');
-      if (hayDatosAlmacen) {
-        displayItems.forEach((item) => {
-          const alm = String(item.Almacen || '').trim().toUpperCase();
-          if (alm === 'DEPOSITO') clientesConDeposito.add(item.Cod_Cliente || item.Nom_Cliente || '');
-        });
-        if (clientesConDeposito.size > 0) {
-          displayItems = displayItems.filter((item) =>
-            clientesConDeposito.has(item.Cod_Cliente || item.Nom_Cliente || '')
-          );
-        }
-      }
-    }
-
     // Agrupar por cliente
     const groups = new Map();
     displayItems.forEach((item) => {
