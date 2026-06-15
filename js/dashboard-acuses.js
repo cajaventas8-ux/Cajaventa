@@ -2434,7 +2434,7 @@
       <td><span class="tbl-cell-meta">${clientRowIcon()}<span class="tbl-cell-meta__text">${escapeHtml(clientLabel)}</span></span></td>
       <td>${renderAlmacenBadge(item.Almacen)}</td>
       <td class="monto-cell" onclick="event.stopPropagation();abrirMonto(this,'${acuseId}')" title="Click para ingresar monto">${renderMontoCell(item.Monto)}</td>
-      <td class="obs-cell" onclick="event.stopPropagation();abrirObservacion(this,'${acuseId}')" title="Click para editar observación">${renderObservacionCell(item.Observacion)}</td>
+      <td class="obs-cell" onclick="event.stopPropagation();openObsView(this,'${acuseId}','${escapeInlineJs(item.Observacion||'')}','${escapeInlineJs(clientLabel)}')">${renderObservacionCell(item.Observacion)}</td>
       <td><button class="tbl-btn-ver" onclick="openDetalleModal('${acuseId}')">Ver detalles</button></td>
       <td>${accionesHtml}</td>
     </tr>`;
@@ -3277,8 +3277,85 @@
         Agregar nota
       </span>`;
     }
-    return `<span class="obs-text" title="${escapeHtml(texto)}">${escapeHtml(texto)}</span>`;
+    const MAX = 48;
+    const isLong = texto.length > MAX;
+    const display = isLong ? texto.slice(0, MAX) + '…' : texto;
+    return `<span class="obs-text${isLong ? ' obs-text--truncated' : ''}">${escapeHtml(display)}</span>`;
   }
+
+  // ── Modal de observación completa ──────────────────────────────────────────
+  let _obsCellRef = null;
+
+  function openObsView(cell, acuseId, obs, clientLabel) {
+    const texto = String(obs || '').trim();
+    if (!texto) { abrirObservacion(cell, acuseId); return; }
+    _obsCellRef = cell;
+    _showObsModal(acuseId, texto, clientLabel || '');
+  }
+
+  function _showObsModal(acuseId, texto, clientLabel) {
+    let overlay = document.getElementById('obsModalOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'obsModalOverlay';
+      overlay.className = 'obs-modal-overlay';
+      overlay.innerHTML = `
+        <div class="obs-modal-card" onclick="event.stopPropagation()">
+          <div class="obs-modal-header">
+            <div class="obs-modal-header__icon">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </div>
+            <div class="obs-modal-header__info">
+              <span class="obs-modal-header__title">Observación</span>
+              <span class="obs-modal-header__sub" id="obsModalSub"></span>
+            </div>
+            <button class="obs-modal-close" onclick="closeObsModal()" aria-label="Cerrar">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 6l12 12M6 18L18 6"/></svg>
+            </button>
+          </div>
+          <div class="obs-modal-body" id="obsModalBody"></div>
+          <div class="obs-modal-footer">
+            <button class="obs-modal-btn obs-modal-btn--cancel" onclick="closeObsModal()">Cerrar</button>
+            <button class="obs-modal-btn obs-modal-btn--edit" id="obsModalEditBtn">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Editar
+            </button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) closeObsModal(); });
+    }
+
+    const sub  = overlay.querySelector('#obsModalSub');
+    const body = overlay.querySelector('#obsModalBody');
+    const editBtn = overlay.querySelector('#obsModalEditBtn');
+
+    if (sub)  sub.textContent  = clientLabel ? clientLabel + ' · #' + acuseId : '#' + acuseId;
+    if (body) body.innerHTML   = `<p class="obs-modal-text">${escapeHtml(texto)}</p>`;
+    if (editBtn) {
+      editBtn.onclick = function () { window.editarObsModal(acuseId); };
+    }
+
+    requestAnimationFrame(function () {
+      setTimeout(function () { overlay.classList.add('is-open'); }, 10);
+    });
+  }
+
+  window.closeObsModal = function () {
+    const overlay = document.getElementById('obsModalOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    overlay.classList.add('is-closing');
+    setTimeout(function () { overlay.classList.remove('is-closing'); }, 280);
+  };
+
+  window.editarObsModal = function (acuseId) {
+    const cell = _obsCellRef;
+    window.closeObsModal();
+    setTimeout(function () { if (cell) abrirObservacion(cell, acuseId); }, 250);
+  };
+
+  window.openObsView = openObsView;
 
   function abrirObservacion(cell, acuseId) {
     if (cell.querySelector('textarea')) return;
@@ -3393,12 +3470,24 @@
       const svgCheck  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
       const svgBill   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>';
 
+      const obsTexto = String(acuse.Observacion || '').trim();
+      const obsBlock = obsTexto
+        ? `<div class="detalle-obs-block">
+            <div class="detalle-obs-label">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Última observación
+            </div>
+            <p class="detalle-obs-text">${escapeHtml(obsTexto)}</p>
+          </div>`
+        : '';
+
       if (body) body.innerHTML = `
         <div class="detalle-chips">
           <div class="detalle-chip"><span class="detalle-chip__label">Pedido</span><span class="detalle-chip__val">${pedido}</span></div>
           <div class="detalle-chip"><span class="detalle-chip__label">Solicitud</span><span class="detalle-chip__val">${solicitud}</span></div>
           <div class="detalle-chip"><span class="detalle-chip__label">Vendedor</span><span class="detalle-chip__val">${vendedor}</span></div>
         </div>
+        ${obsBlock}
         <div class="detalle-section-title">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           Seguimiento
