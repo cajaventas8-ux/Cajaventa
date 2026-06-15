@@ -472,14 +472,13 @@
   }
   .aseg-btn.active[data-almacen="DEPOSITO"] { color: #0f766e; }
   .aseg-btn.active[data-almacen="FABRICA"]  { color: #1d4ed8; }
-  .aseg-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
+  .aseg-icon {
+    width: 15px; height: 15px;
     flex-shrink: 0;
-    opacity: 0.5;
+    opacity: 0.45;
     transition: opacity 0.18s ease;
   }
-  .aseg-btn.active .aseg-dot { opacity: 1; }
+  .aseg-btn.active .aseg-icon { opacity: 1; }
   .aseg-badge {
     font: 700 12px/1 'DM Sans', sans-serif;
     padding: 3px 8px;
