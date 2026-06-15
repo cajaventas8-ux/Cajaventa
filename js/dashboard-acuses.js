@@ -3412,6 +3412,7 @@
       syncSidebarActiveState();
       syncActiveKpiCards();
       syncDashboardChrome();
+      window.syncLastImportChip?.();
       syncPanelMonthLabel();
       playViewEntrance(node);
       return;

@@ -295,7 +295,25 @@
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
   }
-  #viewDashboard > .header .panel-month-nav { justify-self: end; }
+  #viewDashboard > .header .panel-header-right {
+    justify-self: end;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+  }
+  .last-import-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: 500 11px 'DM Sans', sans-serif;
+    color: #94a3b8;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 3px 9px 3px 7px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
   .header h1,
   .cal-top-bar h1 {
     font-family: 'Outfit', sans-serif;
@@ -1843,7 +1861,7 @@
       flex-direction: column;
       align-items: flex-start;
     }
-    #viewDashboard > .header .panel-month-nav { justify-self: unset; }
+    #viewDashboard > .header .panel-header-right { justify-self: unset; align-items: flex-start; }
     .almacen-segment { width: 100%; justify-content: center; }
     .header h1,
     .cal-top-bar h1 { font-size: 20px; }

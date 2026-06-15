@@ -165,15 +165,21 @@
       </button>
     </div>
 
-    <div class="panel-month-nav" id="panelMonthNav">
-      <button class="pmn-btn" onclick="changePanelMonth(-1)" aria-label="Mes anterior">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-      </button>
-      <span class="pmn-label" id="panelMonthLabel"></span>
-      <button class="pmn-btn" onclick="changePanelMonth(1)" aria-label="Mes siguiente">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-      </button>
-      <button class="pmn-all" id="panelMonthAll" onclick="setPanelMonthAll()">Todo</button>
+    <div class="panel-header-right">
+      <div class="last-import-chip" id="lastImportChip" style="display:none">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="lastImportLabel">—</span>
+      </div>
+      <div class="panel-month-nav" id="panelMonthNav">
+        <button class="pmn-btn" onclick="changePanelMonth(-1)" aria-label="Mes anterior">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span class="pmn-label" id="panelMonthLabel"></span>
+        <button class="pmn-btn" onclick="changePanelMonth(1)" aria-label="Mes siguiente">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <button class="pmn-all" id="panelMonthAll" onclick="setPanelMonthAll()">Todo</button>
+      </div>
     </div>
   </div>
 
@@ -691,6 +697,26 @@
 </div>
 
 <script>
+  window.syncLastImportChip = function () {
+    var chip = document.getElementById('lastImportChip');
+    var label = document.getElementById('lastImportLabel');
+    if (!chip || !label) return;
+    var iso = localStorage.getItem('cajaventa.lastImport');
+    if (!iso) { chip.style.display = 'none'; return; }
+    var diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    var text;
+    if (diff < 60)        text = 'hace un momento';
+    else if (diff < 3600) text = 'hace ' + Math.floor(diff / 60) + ' min';
+    else if (diff < 86400) text = 'hace ' + Math.floor(diff / 3600) + ' h';
+    else {
+      var d = new Date(iso);
+      var m = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+      text = d.getDate() + ' ' + m[d.getMonth()];
+    }
+    label.textContent = 'Últ. importación · ' + text;
+    chip.style.display = 'inline-flex';
+  };
+
   window.volverAlDropzone = function () {
     showCargaState('drop');
     var fi = document.getElementById('importFileInput');
@@ -762,6 +788,8 @@
                   '<div class="carga-stat"><span class="carga-stat__num">' + res.total + '</span><span class="carga-stat__label">Total</span></div>';
                 var desc = document.getElementById('cargaDoneDesc');
                 if (desc) desc.textContent = res.total + ' pedidos importados correctamente';
+                localStorage.setItem('cajaventa.lastImport', new Date().toISOString());
+                if (window.syncLastImportChip) syncLastImportChip();
                 showCargaState('done');
               }, 400);
             }).catch(function (err) {
