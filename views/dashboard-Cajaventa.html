@@ -778,8 +778,12 @@
           var data = new Uint8Array(e.target.result);
           setCargaProgress(85, 'Procesando datos...', 'Parseando hojas del archivo');
           setTimeout(function () {
-            PedidosData.importarExcelDesdeBuffer(data).then(function (res) {
-              setCargaProgress(100, 'Guardando...', 'Subiendo datos a Supabase');
+            // Mapea progreso interno (0-100%) al rango UI (85-99%)
+            function importProgress(pct, title, desc) {
+              setCargaProgress(85 + Math.round(pct * 0.14), title || 'Importando...', desc || '');
+            }
+            PedidosData.importarExcelDesdeBuffer(data, importProgress).then(function (res) {
+              setCargaProgress(100, 'Listo', 'Importación completada');
               setTimeout(function () {
                 var stats = document.getElementById('cargaDoneStats');
                 if (stats) stats.innerHTML =

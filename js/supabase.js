@@ -26,6 +26,34 @@
     return r && r.length ? r[0] : null;
   }
 
+  // Batch fetch: field=in.(v1,v2,...) — chunked para evitar URLs muy largas
+  async function getIn(table, field, values) {
+    if (!values.length) return [];
+    var CHUNK = 200;
+    var results = [];
+    for (var i = 0; i < values.length; i += CHUNK) {
+      var chunk = values.slice(i, i + CHUNK);
+      var inList = chunk.map(function(v) { return '"' + String(v).replace(/"/g, '\\"') + '"'; }).join(',');
+      var rows = await get(table, field + '=in.(' + inList + ')&limit=' + (CHUNK + 1));
+      results = results.concat(rows);
+    }
+    return results;
+  }
+
+  // Batch delete: field=in.(v1,v2,...)
+  async function delIn(table, field, values) {
+    if (!values.length) return;
+    var CHUNK = 200;
+    for (var i = 0; i < values.length; i += CHUNK) {
+      var chunk = values.slice(i, i + CHUNK);
+      var inList = chunk.map(function(v) { return '"' + String(v).replace(/"/g, '\\"') + '"'; }).join(',');
+      var r = await fetch(REST + '/' + table + '?' + field + '=in.(' + inList + ')', {
+        method: 'DELETE', headers: headers({ 'Prefer': 'return=minimal' })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' DELETE IN ' + table);
+    }
+  }
+
   async function post(table, body) {
     var r = await fetch(REST + '/' + table, {
       method: 'POST',
@@ -240,9 +268,10 @@
   /* ---- PEDIDOS ---- */
   var Pedidos = {};
 
-  Pedidos.importar = async function (rows) {
-    var importados = 0, actualizados = 0;
+  Pedidos.importar = async function (rows, onProgress) {
+    var prog = typeof onProgress === 'function' ? onProgress : function () {};
     var grupos = {};
+
     // Detectar si viene pre-parseado (pedidos-data.js) o en formato raw Excel
     var isPreparsed = rows.length > 0 && typeof rows[0].entrega === 'string' && Array.isArray(rows[0].items);
     rows.forEach(function (r) {
@@ -259,14 +288,7 @@
           usuarioEmpaque: String(r.usuarioEmpaque || '').trim(),
           almacen: String(r.almacen || ''),
           items: (r.items || []).map(function (it) {
-            return {
-              material: String(it.material || '').trim(),
-              denominacion: String(it.denominacion || '').trim(),
-              cantidad: Number(it.cantidad) || 0,
-              unidad: String(it.unidad || '').trim(),
-              contEntr: Number(it.contEntr) || 0,
-              contArt: Number(it.contArt) || 0
-            };
+            return { material: String(it.material || '').trim(), denominacion: String(it.denominacion || '').trim(), cantidad: Number(it.cantidad) || 0, unidad: String(it.unidad || '').trim(), contEntr: Number(it.contEntr) || 0, contArt: Number(it.contArt) || 0 };
           })
         };
       } else {
@@ -281,67 +303,65 @@
             vendedor: String(r['Nombre Vend.'] || r.Nombre_Vend || '').trim(),
             fecha: formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')),
             usuarioEmpaque: String(r['Usuario Empaque'] || r.Usuario_Empaque || '').trim(),
-            almacen: '',
-            _totalItems: 0,
-            _aldfItems: 0,
-            items: []
+            almacen: '', _totalItems: 0, _aldfItems: 0, items: []
           };
         }
         var pe = String(r.PuestExped || r['Puest.Exped'] || r['Puest. Exped'] || r['Puesto Exped'] || r['PstExp'] || '').trim();
         grupos[key]._totalItems++;
         if (pe === 'ALDF') grupos[key]._aldfItems++;
-        grupos[key].items.push({
-          material: String(r.Material || '').trim(),
-          denominacion: String(r.Denomin || r.Denominacion || '').trim(),
-          cantidad: Number(String(r['Ctd.entr.'] || r.Ctd_entr || '0').replace(',', '.')) || 0,
-          unidad: String(r.Unidad || '').trim(),
-          contEntr: Number(String(r['Cont.Entr'] || r.Cont_Entr || '0').replace(',', '.')) || 0,
-          contArt: Number(String(r['Cont.Art'] || r.Cont_Art || '0').replace(',', '.')) || 0
-        });
+        grupos[key].items.push({ material: String(r.Material || '').trim(), denominacion: String(r.Denomin || r.Denominacion || '').trim(), cantidad: Number(String(r['Ctd.entr.'] || r.Ctd_entr || '0').replace(',', '.')) || 0, unidad: String(r.Unidad || '').trim(), contEntr: Number(String(r['Cont.Entr'] || r.Cont_Entr || '0').replace(',', '.')) || 0, contArt: Number(String(r['Cont.Art'] || r.Cont_Art || '0').replace(',', '.')) || 0 });
       }
     });
-    // Resolver almacen para formato raw: FABRICA solo si 100% items tienen PuestExped='ALDF'
+
     if (!isPreparsed) {
       Object.keys(grupos).forEach(function (k) {
         var g = grupos[k];
-        var total = g._totalItems || 0;
-        var aldf  = g._aldfItems  || 0;
-        if (total === 0)         g.almacen = '';
-        else if (aldf === total) g.almacen = 'FABRICA';
-        else                     g.almacen = 'DEPOSITO';
-        delete g._totalItems;
-        delete g._aldfItems;
+        var total = g._totalItems || 0, aldf = g._aldfItems || 0;
+        g.almacen = total === 0 ? '' : aldf === total ? 'FABRICA' : 'DEPOSITO';
+        delete g._totalItems; delete g._aldfItems;
       });
     }
 
     var entregas = Object.keys(grupos);
-    for (var i = 0; i < entregas.length; i++) {
-      var g = grupos[entregas[i]];
-      var existing = await getOne('pedidos', 'entrega', g.entrega);
-      var estado = existing ? existing.estado : 'pendiente';
+    if (!entregas.length) return { importados: 0, actualizados: 0, total: 0 };
 
-      try {
-        await upsert('pedidos', {
-          entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud,
-          cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null,
-          usuario_empaque: g.usuarioEmpaque, almacen: g.almacen || '', estado: estado
-        }, 'entrega');
-      } catch (e) { logErr('importar.pedidos', e); continue; }
+    // ── PASO 1: Traer todos los existentes en UNA sola query ──────────────────
+    prog(15, 'Verificando ' + entregas.length + ' pedidos...', 'Consultando base de datos');
+    var existingRows = [];
+    try { existingRows = await getIn('pedidos', 'entrega', entregas); } catch (e) { logErr('importar.getIn', e); }
+    var existingMap = {};
+    existingRows.forEach(function (r) { existingMap[r.entrega] = r; });
 
-      try {
-        await del('pedido_items', 'pedido_entrega', g.entrega);
-        if (g.items.length) {
-          var itemsPayload = g.items.map(function (it) {
-            return { pedido_entrega: g.entrega, material: it.material, denominacion: it.denominacion, cantidad: it.cantidad, unidad: it.unidad, cont_entr: it.contEntr, cont_art: it.contArt };
-          });
-          await post('pedido_items', itemsPayload);
-        }
-      } catch (e) { logErr('importar.items', e); }
+    // ── PASO 2: Upsert masivo de pedidos en UNA sola request ─────────────────
+    prog(35, 'Guardando ' + entregas.length + ' pedidos...', 'Un solo batch a Supabase');
+    var pedidosPayload = entregas.map(function (key) {
+      var g = grupos[key];
+      var estado = existingMap[g.entrega] ? existingMap[g.entrega].estado : 'pendiente';
+      return { entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud, cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null, usuario_empaque: g.usuarioEmpaque, almacen: g.almacen || '', estado: estado };
+    });
+    try { await upsert('pedidos', pedidosPayload, 'entrega'); } catch (e) { logErr('importar.pedidos.batch', e); throw e; }
 
-      if (existing) actualizados++; else importados++;
-    }
+    // ── PASO 3: Borrar items anteriores en UNA sola query ────────────────────
+    prog(60, 'Limpiando líneas anteriores...', entregas.length + ' entregas');
+    try { await delIn('pedido_items', 'pedido_entrega', entregas); } catch (e) { logErr('importar.items.del', e); }
 
+    // ── PASO 4: Insertar todos los items en UNA sola request ─────────────────
+    var allItems = [];
+    entregas.forEach(function (key) {
+      var g = grupos[key];
+      g.items.forEach(function (it) {
+        allItems.push({ pedido_entrega: g.entrega, material: it.material, denominacion: it.denominacion, cantidad: it.cantidad, unidad: it.unidad, cont_entr: it.contEntr, cont_art: it.contArt });
+      });
+    });
+    prog(75, 'Insertando ' + allItems.length + ' líneas...', 'Batch de items');
+    try { if (allItems.length) await post('pedido_items', allItems); } catch (e) { logErr('importar.items.post', e); }
+
+    prog(92, 'Registrando auditoría...', '');
+    var importados = entregas.filter(function (k) { return !existingMap[k]; }).length;
+    var actualizados = entregas.filter(function (k) { return !!existingMap[k]; }).length;
     await registrarAuditoria('importacion_excel', 'sistema', null, null, 'Importados ' + importados + ' nuevos, ' + actualizados + ' actualizados');
+
+    prog(100, 'Completado', '');
     return { importados: importados, actualizados: actualizados, total: entregas.length };
   };
 

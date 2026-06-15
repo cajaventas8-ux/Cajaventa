@@ -112,7 +112,7 @@
     return Object.values(entregasMap);
   }
 
-  function importarExcelBuffer(buffer) {
+  function importarExcelBuffer(buffer, onProgress) {
     return new Promise(function (resolve, reject) {
       try {
         var data = new Uint8Array(buffer);
@@ -124,7 +124,7 @@
           return;
         }
 
-        window.Supabase.Pedidos.importar(nuevos).then(function (result) {
+        window.Supabase.Pedidos.importar(nuevos, onProgress).then(function (result) {
           return loadFromSupabase().then(function () { resolve(result); });
         }).catch(function (err) {
           reject('Error al importar: ' + (err.message || err));
