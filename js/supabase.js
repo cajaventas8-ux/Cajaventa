@@ -78,6 +78,7 @@
       fecha: row.fecha || '',
       usuarioEmpaque: row.usuario_empaque || '',
       almacen: row.almacen || '',
+      almacenOrigen: row.almacen_origen || null,
       observacion: row.observacion || '',
       monto: Number(row.monto) || 0,
       estado: row.estado || 'pendiente',
@@ -85,6 +86,7 @@
       fechaActualizacion: row.fecha_actualizacion || null,
       fechaContabilizado: row.fecha_contabilizado || null,
       fechaFacturado: row.fecha_facturado || null,
+      fechaAnulado: row.fecha_anulado || null,
       items: row.items || []
     };
   }
@@ -176,8 +178,10 @@
       Fecha_Entrega: null,
       Fecha_Contabilizado: p.fechaContabilizado || null,
       Fecha_Facturado: p.fechaFacturado || null,
+      Fecha_Anulado: p.fechaAnulado || null,
       Estado: normalizeApiEstado(p.estado),
       Almacen: p.almacen || '',
+      Almacen_Origen: p.almacenOrigen || null,
       Observacion: p.observacion || '',
       Monto: Number(p.monto) || 0,
       Usuario_Creacion: p.usuarioEmpaque || '',
@@ -423,8 +427,9 @@
     try {
       var updateFields = { estado: nuevoEstado };
       // DB 'facturado' = UI "Contabilizado" | DB 'contabilizado' = UI "Facturado"
-      if (nuevoEstado === 'facturado')      updateFields.fecha_contabilizado = new Date().toISOString();
-      else if (nuevoEstado === 'contabilizado') updateFields.fecha_facturado = new Date().toISOString();
+      if (nuevoEstado === 'facturado')          updateFields.fecha_contabilizado = new Date().toISOString();
+      else if (nuevoEstado === 'contabilizado') updateFields.fecha_facturado     = new Date().toISOString();
+      else if (nuevoEstado === 'anulado')        updateFields.fecha_anulado       = new Date().toISOString();
       await update('pedidos', 'entrega', entrega, updateFields);
       await post('pedidos_historial', { entrega: entrega, estado: nuevoEstado, usuario: usuario || 'sistema', observacion: observacion || '' });
       await registrarAuditoria('cambio_estado', usuario, null, entrega, 'Estado cambiado a ' + nuevoEstado);
@@ -435,10 +440,19 @@
   Pedidos.eliminar = async function (entrega, usuario, observacion) {
     try {
       await post('pedidos_historial', { entrega: entrega, estado: 'anulado', usuario: usuario || 'sistema', observacion: observacion || 'Anulado del sistema' });
-      await update('pedidos', 'entrega', entrega, { estado: 'anulado' });
+      await update('pedidos', 'entrega', entrega, { estado: 'anulado', fecha_anulado: new Date().toISOString() });
       await registrarAuditoria('anulacion', usuario, null, entrega, observacion || 'Pedido anulado');
       return true;
     } catch (e) { logErr('eliminar', e); throw e; }
+  };
+
+  Pedidos.traspasar = async function (entrega, usuario) {
+    try {
+      await update('pedidos', 'entrega', entrega, { almacen: 'DEPOSITO', almacen_origen: 'FABRICA' });
+      await post('pedidos_historial', { entrega: entrega, estado: 'traspaso', usuario: usuario || 'sistema', observacion: 'Traspasado de Fábrica a Depósito' });
+      await registrarAuditoria('traspaso_almacen', usuario, null, entrega, 'Traspaso FABRICA → DEPOSITO');
+      return true;
+    } catch (e) { logErr('traspasar', e); throw e; }
   };
 
   Pedidos.borrar = async function (entrega, usuario) {
@@ -916,6 +930,13 @@
         var entregaMonto = decodeURIComponent(mMonto[1]);
         await update('pedidos', 'entrega', entregaMonto, { monto: Number(body.Monto) || 0 });
         return { success: true };
+      }
+      var mAlmacen = path.match(/^\/api\/acuses\/(.+)\/almacen$/);
+      if (mAlmacen) {
+        var entregaAlm = decodeURIComponent(mAlmacen[1]);
+        await Pedidos.traspasar(entregaAlm, body.Usuario || localStorage.getItem('acuse.currentUser') || 'sistema');
+        var traspasado = await Pedidos.getByEntrega(entregaAlm);
+        return traspasado ? pedidoToAcuse(traspasado) : { success: true };
       }
       return origPatch(path, body);
     };

@@ -2390,6 +2390,11 @@
     const telefono = escapeHtml(item.Telefono_Cliente || item.Telef_Cliente || item.TelF_Cliente || '');
     const motivoAnulacion = escapeHtml(item.Motivo_Anulacion || item.Observacion || 'Sin motivo registrado');
 
+    const esFabrica = (item.Almacen || '').toUpperCase() === 'FABRICA';
+    const traspasarBtnHtml = (esFabrica && !cancelled)
+      ? `<button class="tbl-btn act-traspasar" onclick="event.stopPropagation();traspasarPedido(${acuseId}, this)"><span class="tip">Traspasar a Depósito</span>${traspasarIcon()}</button>`
+      : '';
+
     let accionesHtml;
     if (cancelled) {
       accionesHtml = `<div class="tbl-actions tbl-actions--single">
@@ -2400,11 +2405,13 @@
     } else if (pending) {
       accionesHtml = `<div class="tbl-actions">
           <button class="tbl-btn act-contabilizar" onclick="event.stopPropagation();markAcuseContabilizado(${acuseId}, this)"><span class="tip">Contabilizado</span>${contabilizarIcon()}</button>
+          ${traspasarBtnHtml}
           <button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>
         </div>`;
     } else {
       accionesHtml = `<div class="tbl-actions">
           <button class="tbl-btn act-facturar" onclick="event.stopPropagation();markAcuseFacturado(${acuseId}, this)"><span class="tip">Facturado</span>${facturarIcon()}</button>
+          ${traspasarBtnHtml}
           <button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>
         </div>`;
     }
@@ -2413,26 +2420,21 @@
     const solicVal  = escapeHtml(item.solicitud || item.Solicitud || '');
     const entregaStr = escapeHtml(item.entrega || String(acuseId));
 
-    // Fecha secundaria de seguimiento según KPI activo
-    let fechaSubHtml = '';
-    if (_renderingKpi === 'en_transito' && item.Fecha_Contabilizado) {
-      fechaSubHtml = `<span class="fecha-estado-sub" title="Fecha de contabilización">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        ${escapeHtml(formatDate(item.Fecha_Contabilizado))}</span>`;
-    } else if (_renderingKpi === 'entregados' && item.Fecha_Facturado) {
-      fechaSubHtml = `<span class="fecha-estado-sub fecha-estado-sub--facturado" title="Fecha de facturación">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        ${escapeHtml(formatDate(item.Fecha_Facturado))}</span>`;
-    }
+    // Fecha principal según KPI activo
+    let primaryDate;
+    if (_renderingKpi === 'en_transito')  primaryDate = item.Fecha_Contabilizado || item.Fecha_Emision;
+    else if (_renderingKpi === 'entregados') primaryDate = item.Fecha_Facturado  || item.Fecha_Emision;
+    else if (_renderingKpi === 'anulados')   primaryDate = item.Fecha_Anulado    || item.Fecha_Emision;
+    else                                     primaryDate = item.Fecha_Emision;
 
     return `<tr class="tbl-row-selectable" data-acuse-id="${acuseId}" data-entrega="${entregaStr}">
       <td class="td-cb" onclick="event.stopPropagation()"><label class="cb-wrap"><input type="checkbox" class="row-cb" data-entrega="${entregaStr}" onchange="cvToggleSelect('${escapeInlineJs(item.entrega || String(acuseId))}',this)"></label></td>
-      <td><div class="fecha-cell-wrap">${escapeHtml(formatDate(item.Fecha_Emision))}${fechaSubHtml}</div></td>
+      <td>${escapeHtml(formatDate(primaryDate))}</td>
       <td>${copyCell(guide)}</td>
       <td>${pedidoVal ? copyCell(pedidoVal) : '<span style="color:#cbd5e1">—</span>'}</td>
       <td>${solicVal  ? copyCell(solicVal) : '<span style="color:#cbd5e1">—</span>'}</td>
       <td><span class="tbl-cell-meta">${clientRowIcon()}<span class="tbl-cell-meta__text">${escapeHtml(clientLabel)}</span></span></td>
-      <td>${renderAlmacenBadge(item.Almacen)}</td>
+      <td>${renderAlmacenBadge(item.Almacen, item.Almacen_Origen)}</td>
       <td class="monto-cell" onclick="event.stopPropagation();abrirMonto(this,'${acuseId}')" title="Click para ingresar monto">${renderMontoCell(item.Monto)}</td>
       <td class="obs-cell" onclick="event.stopPropagation();openObsView(this,'${acuseId}','${escapeInlineJs(item.Observacion||'')}','${escapeInlineJs(clientLabel)}')">${renderObservacionCell(item.Observacion)}</td>
       <td><button class="tbl-btn-ver" onclick="openDetalleModal('${acuseId}')">Ver detalles</button></td>
@@ -3042,6 +3044,30 @@
     }
   }
 
+  async function traspasarPedido(id, button) {
+    const usuario = resolveCurrentOperator();
+    if (!usuario) { notify('Debés iniciar sesión para traspasar.', 'warning'); return; }
+
+    const ok = await showCvConfirm(
+      '¿Traspasar a Depósito?',
+      'Este pedido pasará de Fábrica a Depósito. Quedará identificado como traspasado.',
+      { confirmLabel: 'Traspasar' }
+    );
+    if (!ok) return;
+
+    setDashboardSelectedAcuse(id, { clearHighlight: false });
+    try {
+      await runButtonLoading(button, async () => {
+        await AcuseAPI.patch(`/api/acuses/${id}/almacen`, { Usuario: usuario });
+        await refreshDashboardData({ softPanel: true });
+        showCvCheck('Traspasado a Depósito');
+      });
+    } catch (error) {
+      notify(error.message, 'error');
+    }
+  }
+  window.traspasarPedido = traspasarPedido;
+
   // ── NAVEGACIÓN DESDE KANBAN ──────────────────────────────────────────────
   window.irAGrupoKanban = async function (col, cliente) {
     const kpiMap = { pendiente: 'pendientes', contabilizado: 'en_transito', facturado: 'entregados' };
@@ -3436,7 +3462,7 @@
         (pedidoLabel ? `<span class="detalle-header-sub">Pedido&nbsp;<strong>${pedidoLabel}</strong></span>` : '') +
         (solicLabel  ? `<span class="detalle-header-sub">Solic.&nbsp;<strong>${solicLabel}</strong></span>`  : '');
       if (clienteEl) clienteEl.textContent = acuse.Nom_Cliente || acuse.Cod_Cliente || '—';
-      if (badgesEl) badgesEl.innerHTML = renderStatusBadge(acuse.Estado) + (acuse.Almacen ? ' ' + renderAlmacenBadge(acuse.Almacen) : '');
+      if (badgesEl) badgesEl.innerHTML = renderStatusBadge(acuse.Estado) + (acuse.Almacen ? ' ' + renderAlmacenBadge(acuse.Almacen, acuse.Almacen_Origen) : '');
 
       const detalles = acuse.detalles || [];
       const pedido = escapeHtml(acuse.pedido || '—');
@@ -3454,11 +3480,14 @@
           </tr>`).join('')
         : `<tr><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;font-weight:600">Sin líneas registradas</td></tr>`;
 
-      const fContab  = acuse.Fecha_Contabilizado ? escapeHtml(formatDate(acuse.Fecha_Contabilizado)) : null;
-      const fFact    = acuse.Fecha_Facturado     ? escapeHtml(formatDate(acuse.Fecha_Facturado))     : null;
+      const fContab    = acuse.Fecha_Contabilizado ? escapeHtml(formatDate(acuse.Fecha_Contabilizado)) : null;
+      const fFact      = acuse.Fecha_Facturado     ? escapeHtml(formatDate(acuse.Fecha_Facturado))     : null;
+      const fAnul      = acuse.Fecha_Anulado       ? escapeHtml(formatDate(acuse.Fecha_Anulado))       : null;
+      const isAnulado  = (acuse.Estado || '').toLowerCase() === 'anulado';
+      const isTraspasado = String(acuse.Almacen_Origen || '').toUpperCase() === 'FABRICA';
 
-      const timelineStep = (icon, label, dateStr, done) => `
-        <div class="tl-step${done ? ' tl-step--done' : ' tl-step--pending'}">
+      const timelineStep = (icon, label, dateStr, done, variant) => `
+        <div class="tl-step${done ? ' tl-step--done' : ' tl-step--pending'}${variant ? ' tl-step--' + variant : ''}">
           <div class="tl-step__track"><div class="tl-step__dot">${icon}</div><div class="tl-step__line"></div></div>
           <div class="tl-step__content">
             <span class="tl-step__label">${label}</span>
@@ -3466,9 +3495,11 @@
           </div>
         </div>`;
 
-      const svgCreado = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-      const svgCheck  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
-      const svgBill   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>';
+      const svgCreado    = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      const svgCheck     = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+      const svgBill      = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>';
+      const svgAnul      = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      const svgTraspaso  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12h16M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
       const obsTexto = String(acuse.Observacion || '').trim();
       const obsBlock = obsTexto
@@ -3493,9 +3524,11 @@
           Seguimiento
         </div>
         <div class="detalle-timeline">
-          ${timelineStep(svgCreado, 'Creado', fecha, true)}
-          ${timelineStep(svgCheck,  'Contabilizado', fContab, Boolean(fContab))}
-          ${timelineStep(svgBill,   'Facturado',     fFact,   Boolean(fFact))}
+          ${timelineStep(svgCreado,   'Creado',               fecha,   true)}
+          ${isTraspasado ? timelineStep(svgTraspaso, 'Traspasado · Fáb → Dep', null, true, 'traspaso') : ''}
+          ${timelineStep(svgCheck,    'Contabilizado',         fContab, Boolean(fContab))}
+          ${timelineStep(svgBill,     'Facturado',             fFact,   Boolean(fFact))}
+          ${isAnulado || fAnul ? timelineStep(svgAnul, 'Anulado', fAnul, Boolean(fAnul), 'anulado') : ''}
         </div>
         <div>
           <div class="detalle-section-title">Líneas de entrega</div>
@@ -4457,16 +4490,17 @@
     return 'status-pending';
   }
 
-  function renderAlmacenBadge(almacen) {
+  function renderAlmacenBadge(almacen, almacenOrigen) {
     const val = String(almacen || '').trim().toUpperCase();
     if (!val) return '<span class="alm-badge__empty">—</span>';
-    const isFabrica = val === 'FABRICA';
-    const cls   = isFabrica ? 'alm-badge--fabrica' : 'alm-badge--deposito';
-    const label = isFabrica ? 'Fábrica' : 'Depósito';
+    const isFabrica    = val === 'FABRICA';
+    const isTraspasado = !isFabrica && String(almacenOrigen || '').toUpperCase() === 'FABRICA';
+    const cls   = isFabrica ? 'alm-badge--fabrica' : isTraspasado ? 'alm-badge--traspasado' : 'alm-badge--deposito';
+    const label = isFabrica ? 'Fábrica' : isTraspasado ? 'Dep. ⇄ Fab' : 'Depósito';
     const icon  = isFabrica
       ? '<svg class="alm-badge__icon" viewBox="0 0 14 12" fill="none"><path d="M1 11V6l3.5-2.5V6L8 3.5V6l3.5-2.5V11H1z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/></svg>'
       : '<svg class="alm-badge__icon" viewBox="0 0 14 12" fill="none"><path d="M1 5.5L7 2l6 3.5V11H1V5.5z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M5 11V8h4v3" stroke="currentColor" stroke-width="1.25"/></svg>';
-    return `<span class="alm-badge ${cls}">${icon}${label}</span>`;
+    return `<span class="alm-badge ${cls}" title="${isTraspasado ? 'Traspasado de Fábrica a Depósito' : ''}">${icon}${label}</span>`;
   }
 
   function renderStatusBadge(estado) {
@@ -4970,6 +5004,10 @@
 
   function facturarIcon() {
     return '<svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function traspasarIcon() {
+    return '<svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path d="M4 12h16M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
 
   function excelIcon() {

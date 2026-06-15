@@ -1634,6 +1634,15 @@
     background: #25d366; color: #fff;
     border-color: #25d366;
   }
+  .tbl-btn.act-traspasar {
+    background: rgba(245,158,11,0.13); color: #b45309;
+    border: 1px solid rgba(245,158,11,0.2);
+  }
+  .tbl-btn.act-traspasar:hover {
+    background: #d97706; color: #fff;
+    border-color: #d97706;
+  }
+  .tbl-btn.act-traspasar::after { box-shadow: 0 6px 18px rgba(217,119,6,0.35); }
 
   /* Active press */
   .tbl-btn:active {
@@ -3423,6 +3432,24 @@ tr.acuse-row-new::after {
 }
 .fecha-estado-sub svg { opacity: 0.8; }
 .fecha-estado-sub--facturado { color: #60a5fa; }
+.fecha-estado-sub--anulado { color: #f87171; }
+
+/* ── Timeline: variante anulado ── */
+.tl-step--anulado.tl-step--done .tl-step__dot {
+  background: #fee2e2; border: 1.5px solid #fca5a5; color: #dc2626;
+}
+.tl-step--anulado.tl-step--done .tl-step__line { background: #fecaca; }
+.tl-step--anulado .tl-step__label { color: #dc2626; }
+.tl-step--anulado.tl-step--pending .tl-step__dot {
+  background: #fff1f1; border: 1.5px dashed #fca5a5; color: #f87171;
+}
+
+/* ── Timeline: variante traspaso ── */
+.tl-step--traspaso.tl-step--done .tl-step__dot {
+  background: #fef3c7; border: 1.5px solid #fcd34d; color: #b45309;
+}
+.tl-step--traspaso.tl-step--done .tl-step__line { background: #fde68a; }
+.tl-step--traspaso .tl-step__label { color: #b45309; }
 
 /* Table */
 .detalle-table-wrap {
@@ -4283,6 +4310,11 @@ tr.acuse-row-new::after {
 .alm-badge--fabrica {
   background: linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%);
   color: #fff;
+}
+.alm-badge--traspasado {
+  background: linear-gradient(120deg, #d97706 0%, #f59e0b 100%);
+  color: #fff;
+  position: relative;
 }
 .alm-badge__icon { display: none; }
 .alm-badge__empty {
