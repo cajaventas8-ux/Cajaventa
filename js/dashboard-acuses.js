@@ -3461,11 +3461,10 @@
       const canvas = document.querySelector('.canvas');
       const detail = document.getElementById('calDayDetail');
       if (!canvas || !detail) return;
-      const canvasRect = canvas.getBoundingClientRect();
-      const detailRect = detail.getBoundingClientRect();
-      if (detailRect.top > canvasRect.bottom - 60) {
-        canvas.scrollBy({ top: detailRect.top - canvasRect.bottom + 100, behavior: 'smooth' });
-      }
+      const offsetInCanvas = detail.getBoundingClientRect().top
+                           - canvas.getBoundingClientRect().top
+                           + canvas.scrollTop;
+      canvas.scrollTo({ top: Math.max(0, offsetInCanvas - 20), behavior: 'smooth' });
     });
   }
 
