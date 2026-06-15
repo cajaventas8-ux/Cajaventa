@@ -433,6 +433,15 @@
     } catch (e) { logErr('eliminar', e); throw e; }
   };
 
+  Pedidos.borrar = async function (entrega, usuario) {
+    try {
+      await del('pedido_items', 'pedido_entrega', entrega);
+      await del('pedidos', 'entrega', entrega);
+      await registrarAuditoria('eliminacion', usuario || 'sistema', null, entrega, 'Pedido eliminado permanentemente');
+      return true;
+    } catch (e) { logErr('borrar', e); throw e; }
+  };
+
   Pedidos.crearPedido = async function (data) {
     var entrega = data.entrega || String(Date.now());
     try {

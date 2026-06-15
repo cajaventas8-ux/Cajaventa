@@ -2151,29 +2151,25 @@
     else notify(`${ids.length - errors} entrega(s) actualizadas a ${label}.`, 'success');
   };
 
-  window.cvBulkAnular = async function () {
+  window.cvBulkEliminar = async function () {
     if (!_selectedEntregas.size) return;
     const ids = [..._selectedEntregas];
     const msg = ids.length === 1
-      ? '¿Anular 1 entrega? Esta acción no se puede deshacer.'
-      : `¿Anular ${ids.length} entregas? Esta acción no se puede deshacer.`;
+      ? '¿Eliminar 1 entrega permanentemente? Esta acción no se puede deshacer.'
+      : `¿Eliminar ${ids.length} entregas permanentemente? Esta acción no se puede deshacer.`;
     if (!confirm(msg)) return;
 
     const usuario = resolveCurrentOperator() || 'sistema';
     let errors = 0;
     for (const entrega of ids) {
       try {
-        await AcuseAPI.patch(`/api/acuses/${encodeURIComponent(entrega)}/estado`, {
-          Estado: 'Anulado',
-          Usuario: usuario,
-          Observacion: 'Anulación masiva desde dashboard'
-        });
+        await window.Supabase.Pedidos.borrar(entrega, usuario);
       } catch (_) { errors++; }
     }
     window.cvClearSelection();
-    await refreshDashboardData({ softPanel: true });
-    if (errors) notify(`${errors} entrega(s) no se pudieron anular.`, 'warning');
-    else notify(`${ids.length - errors} entrega(s) anuladas.`, 'success');
+    await refreshDashboardData({ softPanel: false });
+    if (errors) notify(`${errors} entrega(s) no se pudieron eliminar.`, 'warning');
+    else notify(`${ids.length - errors} entrega(s) eliminadas.`, 'success');
   };
 
   function renderPanelRows(kpi, items) {
