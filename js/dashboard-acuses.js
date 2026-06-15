@@ -213,6 +213,7 @@
     if (btnFab) btnFab.classList.toggle('active', val === 'FABRICA');
     resetPanelPages();
     loadPanel(state.activeKPI, { soft: true }).catch(handleError);
+    loadKpiSummary().catch(handleError);
   }
 
   window.selectKPI = selectKPI;
@@ -925,10 +926,10 @@
   }
 
   async function loadKpiSummary() {
-    // Usar el mes del filtro activo si hay uno, sino todo el historial
     const params = state.panelMonth
       ? { scope: 'month', year: state.panelMonth.year, month: state.panelMonth.month }
       : { scope: 'all', anchor: TODAY_ISO };
+    if (state.panelFilters.almacen) params.almacen = state.panelFilters.almacen;
     state.kpiSummary = await AcuseAPI.get('/api/dashboard/interactivo/summary', params);
     renderKpis();
   }
@@ -976,6 +977,7 @@
     } else {
       params = { scope: 'all', anchor: TODAY_ISO };
     }
+    if (state.panelFilters.almacen) params.almacen = state.panelFilters.almacen;
     state.kpiSummary = await AcuseAPI.get('/api/dashboard/interactivo/summary', params);
     renderKpis();
   }

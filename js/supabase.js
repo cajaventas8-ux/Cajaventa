@@ -485,7 +485,7 @@
   /* ---- DASHBOARD / SUMMARY ---- */
   var Dashboard = {};
 
-  Dashboard.getSummary = async function (scope, year, month) {
+  Dashboard.getSummary = async function (scope, year, month, almacen) {
     var Y = year || new Date().getFullYear();
     var M = month || new Date().getMonth() + 1;
     try {
@@ -513,6 +513,14 @@
       data.forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
       if (results[1]) trendRaw.forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
 
+      // Filtro de almacén para KPIs (aplica sobre el slice de datos ya filtrado por mes)
+      var kpiData = data;
+      if (almacen === 'DEPOSITO') {
+        kpiData = data.filter(function (p) { return (p.almacen || '').toUpperCase() !== 'FABRICA'; });
+      } else if (almacen === 'FABRICA') {
+        kpiData = data.filter(function (p) { return (p.almacen || '').toUpperCase() === 'FABRICA'; });
+      }
+
       // ── KPIs ──
       var kpis = {
         pendientes: 0, entregados: 0, en_transito: 0, anulados: 0, acuses: 0, total: 0,
@@ -520,7 +528,7 @@
         monto_pendientes: 0, monto_entregados: 0, monto_en_transito: 0, monto_anulados: 0, monto_total: 0,
         monto_fabrica: 0, monto_deposito: 0
       };
-      data.forEach(function (p) {
+      kpiData.forEach(function (p) {
         var m = Number(p.monto) || 0;
         kpis.total++;
         kpis.monto_total += m;
@@ -806,7 +814,7 @@
           yearP  = d.getFullYear();
           monthP = d.getMonth() + 1;
         }
-        return await Dashboard.getSummary(scopeP, yearP, monthP);
+        return await Dashboard.getSummary(scopeP, yearP, monthP, params && params.almacen);
       }
       // Dashboard resumen
       if (path === '/api/dashboard/resumen') {
