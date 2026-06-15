@@ -150,6 +150,21 @@
   <div id="viewDashboard">
   <div class="header">
     <h1>Caja <span>Pedidos</span></h1>
+
+    <!-- ALMACEN SEGMENT CONTROL -->
+    <div class="almacen-segment" id="almacenSegment">
+      <button class="aseg-btn" data-almacen="DEPOSITO" id="btnAlmacenDeposito" onclick="setAlmacenFilter('DEPOSITO')" type="button">
+        <span class="aseg-dot" style="background:#0f766e"></span>
+        Depósito
+        <span class="aseg-badge" id="val-deposito">0</span>
+      </button>
+      <button class="aseg-btn" data-almacen="FABRICA" id="btnAlmacenFabrica" onclick="setAlmacenFilter('FABRICA')" type="button">
+        <span class="aseg-dot" style="background:#1d4ed8"></span>
+        Fábrica
+        <span class="aseg-badge" id="val-fabrica">0</span>
+      </button>
+    </div>
+
     <div class="panel-month-nav" id="panelMonthNav">
       <button class="pmn-btn" onclick="changePanelMonth(-1)" aria-label="Mes anterior">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
@@ -160,20 +175,6 @@
       </button>
       <button class="pmn-all" id="panelMonthAll" onclick="setPanelMonthAll()">Todo</button>
     </div>
-  </div>
-
-  <!-- ALMACEN FILTER BUTTONS -->
-  <div class="almacen-filter-bar">
-    <button class="almacen-btn" data-almacen="DEPOSITO" id="btnAlmacenDeposito" onclick="setAlmacenFilter('DEPOSITO')" type="button">
-      <span class="almacen-dot" style="background:#0f766e"></span>
-      Depósito
-      <span class="almacen-count" id="val-deposito">0</span>
-    </button>
-    <button class="almacen-btn" data-almacen="FABRICA" id="btnAlmacenFabrica" onclick="setAlmacenFilter('FABRICA')" type="button">
-      <span class="almacen-dot" style="background:#1d4ed8"></span>
-      Fábrica
-      <span class="almacen-count" id="val-fabrica">0</span>
-    </button>
   </div>
 
   <!-- KPI CARDS -->
