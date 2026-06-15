@@ -577,6 +577,7 @@
         monto_pendientes: 0, monto_entregados: 0, monto_en_transito: 0, monto_anulados: 0, monto_total: 0,
         monto_fabrica: 0, monto_deposito: 0
       };
+      // Estado KPIs (pendientes, facturado, etc.) desde kpiData (filtrada por almacén activo)
       kpiData.forEach(function (p) {
         var m = Number(p.monto) || 0;
         kpis.total++;
@@ -585,6 +586,10 @@
         else if (p.estado === 'contabilizado') { kpis.entregados++;  kpis.monto_entregados  += m; }
         else if (p.estado === 'facturado')     { kpis.en_transito++; kpis.monto_en_transito += m; }
         else if (p.estado === 'anulado')       { kpis.anulados++;    kpis.monto_anulados    += m; }
+      });
+      // Conteos FABRICA/DEPOSITO desde data SIN filtro de almacén → ambos badges siempre visibles
+      data.forEach(function (p) {
+        var m = Number(p.monto) || 0;
         if ((p.almacen || '').toUpperCase() === 'FABRICA') { kpis.fabrica++;  kpis.monto_fabrica  += m; }
         else                                               { kpis.deposito++; kpis.monto_deposito += m; }
       });
