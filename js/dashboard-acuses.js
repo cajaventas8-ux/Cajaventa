@@ -2028,7 +2028,7 @@
         <div class="fi-dot"></div>
         <div class="fi-row">
           <span class="fi-name">${escapeHtml(name)}</span>
-          ${code ? `<span class="fi-code">${escapeHtml(code)}</span>` : ''}
+          ${code && code !== name ? `<span class="fi-code">${escapeHtml(code)}</span>` : ''}
         </div>
         <svg class="fi-check" viewBox="0 0 20 20" fill="none"><path d="M4.5 10.5l3.2 3.2L15.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>`;
