@@ -861,7 +861,7 @@
 <!-- Bulk Action Bar -->
 <div id="bulkActionBar" class="bulk-bar" style="display:none" role="toolbar" aria-label="Acciones masivas">
   <span class="bulk-bar__count" id="bulkCount">0 seleccionados</span>
-  <div class="bulk-bar__actions">
+  <div class="bulk-bar__actions" id="bulkBarActions">
     <select class="bulk-bar__select" id="bulkEstadoSelect" onchange="cvBulkChangeEstado(this.value);this.value=''">
       <option value="">Cambiar estado…</option>
       <option value="pendiente">Pendiente</option>
@@ -877,6 +877,39 @@
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
       Cancelar
     </button>
+  </div>
+  <div class="bulk-bar__progress" id="bulkBarProgress" style="display:none">
+    <span class="bulk-bar__progress-label" id="bulkProgressLabel">Eliminando…</span>
+    <div class="bulk-bar__progress-track">
+      <div class="bulk-bar__progress-fill" id="bulkProgressFill"></div>
+    </div>
+    <span class="bulk-bar__progress-pct" id="bulkProgressPct">0%</span>
+  </div>
+</div>
+
+<!-- Modal Confirmación Eliminar -->
+<div id="deleteConfirmModal" class="del-modal-overlay" role="dialog" aria-modal="true">
+  <div class="del-modal-card">
+    <div class="del-modal-icon-wrap">
+      <div class="del-modal-icon">
+        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+        </svg>
+      </div>
+    </div>
+    <h2 class="del-modal-title">Eliminar entregas</h2>
+    <p class="del-modal-msg" id="delModalMsg">Se eliminarán las entregas seleccionadas permanentemente.</p>
+    <div class="del-modal-warning">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Esta acción es permanente y no se puede deshacer.
+    </div>
+    <div class="del-modal-actions">
+      <button class="del-modal-btn del-modal-btn--cancel" id="delModalCancel">Cancelar</button>
+      <button class="del-modal-btn del-modal-btn--confirm" id="delModalConfirm">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Eliminar definitivamente
+      </button>
+    </div>
   </div>
 </div>
 

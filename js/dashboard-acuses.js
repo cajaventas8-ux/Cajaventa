@@ -2151,25 +2151,75 @@
     else notify(`${ids.length - errors} entrega(s) actualizadas a ${label}.`, 'success');
   };
 
+  function showDeleteConfirm(count) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('deleteConfirmModal');
+      if (!modal) { resolve(window.confirm(count === 1 ? '¿Eliminar 1 entrega?' : `¿Eliminar ${count} entregas?`)); return; }
+      const msgEl    = document.getElementById('delModalMsg');
+      const confirmB = document.getElementById('delModalConfirm');
+      const cancelB  = document.getElementById('delModalCancel');
+      if (msgEl) msgEl.innerHTML = count === 1
+        ? 'Se eliminará <strong>1 entrega</strong> permanentemente.'
+        : `Se eliminarán <strong>${count} entregas</strong> permanentemente.`;
+      const close = (result) => {
+        modal.classList.remove('is-open');
+        confirmB.removeEventListener('click', onOk);
+        cancelB.removeEventListener('click', onCancel);
+        modal.removeEventListener('click', onOverlay);
+        setTimeout(() => resolve(result), 240);
+      };
+      const onOk      = () => close(true);
+      const onCancel  = () => close(false);
+      const onOverlay = (e) => { if (e.target === modal) close(false); };
+      confirmB.addEventListener('click', onOk);
+      cancelB.addEventListener('click', onCancel);
+      modal.addEventListener('click', onOverlay);
+      requestAnimationFrame(() => modal.classList.add('is-open'));
+    });
+  }
+
   window.cvBulkEliminar = async function () {
     if (!_selectedEntregas.size) return;
     const ids = [..._selectedEntregas];
-    const msg = ids.length === 1
-      ? '¿Eliminar 1 entrega permanentemente? Esta acción no se puede deshacer.'
-      : `¿Eliminar ${ids.length} entregas permanentemente? Esta acción no se puede deshacer.`;
-    if (!confirm(msg)) return;
+    const confirmed = await showDeleteConfirm(ids.length);
+    if (!confirmed) return;
 
-    const usuario = resolveCurrentOperator() || 'sistema';
+    const usuario    = resolveCurrentOperator() || 'sistema';
+    const actionsEl  = document.getElementById('bulkBarActions');
+    const progressEl = document.getElementById('bulkBarProgress');
+    const fillEl     = document.getElementById('bulkProgressFill');
+    const labelEl    = document.getElementById('bulkProgressLabel');
+    const pctEl      = document.getElementById('bulkProgressPct');
+    const countEl    = document.getElementById('bulkCount');
+
+    if (actionsEl)  actionsEl.style.display  = 'none';
+    if (progressEl) progressEl.style.display = 'flex';
+
     let errors = 0;
-    for (const entrega of ids) {
-      try {
-        await window.Supabase.Pedidos.borrar(entrega, usuario);
-      } catch (_) { errors++; }
+    for (let i = 0; i < ids.length; i++) {
+      try { await window.Supabase.Pedidos.borrar(ids[i], usuario); }
+      catch (_) { errors++; }
+      const done = i + 1;
+      const pct  = Math.round((done / ids.length) * 100);
+      if (fillEl)  fillEl.style.width  = pct + '%';
+      if (pctEl)   pctEl.textContent   = pct + '%';
+      if (labelEl) labelEl.textContent = `Eliminando ${done} de ${ids.length}…`;
+      if (countEl) countEl.textContent = `${ids.length - done} restantes`;
     }
+
+    if (fillEl) { fillEl.classList.add(errors ? 'is-error' : 'is-done'); fillEl.style.width = '100%'; }
+    if (labelEl) labelEl.textContent = errors ? `${errors} error(s)` : `${ids.length - errors} eliminadas`;
+    if (pctEl)   pctEl.textContent   = '100%';
+    await new Promise(r => setTimeout(r, 900));
+
+    if (actionsEl)  actionsEl.style.display  = '';
+    if (progressEl) progressEl.style.display = 'none';
+    if (fillEl)     { fillEl.style.width = '0%'; fillEl.classList.remove('is-done','is-error'); }
+
     window.cvClearSelection();
     await refreshDashboardData({ softPanel: false });
     if (errors) notify(`${errors} entrega(s) no se pudieron eliminar.`, 'warning');
-    else notify(`${ids.length - errors} entrega(s) eliminadas.`, 'success');
+    else        notify(`${ids.length - errors} entrega(s) eliminadas.`, 'success');
   };
 
   function renderPanelRows(kpi, items) {

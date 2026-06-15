@@ -4333,4 +4333,110 @@ tr.tbl-row--checked > td:first-child {
 }
 .bulk-bar__btn--cancel:hover { background: rgba(255,255,255,0.14); color: #cbd5e1; }
 
+/* ── bulk-bar: progress state ── */
+.bulk-bar__progress {
+  display: flex; align-items: center; gap: 10px; min-width: 260px;
+}
+.bulk-bar__progress-label {
+  font: 600 12.5px 'DM Sans', sans-serif; color: #fca5a5; white-space: nowrap;
+}
+.bulk-bar__progress-track {
+  flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden;
+}
+.bulk-bar__progress-fill {
+  height: 100%; width: 0%; border-radius: 99px;
+  background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+  transition: width 0.28s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 0 8px rgba(239,68,68,0.6);
+}
+.bulk-bar__progress-fill.is-done {
+  background: linear-gradient(90deg, #22c55e 0%, #4ade80 100%);
+  box-shadow: 0 0 8px rgba(34,197,94,0.5);
+}
+.bulk-bar__progress-fill.is-error {
+  background: linear-gradient(90deg, #f97316 0%, #fb923c 100%);
+  box-shadow: 0 0 8px rgba(249,115,22,0.5);
+}
+.bulk-bar__progress-pct {
+  font: 700 11px 'DM Sans', sans-serif; color: #fca5a5; min-width: 34px; text-align: right;
+}
+
+/* ═══════ MODAL ELIMINAR ═══════ */
+.del-modal-overlay {
+  position: fixed; inset: 0; z-index: 2100;
+  background: rgba(0,0,0,0.72); backdrop-filter: blur(8px) saturate(1.2);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.24s ease;
+}
+.del-modal-overlay.is-open {
+  opacity: 1; pointer-events: all;
+}
+.del-modal-card {
+  background: linear-gradient(160deg, #1a0a0a 0%, #0f172a 60%);
+  border: 1px solid rgba(239,68,68,0.22);
+  border-radius: 22px; padding: 38px 32px 32px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(239,68,68,0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+  text-align: center;
+  transform: scale(0.86) translateY(20px);
+  transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1);
+}
+.del-modal-overlay.is-open .del-modal-card {
+  transform: scale(1) translateY(0);
+}
+.del-modal-icon-wrap {
+  display: flex; justify-content: center; margin-bottom: 20px;
+}
+.del-modal-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(239,68,68,0.12); border: 1.5px solid rgba(239,68,68,0.3);
+  display: flex; align-items: center; justify-content: center;
+  color: #f87171;
+  box-shadow: 0 0 32px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: delIconPulse 2.4s ease-in-out infinite;
+}
+@keyframes delIconPulse {
+  0%,100% { box-shadow: 0 0 18px rgba(239,68,68,0.18), inset 0 1px 0 rgba(255,255,255,0.06); }
+  50%      { box-shadow: 0 0 36px rgba(239,68,68,0.36), inset 0 1px 0 rgba(255,255,255,0.06); }
+}
+.del-modal-title {
+  font: 700 20px/1.2 'DM Sans', sans-serif; color: #f1f5f9;
+  margin: 0 0 10px; letter-spacing: -0.3px;
+}
+.del-modal-msg {
+  font: 400 14px/1.55 'DM Sans', sans-serif; color: #94a3b8;
+  margin: 0 0 18px;
+}
+.del-modal-msg strong { color: #f87171; font-weight: 700; }
+.del-modal-warning {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 600 12px 'DM Sans', sans-serif; color: #fca5a5;
+  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.22);
+  border-radius: 8px; padding: 8px 14px; margin-bottom: 28px;
+}
+.del-modal-actions {
+  display: flex; gap: 10px; justify-content: center;
+}
+.del-modal-btn {
+  flex: 1; padding: 11px 18px; border-radius: 12px;
+  font: 700 13.5px 'DM Sans', sans-serif; border: 1px solid transparent;
+  cursor: pointer; transition: background 0.16s, transform 0.12s, box-shadow 0.16s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+}
+.del-modal-btn:active { transform: scale(0.97); }
+.del-modal-btn--cancel {
+  background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: #94a3b8;
+}
+.del-modal-btn--cancel:hover { background: rgba(255,255,255,0.11); color: #cbd5e1; }
+.del-modal-btn--confirm {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  border-color: rgba(239,68,68,0.4); color: #fff;
+  box-shadow: 0 4px 16px rgba(220,38,38,0.35);
+}
+.del-modal-btn--confirm:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  box-shadow: 0 6px 24px rgba(220,38,38,0.5);
+}
 
