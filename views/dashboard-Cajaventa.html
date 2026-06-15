@@ -45,15 +45,10 @@
         </div>
         <div class="sidebar-spacer"></div>
 
-        <!-- Usuario SSO — populado por initDashUserCard() -->
-        <div class="sidebar-icon" style="cursor:default;pointer-events:none;">
-          <div id="dashUserAvatar" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid rgba(255,255,255,.25);position:relative;">
-            ?<span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;background:#10B981;border-radius:50%;border:2px solid #1e3a5f;display:block;"></span>
-          </div>
-          <span class="tooltip">
-            <span id="dashUserName" style="font-size:13px;font-weight:600;">Cargando...</span>
-            <span id="dashUserRole" style="font-size:11px;opacity:.65;display:block;margin-top:2px;"></span>
-          </span>
+        <!-- Usuario SSO — chip ALAS (icono persona + nombre) -->
+        <div class="sidebar-icon" id="ssoUserChip" style="cursor:default;pointer-events:none;display:none;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.75;flex-shrink:0;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+          <span class="tooltip" id="sidebarUserName">Usuario</span>
         </div>
 
         <a class="sidebar-icon" id="btnSidebarHome" href="https://launcher-tawny.vercel.app" onclick="alasGoToLauncher(); return false;">
@@ -636,27 +631,41 @@
 </script>
 
 <script>
-// Popula el avatar del sidebar con el usuario SSO
-(function initDashUserCard() {
-  var ROLE_MAP = { admin:'Administrador', supervisor:'Supervisor', operador:'Operador', invitado:'Invitado' };
-
-  function render() {
-    if (!window.AlasAuthClient || !window.AlasAuthClient.isAuthenticated) return;
-    var name  = window.AlasAuthClient.getCurrentUser() || 'Usuario';
-    var role  = window.AlasAuthClient.getRole() || '';
-    var av    = document.getElementById('dashUserAvatar');
-    var nm    = document.getElementById('dashUserName');
-    var rl    = document.getElementById('dashUserRole');
-    if (av) av.firstChild.textContent = name.charAt(0).toUpperCase();
-    if (nm) nm.textContent = name;
-    if (rl) rl.textContent = ROLE_MAP[role] || role;
+// Popula el chip de usuario del sidebar esperando la Promise SSO
+(function() {
+  function render(user) {
+    if (!user) return;
+    var nm   = document.getElementById('sidebarUserName');
+    var chip = document.getElementById('ssoUserChip');
+    if (nm)   nm.textContent = user.name || user.email || 'Usuario';
+    if (chip) chip.style.display = 'flex';
   }
 
-  // DOMContentLoaded garantiza que alas-auth-client.js ya completó su init()
+  function waitAndRender() {
+    if (window.__alasAuthReady && typeof window.__alasAuthReady.then === 'function') {
+      window.__alasAuthReady.then(function() {
+        var c = window.AlasAuthClient;
+        render((c && c.isAuthenticated) ? c.user : null);
+      });
+      return;
+    }
+    var start = Date.now();
+    (function check() {
+      if (window.__alasAuthReady && typeof window.__alasAuthReady.then === 'function') {
+        window.__alasAuthReady.then(function() {
+          var c = window.AlasAuthClient;
+          render((c && c.isAuthenticated) ? c.user : null);
+        });
+      } else if (Date.now() - start < 8000) {
+        setTimeout(check, 50);
+      }
+    }());
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', render);
+    document.addEventListener('DOMContentLoaded', waitAndRender);
   } else {
-    render();
+    waitAndRender();
   }
 }());
 </script>
