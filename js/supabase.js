@@ -61,18 +61,19 @@
       body: JSON.stringify(body)
     });
     if (!r.ok) throw new Error('HTTP ' + r.status + ' POST ' + table);
-    return r.json();
+    if (r.status === 204 || r.headers.get('content-length') === '0') return [];
+    try { return await r.json(); } catch (_) { return []; }
   }
 
   async function upsert(table, body, conflict) {
     var url = REST + '/' + table + '?on_conflict=' + encodeURIComponent(conflict);
     var r = await fetch(url, {
       method: 'POST',
-      headers: headers({ 'Prefer': 'resolution=merge-duplicates' }),
+      headers: headers({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
       body: JSON.stringify(Array.isArray(body) ? body : [body])
     });
     if (!r.ok) throw new Error('HTTP ' + r.status + ' UPSERT ' + table);
-    return r.json();
+    return [];
   }
 
   async function del(table, field, value) {
