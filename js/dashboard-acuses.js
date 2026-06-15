@@ -1930,7 +1930,9 @@
   function renderPanel(kpi, response, options = {}) {
     const preserveShell = Boolean(options.preserveShell);
     const cfg = PANEL_CONFIG[kpi];
-    const colCount = 11;
+    const colCount = 12;
+    _selectedEntregas.clear();
+    updateBulkBar();
     const rowsHtml = renderPanelRows(kpi, response.items || []);
 
     const panel = document.getElementById('contentPanel');
@@ -2053,14 +2055,119 @@
   }
 
   function panelTableHeaders(kpi) {
+    const cbHead = '<th class="th-cb"><label class="cb-all-wrap"><input type="checkbox" id="cb-select-all" onclick="cvSelectAll(this)"></label></th>';
     if (kpi === 'anulados') {
-      return '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Estado</th><th></th><th>Motivo de anulacion</th>';
+      return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Estado</th><th></th><th>Motivo de anulacion</th>';
     }
-    return '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Detalles</th><th>Estado</th><th>Acciones</th>';
+    return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Detalles</th><th>Estado</th><th>Acciones</th>';
   }
 
   let _gruposMap = new Map();
   let _renderingKpi = ''; // KPI activo en el último render (para renderAcuseRow)
+  let _selectedEntregas = new Set();
+
+  function updateBulkBar() {
+    const bar = document.getElementById('bulkActionBar');
+    const cnt = document.getElementById('bulkCount');
+    if (!bar) return;
+    const n = _selectedEntregas.size;
+    if (n > 0) {
+      bar.style.display = 'flex';
+      if (cnt) cnt.textContent = n === 1 ? '1 seleccionado' : n + ' seleccionados';
+    } else {
+      bar.style.display = 'none';
+    }
+    const cbAll = document.getElementById('cb-select-all');
+    if (cbAll) {
+      const all = document.querySelectorAll('#contentPanel .row-cb');
+      cbAll.checked = all.length > 0 && _selectedEntregas.size >= all.length;
+      cbAll.indeterminate = _selectedEntregas.size > 0 && _selectedEntregas.size < all.length;
+    }
+  }
+
+  window.cvToggleSelect = function (entrega, cb) {
+    if (cb.checked) _selectedEntregas.add(entrega);
+    else _selectedEntregas.delete(entrega);
+    const row = cb.closest('tr');
+    if (row) row.classList.toggle('tbl-row--checked', cb.checked);
+    updateBulkBar();
+  };
+
+  window.cvSelectAll = function (cbAll) {
+    document.querySelectorAll('#contentPanel .row-cb').forEach((cb) => {
+      const entrega = cb.dataset.entrega || '';
+      if (!entrega) return;
+      cb.checked = cbAll.checked;
+      if (cbAll.checked) _selectedEntregas.add(entrega);
+      else _selectedEntregas.delete(entrega);
+      const row = cb.closest('tr');
+      if (row) row.classList.toggle('tbl-row--checked', cbAll.checked);
+    });
+    updateBulkBar();
+  };
+
+  window.cvClearSelection = function () {
+    _selectedEntregas.clear();
+    document.querySelectorAll('#contentPanel .row-cb').forEach((cb) => {
+      cb.checked = false;
+      const row = cb.closest('tr');
+      if (row) row.classList.remove('tbl-row--checked');
+    });
+    updateBulkBar();
+  };
+
+  window.cvBulkChangeEstado = async function (estado) {
+    if (!estado || !_selectedEntregas.size) return;
+    const ids = [..._selectedEntregas];
+    const labels = { pendiente: 'Pendiente', en_transito: 'Contabilizado', entregado: 'Facturado', anulado: 'Anulado' };
+    const label = labels[estado] || estado;
+    const msg = ids.length === 1
+      ? `¿Cambiar 1 entrega a "${label}"?`
+      : `¿Cambiar ${ids.length} entregas a "${label}"?`;
+    if (!confirm(msg)) return;
+
+    const usuario = resolveCurrentOperator() || 'sistema';
+    let errors = 0;
+    for (const entrega of ids) {
+      try {
+        const apiEstado = { pendiente: 'Pendiente', en_transito: 'En Transito', entregado: 'Entregado', anulado: 'Anulado' }[estado] || estado;
+        await AcuseAPI.patch(`/api/acuses/${encodeURIComponent(entrega)}/estado`, {
+          Estado: apiEstado,
+          Usuario: usuario,
+          Observacion: 'Cambio masivo desde dashboard'
+        });
+      } catch (_) { errors++; }
+    }
+    window.cvClearSelection();
+    await refreshDashboardData({ softPanel: true });
+    if (errors) notify(`${errors} entrega(s) no se pudieron actualizar.`, 'warning');
+    else notify(`${ids.length - errors} entrega(s) actualizadas a ${label}.`, 'success');
+  };
+
+  window.cvBulkAnular = async function () {
+    if (!_selectedEntregas.size) return;
+    const ids = [..._selectedEntregas];
+    const msg = ids.length === 1
+      ? '¿Anular 1 entrega? Esta acción no se puede deshacer.'
+      : `¿Anular ${ids.length} entregas? Esta acción no se puede deshacer.`;
+    if (!confirm(msg)) return;
+
+    const usuario = resolveCurrentOperator() || 'sistema';
+    let errors = 0;
+    for (const entrega of ids) {
+      try {
+        await AcuseAPI.patch(`/api/acuses/${encodeURIComponent(entrega)}/estado`, {
+          Estado: 'Anulado',
+          Usuario: usuario,
+          Observacion: 'Anulación masiva desde dashboard'
+        });
+      } catch (_) { errors++; }
+    }
+    window.cvClearSelection();
+    await refreshDashboardData({ softPanel: true });
+    if (errors) notify(`${errors} entrega(s) no se pudieron anular.`, 'warning');
+    else notify(`${ids.length - errors} entrega(s) anuladas.`, 'success');
+  };
 
   function renderPanelRows(kpi, items) {
     _renderingKpi = kpi;
@@ -2215,7 +2322,7 @@
         ? `<button class="tbl-group-wa-btn act-wa" onclick="event.stopPropagation();abrirPedidoContado('${clienteJs}')"><span class="tip">Enviar Pedido</span>${waIcon}</button>`
         : '';
 
-      html += `<tr class="group-header-row ${rowCls}"><td colspan="11">
+      html += `<tr class="group-header-row ${rowCls}"><td colspan="12">
         <div class="group-header-content">
           <div class="group-vendor-name">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -2267,7 +2374,9 @@
 
     const pedidoVal = escapeHtml(item.pedido || item.Pedido || '');
     const solicVal  = escapeHtml(item.solicitud || item.Solicitud || '');
-    return `<tr data-acuse-id="${acuseId}">
+    const entregaStr = escapeHtml(item.entrega || String(acuseId));
+    return `<tr class="tbl-row-selectable" data-acuse-id="${acuseId}" data-entrega="${entregaStr}">
+      <td class="td-cb" onclick="event.stopPropagation()"><label class="cb-wrap"><input type="checkbox" class="row-cb" data-entrega="${entregaStr}" onchange="cvToggleSelect('${escapeInlineJs(item.entrega || String(acuseId))}',this)"></label></td>
       <td>${escapeHtml(formatDate(item.Fecha_Emision))}</td>
       <td>${copyCell(guide)}</td>
       <td>${pedidoVal ? copyCell(pedidoVal) : '<span style="color:#cbd5e1">—</span>'}</td>
