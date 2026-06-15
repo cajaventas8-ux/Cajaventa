@@ -4229,7 +4229,7 @@ tr.acuse-row-new::after {
 /* ═══════ ALMACEN BADGE ═══════ */
 .alm-badge {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px 4px 8px;
+  height: 30px; padding: 0 10px 0 8px;
   border-radius: 20px;
   font: 700 10.5px/1 'DM Sans', sans-serif;
   letter-spacing: 0.04em;
