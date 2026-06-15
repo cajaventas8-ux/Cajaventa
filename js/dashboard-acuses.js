@@ -2887,6 +2887,66 @@
     }
   }
 
+  // ── Confirmación genérica (patrón itemsborrados portado a dark theme) ──
+  function showCvConfirm(title, message, opts) {
+    opts = opts || {};
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      overlay.className = 'cv-confirm-overlay';
+      var isDanger  = Boolean(opts.danger);
+      var okLabel   = opts.confirmLabel || 'Confirmar';
+      var okClass   = isDanger ? 'cv-confirm-btn--danger' : 'cv-confirm-btn--primary';
+      var iconSvg   = isDanger
+        ? '<svg width="28" height="28" fill="none" stroke="#f87171" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+        : '<svg width="28" height="28" fill="none" stroke="#60a5fa" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+      overlay.innerHTML =
+        '<div class="cv-confirm-card" onclick="event.stopPropagation()">' +
+          '<div class="cv-confirm-icon">' + iconSvg + '</div>' +
+          '<h3 class="cv-confirm-title">' + escapeHtml(title) + '</h3>' +
+          '<p class="cv-confirm-msg">' + escapeHtml(message) + '</p>' +
+          '<div class="cv-confirm-actions">' +
+            '<button class="cv-confirm-btn cv-confirm-btn--cancel" id="cvCfmCancel">Cancelar</button>' +
+            '<button class="cv-confirm-btn ' + okClass + '" id="cvCfmOk">' + escapeHtml(okLabel) + '</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(overlay);
+      function close(result) {
+        overlay.classList.remove('is-open');
+        overlay.classList.add('is-closing');
+        setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); resolve(result); }, 260);
+      }
+      requestAnimationFrame(function () { setTimeout(function () { overlay.classList.add('is-open'); }, 10); });
+      overlay.querySelector('#cvCfmCancel').onclick = function () { close(false); };
+      overlay.querySelector('#cvCfmOk').onclick     = function () { close(true); };
+      overlay.onclick = function (e) { if (e.target === overlay) close(false); };
+    });
+  }
+
+  // ── Check/error flotante centrado (patrón itemsborrados) ──
+  function showCvCheck(label, isError) {
+    var overlay = document.createElement('div');
+    overlay.className = 'cv-check-overlay';
+    overlay.innerHTML =
+      '<div class="cv-check-box">' +
+        '<div class="cv-check-circle' + (isError ? ' cv-check-circle--error' : '') + '">' +
+          (isError
+            ? '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+            : '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>') +
+        '</div>' +
+        '<div class="cv-check-label">' + escapeHtml(label) + '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        overlay.classList.add('is-visible');
+        setTimeout(function () {
+          overlay.classList.add('is-exit');
+          setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 380);
+        }, 1300);
+      }, 10);
+    });
+  }
+
   async function markAcuseDelivered(id, button) {
     const usuario = resolveCurrentOperator();
     if (!usuario) {
@@ -2915,12 +2975,16 @@
 
   async function markAcuseContabilizado(id, button) {
     const usuario = resolveCurrentOperator();
-    if (!usuario) {
-      notify('Debés iniciar sesión para cambiar el estado.', 'warning');
-      return;
-    }
-    setDashboardSelectedAcuse(id, { clearHighlight: false });
+    if (!usuario) { notify('Debés iniciar sesión para cambiar el estado.', 'warning'); return; }
 
+    const ok = await showCvConfirm(
+      '¿Pasar a Contabilizado?',
+      'El pedido será marcado como contabilizado.',
+      { confirmLabel: 'Contabilizar' }
+    );
+    if (!ok) return;
+
+    setDashboardSelectedAcuse(id, { clearHighlight: false });
     try {
       await runButtonLoading(button, async () => {
         await AcuseAPI.patch(`/api/acuses/${id}/estado`, {
@@ -2929,10 +2993,8 @@
           Usuario: usuario,
           Observacion: 'Cambio a Contabilizado desde dashboard'
         });
-
         await refreshDashboardData({ softPanel: true });
-
-        notify('Pedido pasado a Contabilizado.', 'success');
+        showCvCheck('Contabilizado');
       });
     } catch (error) {
       notify(error.message, 'error');
@@ -2941,12 +3003,16 @@
 
   async function markAcuseFacturado(id, button) {
     const usuario = resolveCurrentOperator();
-    if (!usuario) {
-      notify('Debés iniciar sesión para cambiar el estado.', 'warning');
-      return;
-    }
-    setDashboardSelectedAcuse(id, { clearHighlight: false });
+    if (!usuario) { notify('Debés iniciar sesión para cambiar el estado.', 'warning'); return; }
 
+    const ok = await showCvConfirm(
+      '¿Pasar a Facturado?',
+      'El pedido será marcado como facturado.',
+      { confirmLabel: 'Facturar' }
+    );
+    if (!ok) return;
+
+    setDashboardSelectedAcuse(id, { clearHighlight: false });
     try {
       await runButtonLoading(button, async () => {
         await AcuseAPI.patch(`/api/acuses/${id}/estado`, {
@@ -2955,10 +3021,8 @@
           Usuario: usuario,
           Observacion: 'Cambio a Facturado desde dashboard'
         });
-
         await refreshDashboardData({ softPanel: true });
-
-        notify('Pedido pasado a Facturado.', 'success');
+        showCvCheck('Facturado');
       });
     } catch (error) {
       notify(error.message, 'error');
