@@ -4615,6 +4615,56 @@ tr.tbl-row--checked > td:first-child {
 }
 .cv-confirm-btn--danger:hover { background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); }
 
+/* ─── Variante BLUE (Contabilizado) ─── */
+.cv-confirm-card--blue {
+  background: #fff;
+  border-color: rgba(37,99,235,.12);
+  box-shadow: 0 24px 60px rgba(37,99,235,.12), 0 0 0 1px rgba(37,99,235,.07);
+}
+.cv-confirm-card--blue .cv-confirm-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(37,99,235,.08);
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+.cv-confirm-card--blue .cv-confirm-title { color: #0f172a; }
+.cv-confirm-card--blue .cv-confirm-msg   { color: #475569; }
+
+/* ─── Variante GREEN (Facturado) ─── */
+.cv-confirm-card--green {
+  background: #fff;
+  border-color: rgba(16,185,129,.14);
+  box-shadow: 0 24px 60px rgba(16,185,129,.12), 0 0 0 1px rgba(16,185,129,.07);
+}
+.cv-confirm-card--green .cv-confirm-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(16,185,129,.08);
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+.cv-confirm-card--green .cv-confirm-title { color: #0f172a; }
+.cv-confirm-card--green .cv-confirm-msg   { color: #475569; }
+
+/* Botón cancelar sobre fondo blanco */
+.cv-confirm-card--blue  .cv-confirm-btn--cancel,
+.cv-confirm-card--green .cv-confirm-btn--cancel {
+  background: #f1f5f9; border-color: #e2e8f0; color: #64748b;
+}
+.cv-confirm-card--blue  .cv-confirm-btn--cancel:hover,
+.cv-confirm-card--green .cv-confirm-btn--cancel:hover { background: #e2e8f0; color: #334155; }
+
+/* Botones de confirmación de color */
+.cv-confirm-btn--blue {
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  color: #fff; box-shadow: 0 4px 14px rgba(37,99,235,.35);
+}
+.cv-confirm-btn--blue:hover  { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
+.cv-confirm-btn--green {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #fff; box-shadow: 0 4px 14px rgba(16,185,129,.35);
+}
+.cv-confirm-btn--green:hover { background: linear-gradient(135deg, #047857 0%, #059669 100%); }
+
 /* ═══════ CV-CHECK FLOATING ═══════ */
 .cv-check-overlay {
   position: fixed; inset: 0; z-index: 3000;

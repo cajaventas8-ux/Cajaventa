@@ -2921,13 +2921,22 @@
       var overlay = document.createElement('div');
       overlay.className = 'cv-confirm-overlay';
       var isDanger  = Boolean(opts.danger);
+      var variant   = isDanger ? 'danger' : (opts.variant || '');
       var okLabel   = opts.confirmLabel || 'Confirmar';
-      var okClass   = isDanger ? 'cv-confirm-btn--danger' : 'cv-confirm-btn--primary';
+      var okClass   = isDanger        ? 'cv-confirm-btn--danger'
+                    : variant === 'blue'  ? 'cv-confirm-btn--blue'
+                    : variant === 'green' ? 'cv-confirm-btn--green'
+                    : 'cv-confirm-btn--primary';
+      var cardClass = 'cv-confirm-card' + (variant && variant !== 'danger' ? ' cv-confirm-card--' + variant : '');
       var iconSvg   = isDanger
         ? '<svg width="28" height="28" fill="none" stroke="#f87171" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+        : variant === 'blue'
+        ? '<svg width="32" height="32" fill="none" stroke="#2563eb" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 12l3 3 5-6"/></svg>'
+        : variant === 'green'
+        ? '<svg width="32" height="32" fill="none" stroke="#10b981" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 12l3 3 5-6"/></svg>'
         : '<svg width="28" height="28" fill="none" stroke="#60a5fa" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
       overlay.innerHTML =
-        '<div class="cv-confirm-card" onclick="event.stopPropagation()">' +
+        '<div class="' + cardClass + '" onclick="event.stopPropagation()">' +
           '<div class="cv-confirm-icon">' + iconSvg + '</div>' +
           '<h3 class="cv-confirm-title">' + escapeHtml(title) + '</h3>' +
           '<p class="cv-confirm-msg">' + escapeHtml(message) + '</p>' +
@@ -3007,7 +3016,7 @@
     const ok = await showCvConfirm(
       '¿Pasar a Contabilizado?',
       'El pedido será marcado como contabilizado.',
-      { confirmLabel: 'Contabilizar' }
+      { confirmLabel: 'Contabilizar', variant: 'blue' }
     );
     if (!ok) return;
 
@@ -3035,7 +3044,7 @@
     const ok = await showCvConfirm(
       '¿Pasar a Facturado?',
       'El pedido será marcado como facturado.',
-      { confirmLabel: 'Facturar' }
+      { confirmLabel: 'Facturar', variant: 'green' }
     );
     if (!ok) return;
 
