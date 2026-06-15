@@ -3440,6 +3440,7 @@
               <div class="detalle-entrega-num" id="detalleEntrega">—</div>
               <div class="detalle-cliente-name" id="detalleCliente">—</div>
               <div class="detalle-header__badges" id="detalleBadges" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+              <div class="detalle-header__kpis" id="detalleHeaderKpis"></div>
             </div>
           </div>
           <div class="detalle-body" id="detalleBody">
@@ -3482,6 +3483,20 @@
       const fecha = escapeHtml(formatDate(acuse.Fecha_Emision));
       const vendedor = escapeHtml(acuse.Nombre_Repartidor || '—');
       const totalUnidades = detalles.reduce((s, d) => s + Number(d.Cantidad || 0), 0);
+
+      const headerKpisEl = document.getElementById('detalleHeaderKpis');
+      if (headerKpisEl) {
+        const monto = Number(acuse.Monto) || 0;
+        const dkpi = (icon, lbl, val) =>
+          `<div class="dh-kpi"><div class="dh-kpi__icon">${icon}</div><span class="dh-kpi__val">${val}</span><span class="dh-kpi__lbl">${lbl}</span></div>`;
+        const svgBox  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>';
+        const svgHash = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>';
+        const svgGs   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>';
+        headerKpisEl.innerHTML =
+          dkpi(svgBox,  'Líneas',    detalles.length || 0) +
+          dkpi(svgHash, 'Unidades',  formatNumber(totalUnidades)) +
+          (monto > 0 ? dkpi(svgGs, 'Monto', formatGs(monto)) : '');
+      }
 
       const lineasHtml = detalles.length
         ? detalles.map((d) => `<tr>

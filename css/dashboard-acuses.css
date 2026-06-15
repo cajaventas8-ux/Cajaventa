@@ -3367,6 +3367,30 @@ tr.acuse-row-new::after {
 .detalle-header__badges {
   display: flex; flex-direction: column; gap: 7px; align-items: flex-end; flex-shrink: 0;
 }
+.detalle-header__kpis {
+  display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+}
+.dh-kpi {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 16px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  min-width: 72px; gap: 3px;
+  transition: background .15s;
+}
+.dh-kpi:hover { background: rgba(255,255,255,.16); }
+.dh-kpi__icon { color: rgba(255,255,255,.45); }
+.dh-kpi__icon svg { width: 13px; height: 13px; display: block; }
+.dh-kpi__val {
+  font: 700 17px/1 'Outfit', sans-serif;
+  color: #fff; letter-spacing: -.01em;
+}
+.dh-kpi__lbl {
+  font: 500 10.5px/1 'DM Sans', sans-serif;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase; letter-spacing: .05em;
+}
 
 /* Body */
 .detalle-body {
