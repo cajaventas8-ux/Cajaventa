@@ -4228,29 +4228,23 @@ tr.acuse-row-new::after {
 
 /* ═══════ ALMACEN BADGE ═══════ */
 .alm-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  height: 30px; padding: 0 10px 0 8px;
-  border-radius: 20px;
-  font: 700 10.5px/1 'DM Sans', sans-serif;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  display: inline-flex; align-items: center;
+  height: 22px; padding: 0 9px;
+  border-radius: 99px;
+  font: 600 11px/1 'DM Sans', sans-serif;
+  letter-spacing: 0.01em;
   white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.13), inset 0 1px 0 rgba(255,255,255,0.18);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 .alm-badge--deposito {
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  background: linear-gradient(120deg, #0891b2 0%, #22d3ee 100%);
   color: #fff;
 }
 .alm-badge--fabrica {
-  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+  background: linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%);
   color: #fff;
 }
-.alm-badge__icon {
-  width: 10px; height: 10px;
-  flex-shrink: 0;
-  opacity: 0.85;
-  stroke: currentColor;
-}
+.alm-badge__icon { display: none; }
 .alm-badge__empty {
   color: #cbd5e1; font-size: 12px; font-weight: 600;
 }
