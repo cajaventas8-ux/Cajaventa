@@ -791,6 +791,10 @@
                 localStorage.setItem('cajaventa.lastImport', new Date().toISOString());
                 if (window.syncLastImportChip) syncLastImportChip();
                 showCargaState('done');
+                // Refresh silencioso: actualiza KPIs y panel sin que el usuario tenga que navegar
+                if (window.refreshDashboardData) {
+                  window.refreshDashboardData({ softPanel: false }).catch(function () {});
+                }
               }, 400);
             }).catch(function (err) {
               var el = document.getElementById('cargaErrorDesc');

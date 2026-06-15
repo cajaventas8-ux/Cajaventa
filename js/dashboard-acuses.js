@@ -264,6 +264,7 @@
   window.openHistDateModal = openHistDateModal;
   window.closeAcuseEmbed = closeAcuseEmbed;
   window.showDashboardToast = notify;
+  window.refreshDashboardData = refreshDashboardData;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initDashboardAcuses);
@@ -318,6 +319,7 @@
       await loadPanel(state.activeKPI);
       await loadCalendarMonth();
       await showView('dashboard');
+      window.syncLastImportChip?.();
     } catch (error) {
       handleError(error);
     }

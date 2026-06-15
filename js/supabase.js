@@ -480,17 +480,29 @@
     var Y = year || new Date().getFullYear();
     var M = month || new Date().getMonth() + 1;
     try {
-      // Una sola query con todos los campos necesarios
-      var allData = await get('pedidos', 'select=estado,fecha,cliente,vendedor,almacen,monto');
-
-      // Normalizar fechas primero
-      (allData || []).forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
-
-      // Filtrar por mes si corresponde
       var mesFiltro = scope !== 'all' ? (Y + '-' + String(M).padStart(2, '0')) : null;
-      var data = mesFiltro
-        ? (allData || []).filter(function (p) { return p.fecha && p.fecha.substring(0, 7) === mesFiltro; })
-        : (allData || []);
+
+      var mainQs, trendPromise;
+      if (mesFiltro) {
+        // Query principal: solo el mes activo (liviana y rápida)
+        var inicio = mesFiltro + '-01';
+        var ultimoDia = new Date(Y, M, 0).getDate();
+        var fin = mesFiltro + '-' + String(ultimoDia).padStart(2, '0');
+        mainQs = 'select=estado,fecha,cliente,vendedor,almacen,monto&fecha=gte.' + inicio + '&fecha=lte.' + fin;
+        // Query de tendencia: solo fecha para el gráfico de barras histórico
+        trendPromise = get('pedidos', 'select=fecha&order=fecha.asc');
+      } else {
+        mainQs = 'select=estado,fecha,cliente,vendedor,almacen,monto';
+        trendPromise = Promise.resolve(null);
+      }
+
+      var results = await Promise.all([get('pedidos', mainQs), trendPromise]);
+      var data     = results[0] || [];
+      var trendRaw = results[1] || data;
+
+      // Normalizar fechas
+      data.forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
+      if (results[1]) trendRaw.forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
 
       // ── KPIs ──
       var kpis = {
@@ -512,20 +524,20 @@
       });
       kpis.acuses = kpis.pendientes + kpis.entregados + kpis.en_transito;
 
-      // ── DONUT: distribución de estados (mismo conjunto filtrado) ──
+      // ── DONUT ──
       var donut = { pendientes: 0, entregados: 0, en_transito: 0, anulados: 0, total: 0 };
       data.forEach(function (p) {
-        if (p.estado === 'pendiente')      donut.pendientes++;
+        if (p.estado === 'pendiente')          donut.pendientes++;
         else if (p.estado === 'contabilizado') donut.entregados++;
-        else if (p.estado === 'facturado')    donut.en_transito++;
-        else if (p.estado === 'anulado')      donut.anulados++;
+        else if (p.estado === 'facturado')     donut.en_transito++;
+        else if (p.estado === 'anulado')       donut.anulados++;
       });
       donut.total = donut.pendientes + donut.entregados + donut.en_transito + donut.anulados;
       donut.porcentajeEntregados = donut.total > 0 ? Math.round(donut.entregados / donut.total * 100) : 0;
       donut.porcentajePendientes = donut.total > 0 ? Math.round(donut.pendientes / donut.total * 100) : 0;
       donut.porcentajeTransito   = donut.total > 0 ? Math.round(donut.en_transito / donut.total * 100) : 0;
 
-      // ── TOP CLIENTES: por total de pedidos ──
+      // ── TOP CLIENTES ──
       var clienteCount = {};
       data.forEach(function (p) {
         var c = p.cliente || 'S/C';
@@ -547,13 +559,16 @@
         .sort(function (a, b) { return b.value - a.value; })
         .slice(0, 10);
 
-      // ── POR MES: todos los pedidos ──
+      // ── TENDENCIA: por día (mes activo) y por mes (histórico, usa trendRaw) ──
       var acusesPorDia = {}, acusesPorMes = {};
       data.forEach(function (p) {
         if (!p.fecha) return;
         acusesPorDia[p.fecha] = (acusesPorDia[p.fecha] || 0) + 1;
-        var m = p.fecha.substring(0, 7);
-        acusesPorMes[m] = (acusesPorMes[m] || 0) + 1;
+      });
+      trendRaw.forEach(function (p) {
+        if (!p.fecha) return;
+        var mesKey = p.fecha.substring(0, 7);
+        acusesPorMes[mesKey] = (acusesPorMes[mesKey] || 0) + 1;
       });
 
       return {
