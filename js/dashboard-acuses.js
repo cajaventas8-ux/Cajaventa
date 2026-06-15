@@ -1848,6 +1848,7 @@
   }
 
   async function refreshDashboardData(options = {}) {
+    if (options.resetPeriod) await alignInitialPeriodsToData();
     const refreshHistory = options.history === true || state.currentView === 'historial';
     const softPanel = options.softPanel !== false;
     const tasks = [

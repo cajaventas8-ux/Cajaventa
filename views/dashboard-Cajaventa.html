@@ -797,7 +797,7 @@
                 showCargaState('done');
                 // Refresh silencioso: actualiza KPIs y panel sin que el usuario tenga que navegar
                 if (window.refreshDashboardData) {
-                  window.refreshDashboardData({ softPanel: false }).catch(function () {});
+                  window.refreshDashboardData({ softPanel: false, resetPeriod: true }).catch(function () {});
                 }
               }, 400);
             }).catch(function (err) {
