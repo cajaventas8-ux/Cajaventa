@@ -3147,8 +3147,12 @@
 
   window.cerrarPedidoContado = function () {
     const modal = document.getElementById('pedidoContadoModal');
-    if (modal) modal.classList.remove('pc-modal--open');
-    document.body.style.overflow = '';
+    if (!modal || !modal.classList.contains('pc-modal--open')) return;
+    const dialog = modal.querySelector('.pc-modal-dialog');
+    modal.classList.add('pc-modal--closing');
+    const done = () => { modal.classList.remove('pc-modal--open', 'pc-modal--closing'); document.body.style.overflow = ''; };
+    if (dialog) dialog.addEventListener('animationend', done, { once: true });
+    else setTimeout(done, 220);
   };
 
   window.descargarPedidoPdf = function () {
@@ -3574,7 +3578,12 @@
 
   function closeDetalleModal() {
     const overlay = document.getElementById('detalleModalOverlay');
-    if (overlay) overlay.classList.remove('open');
+    if (!overlay || !overlay.classList.contains('open')) return;
+    const card = overlay.querySelector('.detalle-card');
+    overlay.classList.add('is-closing');
+    const done = () => overlay.classList.remove('open', 'is-closing');
+    if (card) card.addEventListener('animationend', done, { once: true });
+    else setTimeout(done, 220);
   }
 
   function openExportConfirm(button) {

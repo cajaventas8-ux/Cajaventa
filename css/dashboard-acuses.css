@@ -3302,6 +3302,16 @@ tr.acuse-row-new::after {
   animation: cargaCheckDraw 0.4s ease forwards 0.6s;
 }
 
+/* ─── Keyframes compartidos para modales ─── */
+@keyframes cvModalSlideIn {
+  from { opacity: 0; transform: translateY(22px) scale(.95); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes cvModalSlideOut {
+  from { opacity: 1; transform: translateY(0)    scale(1); }
+  to   { opacity: 0; transform: translateY(14px) scale(.97); }
+}
+
 /* ══════════════════════════════════════════
    MODAL DETALLE PEDIDO
 ══════════════════════════════════════════ */
@@ -3329,10 +3339,14 @@ tr.acuse-row-new::after {
   border-radius: 22px;
   box-shadow: 0 40px 100px rgba(10,25,50,.28), 0 0 0 1px rgba(0,0,0,.06);
   display: flex; flex-direction: column; overflow: hidden;
-  transform: translateY(18px) scale(.975);
-  transition: transform var(--alas-dur-normal) var(--alas-ease);
 }
-.detalle-overlay.open .detalle-card { transform: translateY(0) scale(1); }
+.detalle-overlay.open .detalle-card             { animation: cvModalSlideIn  300ms cubic-bezier(0.34,1.56,0.64,1) both; }
+.detalle-overlay.open.is-closing .detalle-card  { animation: cvModalSlideOut 200ms cubic-bezier(0.4,0,0.6,1)     both; }
+.detalle-overlay.open.is-closing {
+  opacity: 0; visibility: visible;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
 
 .detalle-close {
   position: absolute; top: 14px; right: 14px;
@@ -3852,13 +3866,16 @@ tr.acuse-row-new::after {
    ═══════════════════════════════════════════════════════════ */
 
 .pc-modal-backdrop {
-  display: none;
+  display: flex;
   position: fixed; inset: 0; z-index: 9000;
   background: rgba(15,23,42,.55);
   align-items: center; justify-content: center;
   backdrop-filter: blur(3px);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 220ms ease, visibility 0s linear 220ms;
 }
-.pc-modal-backdrop.pc-modal--open { display: flex; }
+.pc-modal-backdrop.pc-modal--open { opacity: 1; visibility: visible; pointer-events: auto; transition-delay: 0s; }
+.pc-modal-backdrop.pc-modal--open.pc-modal--closing { opacity: 0; visibility: visible; transition: opacity 200ms ease; pointer-events: none; }
 
 .pc-modal-dialog {
   position: relative;
@@ -3867,10 +3884,11 @@ tr.acuse-row-new::after {
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0,0,0,.25);
-  animation: fadeIn .2s ease;
   max-height: 90vh;
   overflow-y: auto;
 }
+.pc-modal-backdrop.pc-modal--open .pc-modal-dialog             { animation: cvModalSlideIn  300ms cubic-bezier(0.34,1.56,0.64,1) both; }
+.pc-modal-backdrop.pc-modal--open.pc-modal--closing .pc-modal-dialog { animation: cvModalSlideOut 200ms cubic-bezier(0.4,0,0.6,1)     both; }
 
 .pc-modal-close {
   position: absolute; top: 12px; right: 14px;
