@@ -319,6 +319,98 @@
 </div><!-- /layout -->
 
 
+<!-- MODAL FILTRO DE FECHA -->
+<div class="date-modal-overlay" id="panelDateModal" onclick="if(event.target===this)closePanelDateModal()">
+  <div class="date-modal-box" onclick="event.stopPropagation()">
+    <div class="date-modal-head">
+      <div class="date-modal-head-left">
+        <div class="date-modal-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div>
+          <h3>Filtrar por Fechas</h3>
+          <p class="date-modal-sub">Seleccioná un rango para filtrar los resultados</p>
+        </div>
+      </div>
+      <button class="date-modal-close" onclick="closePanelDateModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="date-modal-body">
+      <div class="date-custom-range">
+        <h4 class="date-section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Rango Personalizado
+        </h4>
+        <div class="date-range-fields">
+          <div class="date-field">
+            <label class="date-field-label">Desde</label>
+            <div class="date-input-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <input type="date" id="panelDateDesde" class="date-dm-input">
+            </div>
+          </div>
+          <div class="date-range-arrow">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+          <div class="date-field">
+            <label class="date-field-label">Hasta</label>
+            <div class="date-input-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <input type="date" id="panelDateHasta" class="date-dm-input">
+            </div>
+          </div>
+        </div>
+        <button class="date-apply-btn" onclick="applyPanelDateRange()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Aplicar Filtro
+        </button>
+      </div>
+      <div class="date-divider"></div>
+      <div>
+        <h4 class="date-section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Selección Rápida
+        </h4>
+        <div class="date-quick-grid">
+          <button class="date-quick-btn" onclick="applyPanelQuickDate('hoy')">
+            <span class="date-quick-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+            <span class="date-quick-label">Hoy</span>
+            <span class="date-quick-sub" id="qdLabel_hoy"></span>
+          </button>
+          <button class="date-quick-btn" onclick="applyPanelQuickDate('ayer')">
+            <span class="date-quick-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span>
+            <span class="date-quick-label">Ayer</span>
+            <span class="date-quick-sub" id="qdLabel_ayer"></span>
+          </button>
+          <button class="date-quick-btn" onclick="applyPanelQuickDate('semana')">
+            <span class="date-quick-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <span class="date-quick-label">Últ. 7 días</span>
+            <span class="date-quick-sub" id="qdLabel_semana"></span>
+          </button>
+          <button class="date-quick-btn" onclick="applyPanelQuickDate('mes')">
+            <span class="date-quick-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <span class="date-quick-label">Este Mes</span>
+            <span class="date-quick-sub" id="qdLabel_mes"></span>
+          </button>
+          <button class="date-quick-btn date-quick-btn--danger" onclick="applyPanelQuickDate('quitar')">
+            <span class="date-quick-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            <span class="date-quick-label">Quitar Filtro</span>
+            <span class="date-quick-sub">Mostrar todo</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="date-modal-footer">
+      <button class="date-footer-cancel" onclick="closePanelDateModal()">Cancelar</button>
+      <div class="date-footer-info" id="panelDateFooterInfo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span id="panelDateFooterText">Sin filtro aplicado</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Chart.js primero: los scripts siguientes dependen de window.Chart -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
   onerror="window.__chartJsFailed=true"></script>

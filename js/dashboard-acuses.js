@@ -55,7 +55,8 @@
       anchorDate: TODAY_ISO
     },
     panelFilters: {
-      fecha: '',
+      fechaDesde: '',
+      fechaHasta: '',
       clienteCode: '',
       clienteLabel: '',
       repartidorId: '',
@@ -204,8 +205,10 @@
   window.selectKPI = selectKPI;
   window.changePanelMonth = changePanelMonth;
   window.setPanelMonthAll = setPanelMonthAll;
-  window.pickDateFilter = pickDateFilter;
-  window.clearDateFilter = clearDateFilter;
+  window.openPanelDateModal = openPanelDateModal;
+  window.closePanelDateModal = closePanelDateModal;
+  window.applyPanelDateRange = applyPanelDateRange;
+  window.applyPanelQuickDate = applyPanelQuickDate;
   window.clearCurrentPanelFilters = clearCurrentPanelFilters;
   window.toggleFilter = toggleFilter;
   window.renderFilterItems = debounce((kpi, query, type) => { renderFilterItems(kpi, query, type).catch(handleError); }, 300);
@@ -1861,7 +1864,8 @@
       params.fechaDesde = `${year}-${mStr}-01`;
       params.fechaHasta = `${year}-${mStr}-${String(lastDay).padStart(2, '0')}`;
     }
-    if (state.panelFilters.fecha) params.fecha = state.panelFilters.fecha;
+    if (state.panelFilters.fechaDesde) params.fechaDesde = state.panelFilters.fechaDesde;
+    if (state.panelFilters.fechaHasta) params.fechaHasta = state.panelFilters.fechaHasta;
     if (state.panelFilters.repartidorId) params.idRepartidor = state.panelFilters.repartidorId;
     if (state.panelFilters.clienteCode) params.codCliente = state.panelFilters.clienteCode;
 
@@ -1968,11 +1972,15 @@
     return 'repartidor';
   }
 
-  function panelDateFilterHTML(kpi) {
-    const value = state.panelFilters.fecha;
-    return `<div class="filter-wrap filter-date-wrap filter-wrap--date-pro">
-      <input type="date" id="panel-date-filter-${kpi}" value="${value}" onchange="pickDateFilter('${kpi}', this.value)">
-    </div>`;
+  function panelDateFilterHTML() {
+    const desde = state.panelFilters.fechaDesde;
+    const hasta = state.panelFilters.fechaHasta;
+    const active = desde || hasta;
+    const label = buildDateTriggerLabel(desde, hasta);
+    return `<button class="date-btn-trigger${active ? ' active' : ''}" onclick="openPanelDateModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>${escapeHtml(label)}</span>
+    </button>`;
   }
 
   function panelEntityFilterHTML(kpi) {
@@ -2365,26 +2373,94 @@
     }, Number(options.delay || 70));
   }
 
-  function pickDateFilter(kpi, isoValue) {
-    state.panelFilters.fecha = isoValue || '';
+  function buildDateTriggerLabel(desde, hasta) {
+    if (!desde && !hasta) return 'Fechas';
+    const fmt = (iso) => { const [y, m, d] = iso.split('-'); return `${d}/${m}/${y.slice(2)}`; };
+    if (desde && hasta && desde === hasta) return fmt(desde);
+    if (desde && hasta) return `${fmt(desde)} – ${fmt(hasta)}`;
+    if (desde) return `Desde ${fmt(desde)}`;
+    return `Hasta ${fmt(hasta)}`;
+  }
+
+  function openPanelDateModal() {
+    const modal = document.getElementById('panelDateModal');
+    if (!modal) return;
+    document.getElementById('panelDateDesde').value = state.panelFilters.fechaDesde || '';
+    document.getElementById('panelDateHasta').value = state.panelFilters.fechaHasta || '';
+    updatePanelDateFooterInfo(state.panelFilters.fechaDesde, state.panelFilters.fechaHasta);
+    populatePanelDateLabels();
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => modal.classList.add('is-open'));
+  }
+
+  function closePanelDateModal() {
+    const modal = document.getElementById('panelDateModal');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.classList.add('is-closing');
+    setTimeout(() => { modal.classList.remove('is-closing'); modal.style.display = 'none'; }, 250);
+  }
+
+  function applyPanelDateRange() {
+    const desde = document.getElementById('panelDateDesde').value || '';
+    const hasta = document.getElementById('panelDateHasta').value || '';
+    if (desde && hasta && desde > hasta) {
+      notify('La fecha "Desde" no puede ser mayor a "Hasta"', 'error');
+      return;
+    }
+    state.panelFilters.fechaDesde = desde;
+    state.panelFilters.fechaHasta = hasta;
+    closePanelDateModal();
     resetPanelPages();
     loadPanel(state.activeKPI, { soft: true }).catch(handleError);
   }
 
-  function clearDateFilter(kpi) {
-    state.panelFilters.fecha = '';
-    resetPanelPages();
-    loadPanel(state.activeKPI, { soft: true }).catch(handleError);
+  function applyPanelQuickDate(type) {
+    const today = new Date();
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    let desde = '', hasta = '';
+    if (type === 'hoy') {
+      desde = hasta = fmt(today);
+    } else if (type === 'ayer') {
+      const d = new Date(today); d.setDate(d.getDate() - 1); desde = hasta = fmt(d);
+    } else if (type === 'semana') {
+      const d = new Date(today); d.setDate(d.getDate() - 6); desde = fmt(d); hasta = fmt(today);
+    } else if (type === 'mes') {
+      desde = fmt(new Date(today.getFullYear(), today.getMonth(), 1)); hasta = fmt(today);
+    }
+    document.getElementById('panelDateDesde').value = desde;
+    document.getElementById('panelDateHasta').value = hasta;
+    applyPanelDateRange();
   }
 
-  function initPanelDatePicker(kpi) {
-    const input = document.getElementById(`panel-date-filter-${kpi}`);
-    if (!input || !window.DatePickerPro) return;
-    window.DatePickerPro.attach(input, {
-      variant: 'filter',
-      placeholder: 'Fecha...'
-    });
+  function updatePanelDateFooterInfo(desde, hasta) {
+    const text = document.getElementById('panelDateFooterText');
+    const info = document.getElementById('panelDateFooterInfo');
+    if (!text || !info) return;
+    if (desde || hasta) {
+      const fmt = (iso) => { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
+      text.textContent = (desde && hasta) ? `Desde ${fmt(desde)} hasta ${fmt(hasta)}`
+        : desde ? `Desde ${fmt(desde)}` : `Hasta ${fmt(hasta)}`;
+      info.style.color = 'var(--primary)';
+    } else {
+      text.textContent = 'Sin filtro aplicado';
+      info.style.color = '';
+    }
   }
+
+  function populatePanelDateLabels() {
+    const today = new Date();
+    const fmt = (d) => d.toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit' });
+    const set = (id, txt) => { const el = document.getElementById('qdLabel_' + id); if (el) el.textContent = txt; };
+    set('hoy', fmt(today));
+    const ayer = new Date(today); ayer.setDate(ayer.getDate() - 1);
+    set('ayer', fmt(ayer));
+    const semD = new Date(today); semD.setDate(semD.getDate() - 6);
+    set('semana', fmt(semD) + ' - ' + fmt(today));
+    set('mes', fmt(new Date(today.getFullYear(), today.getMonth(), 1)) + ' - ' + fmt(today));
+  }
+
+  function initPanelDatePicker() { /* reemplazado por modal de fechas */ }
 
   function toggleFilter(filterId, kpi, type) {
     const shouldOpen = state.panelOpenFilter !== filterId;
@@ -3777,7 +3853,8 @@
 
   async function clearCurrentPanelFilters(button) {
     await runButtonLoading(button, async () => {
-      state.panelFilters.fecha = '';
+      state.panelFilters.fechaDesde = '';
+      state.panelFilters.fechaHasta = '';
       state.panelFilters.clienteCode = '';
       state.panelFilters.clienteLabel = '';
       state.panelFilters.repartidorId = '';

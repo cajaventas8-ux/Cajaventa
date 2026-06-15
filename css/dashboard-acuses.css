@@ -3758,4 +3758,168 @@ tr.acuse-row-new::after {
 
 /* ALASMotionBridge maneja entrada/salida — ver alas-transition.js */
 
+/* ═══════ DATE FILTER MODAL ═══════ */
+.date-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.date-modal-overlay.is-open { opacity: 1; }
+.date-modal-overlay.is-closing { opacity: 0; }
+
+.date-modal-box {
+  background: var(--white);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  max-width: 520px;
+  width: 92%;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform: scale(0.95) translateY(20px);
+  transition: transform 0.25s var(--alas-ease), opacity 0.2s ease;
+}
+.date-modal-overlay.is-open .date-modal-box { transform: scale(1) translateY(0); }
+.date-modal-overlay.is-closing .date-modal-box { transform: scale(0.95) translateY(20px); }
+
+.date-modal-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.date-modal-head-left { display: flex; align-items: flex-start; gap: 14px; }
+.date-modal-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  background: rgba(11,95,141,0.08);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.date-modal-head-left h3 { font-size: 17px; font-weight: 700; color: var(--gray-700); margin: 2px 0; }
+.date-modal-sub { font-size: 13px; color: var(--gray-500); margin: 0; line-height: 1.3; }
+.date-modal-close {
+  background: none; border: none; color: var(--gray-400);
+  cursor: pointer; padding: 4px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+.date-modal-close:hover { color: var(--gray-700); background: var(--gray-100); }
+
+.date-modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+
+.date-section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; color: var(--gray-400);
+  text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 14px;
+}
+.date-section-title svg { opacity: 0.6; }
+
+.date-custom-range { display: flex; flex-direction: column; }
+.date-range-fields { display: flex; align-items: flex-end; gap: 12px; }
+.date-field { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.date-field-label { font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.4px; }
+.date-input-wrap {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--gray-50); border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); padding: 0 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.date-input-wrap:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11,95,141,0.10); background: var(--white); }
+.date-input-wrap svg { color: var(--gray-400); flex-shrink: 0; }
+.date-input-wrap:focus-within svg { color: var(--primary); }
+.date-dm-input {
+  flex: 1; border: none; background: transparent; padding: 10px 0;
+  font-size: 14px; font-weight: 600; color: var(--gray-700);
+  font-family: 'DM Sans', sans-serif; outline: none; min-width: 0;
+}
+.date-dm-input::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; padding: 4px; }
+.date-dm-input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+.date-range-arrow { display: flex; align-items: center; padding-bottom: 10px; color: var(--gray-400); }
+.date-apply-btn {
+  margin-top: 16px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--primary); color: white; border: none;
+  padding: 11px 20px; border-radius: var(--radius-sm);
+  font-weight: 700; font-size: 14px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s var(--alas-ease), transform 0.15s, box-shadow 0.2s;
+}
+.date-apply-btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(11,95,141,0.25); }
+.date-apply-btn:active { transform: scale(0.97); }
+
+.date-divider { height: 1px; background: var(--gray-200); margin: 0; }
+
+.date-quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 10px; }
+.date-quick-btn {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  background: var(--white); border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  cursor: pointer; text-align: left; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.date-quick-btn:hover { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(11,95,141,0.08); }
+.date-quick-btn:active { transform: scale(0.97); }
+.date-quick-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(11,95,141,0.07); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+.date-quick-btn:hover .date-quick-icon { background: var(--primary); color: white; }
+.date-quick-label { font-size: 12px; font-weight: 700; color: var(--gray-700); }
+.date-quick-sub { font-size: 10px; color: var(--gray-400); }
+.date-quick-btn--danger:hover { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(239,68,68,0.08); }
+.date-quick-btn--danger .date-quick-icon { background: var(--danger-soft); color: var(--danger); }
+.date-quick-btn--danger:hover .date-quick-icon { background: var(--danger); color: white; }
+
+.date-modal-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px 18px; border-top: 1px solid var(--gray-200); gap: 12px;
+}
+.date-footer-cancel {
+  background: none; border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); padding: 9px 18px;
+  font-size: 13px; font-weight: 600; color: var(--gray-500);
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s, color 0.2s;
+}
+.date-footer-cancel:hover { border-color: var(--gray-400); color: var(--gray-700); }
+.date-footer-info { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-400); min-width: 0; }
+.date-footer-info svg { flex-shrink: 0; }
+
+/* Botón trigger en la barra de filtros */
+.date-btn-trigger {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--white); border: 1.5px solid var(--gray-200);
+  border-radius: 8px; padding: 6px 12px;
+  font-size: 13px; font-weight: 600; color: var(--gray-600);
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+  white-space: nowrap; min-height: 34px;
+}
+.date-btn-trigger svg { color: var(--gray-400); transition: color 0.2s; }
+.date-btn-trigger:hover { border-color: var(--primary); color: var(--primary); }
+.date-btn-trigger:hover svg { color: var(--primary); }
+.date-btn-trigger.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(11,95,141,0.2); }
+.date-btn-trigger.active svg { color: white; }
+
+@media (max-width: 600px) {
+  .date-range-fields { flex-direction: column; }
+  .date-range-arrow { display: none; }
+  .date-quick-grid { grid-template-columns: repeat(2, 1fr); }
+  .date-modal-box { width: 96%; }
+}
+
 
