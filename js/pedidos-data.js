@@ -56,9 +56,16 @@
       console.log('[Import] Columnas Excel:', Object.keys(rows[0]).join(', '));
     }
 
+    var condExpExcluidos = {};
     rows.forEach(function (row) {
       var entrega = String(row['Entrega'] || '').trim();
       if (!entrega) return;
+
+      // Saltar entregas con Cond.exp. 08 o 09
+      var condExpRaw = String(row['Cond.exp.'] || row['Cond. exp.'] || '').trim();
+      var condExpNum = parseInt(condExpRaw, 10);
+      if (condExpNum === 8 || condExpNum === 9) { condExpExcluidos[entrega] = true; return; }
+      if (condExpExcluidos[entrega]) return;
 
       var puestExped = String(
         row['PuestExped'] || row['Puest.Exped'] || row['Puest. Exped'] ||
@@ -96,6 +103,9 @@
         contArt: parseFloat(String(row['Cont.Art'] || '0').replace(',', '.')) || 0
       });
     });
+
+    // Eliminar entregas con Cond.exp. 08/09
+    Object.keys(condExpExcluidos).forEach(function (k) { delete entregasMap[k]; });
 
     // Determinar almacen: FABRICA solo si el 100% de items tiene PuestExped='ALDF'
     // cualquier item con otro valor o en blanco → DEPOSITO (mixto cuenta como DEPOSITO)
