@@ -3083,7 +3083,7 @@
 
     setDashboardSelectedAcuse(id, { clearHighlight: false });
     const row = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
-    if (row) row.classList.add('row-sweep-blue');
+    if (row) { row.classList.add('row-sweep-blue'); _createSweepOverlay(row, 'blue'); }
     if (button) button.disabled = true;
 
     try {
@@ -3132,7 +3132,7 @@
 
     setDashboardSelectedAcuse(id, { clearHighlight: false });
     const row = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
-    if (row) row.classList.add('row-sweep-green');
+    if (row) { row.classList.add('row-sweep-green'); _createSweepOverlay(row, 'green'); }
     if (button) button.disabled = true;
 
     try {
@@ -4315,6 +4315,18 @@
     state.history.suggestions.usuario = uniqueValues(items, 'Usuario');
     state.history.suggestions.cliente = uniqueValues(items, 'Cliente');
     renderHistorial();
+  }
+
+  function _createSweepOverlay(row, color) {
+    const rect = row.getBoundingClientRect();
+    const wrap = document.createElement('div');
+    wrap.className = 'sweep-overlay';
+    wrap.style.cssText = `position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;height:${rect.height}px;z-index:50;`;
+    const beam = document.createElement('div');
+    beam.className = `sweep-beam sweep-beam--${color}`;
+    wrap.appendChild(beam);
+    document.body.appendChild(wrap);
+    setTimeout(() => wrap.remove(), 700);
   }
 
   function registrarAccion(accion, usuario, cliente, entrega, detalle) {

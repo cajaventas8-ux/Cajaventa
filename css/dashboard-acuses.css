@@ -2963,36 +2963,31 @@ tr.acuse-row-new::after {
 
 /* ═══════ ROW TRANSITION ANIMATIONS (contabilizar / facturar) ═══════ */
 
-/* ── sweep: overflow:hidden para clipar el ::after ── */
-.row-sweep-blue > td,
-.row-sweep-green > td { overflow: hidden; }
-
 /* ── fondo base durante el sweep ── */
-.row-sweep-blue  > td { background: rgba(59,130,246,0.04); }
-.row-sweep-green > td { background: rgba(16,185,129,0.04); }
+.row-sweep-blue  > td { background: rgba(59,130,246,0.05); }
+.row-sweep-green > td { background: rgba(16,185,129,0.05); }
 
-/* ── luz que viaja de izquierda a derecha ── */
-.row-sweep-blue > td::after,
-.row-sweep-green > td::after {
-  content: ''; position: absolute; inset: 0;
-  animation: rowSweepPass 0.58s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-  pointer-events: none;
+/* ── overlay único inyectado via JS: un solo elemento cubre el row entero ── */
+.sweep-overlay { overflow: hidden; pointer-events: none; border-radius: 2px; }
+.sweep-beam {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -30%; width: 30%;
+  animation: sweepBeamMove 0.62s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
 }
-.row-sweep-blue > td::after {
+.sweep-beam--blue {
   background: linear-gradient(90deg,
-    transparent 0%, rgba(147,197,253,0) 20%,
-    rgba(147,197,253,0.6) 50%, rgba(59,130,246,0.4) 54%,
-    rgba(147,197,253,0) 78%, transparent 100%);
+    transparent 0%, rgba(147,197,253,0.45) 25%,
+    rgba(59,130,246,0.55) 50%, rgba(147,197,253,0.45) 75%, transparent 100%);
 }
-.row-sweep-green > td::after {
+.sweep-beam--green {
   background: linear-gradient(90deg,
-    transparent 0%, rgba(110,231,183,0) 20%,
-    rgba(110,231,183,0.6) 50%, rgba(16,185,129,0.4) 54%,
-    rgba(110,231,183,0) 78%, transparent 100%);
+    transparent 0%, rgba(110,231,183,0.45) 25%,
+    rgba(16,185,129,0.55) 50%, rgba(110,231,183,0.45) 75%, transparent 100%);
 }
-@keyframes rowSweepPass {
-  from { transform: translateX(-200%); }
-  to   { transform: translateX(260%); }
+@keyframes sweepBeamMove {
+  from { transform: translateX(0); }
+  to   { transform: translateX(433%); }
 }
 
 /* ── exit: fade + slide up suave ── */
