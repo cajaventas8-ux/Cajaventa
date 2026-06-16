@@ -61,17 +61,20 @@
       var entrega = String(row['Entrega'] || '').trim();
       if (!entrega) return;
 
-      // Saltar entregas con Cond.exp. 08 o 09
+      // Cond.exp. 08/09: solo excluir si es DEPOSITO; FABRICA (ALDF) se importa
       var condExpRaw = String(row['Cond.exp.'] || row['Cond. exp.'] || '').trim();
       var condExpNum = parseInt(condExpRaw, 10);
-      if (condExpNum === 8 || condExpNum === 9) { condExpExcluidos[entrega] = true; return; }
-      if (condExpExcluidos[entrega]) return;
 
       var puestExped = String(
         row['PuestExped'] || row['Puest.Exped'] || row['Puest. Exped'] ||
         row['Puesto Exped'] || row['Puesto de Expedición'] || row['PstExp'] ||
         row['Puest.Exped.'] || row['Puest Exped'] || ''
       ).trim();
+
+      if (condExpNum === 8 || condExpNum === 9) {
+        if (puestExped !== 'ALDF') { condExpExcluidos[entrega] = true; return; }
+      }
+      if (condExpExcluidos[entrega]) return;
 
       if (!entregasMap[entrega]) {
         entregasMap[entrega] = {
