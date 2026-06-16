@@ -2493,7 +2493,7 @@
     else if (_renderingKpi === 'anulados')   primaryDate = item.Fecha_Anulado    || item.Fecha_Emision;
     else                                     primaryDate = item.Fecha_Emision;
 
-    return `<tr class="tbl-row-selectable" data-acuse-id="${acuseId}" data-entrega="${entregaStr}">
+    return `<tr class="tbl-row-selectable" data-acuse-id="${acuseId}" data-entrega="${entregaStr}" onclick="selectDashboardAcuse(${acuseId})">
       <td class="td-cb" onclick="event.stopPropagation()"><label class="cb-wrap"><input type="checkbox" class="row-cb" data-entrega="${entregaStr}" onchange="cvToggleSelect('${escapeInlineJs(item.entrega || String(acuseId))}',this)"></label></td>
       <td>${escapeHtml(formatDate(primaryDate))}</td>
       <td>${copyCell(guide)}</td>
@@ -2575,10 +2575,18 @@
     document.querySelectorAll('#contentPanel .tbl-row-selectable').forEach((row) => {
       const rowId = Number(row.dataset.acuseId || 0) || null;
       const isSelected = rowId !== null && rowId === state.selectedAcuseId;
+      const wasSelected = row.classList.contains('tbl-row-selected');
       const isHighlighted = rowId !== null && rowId === state.highlightedAcuseId;
       row.classList.toggle('tbl-row-selected', isSelected);
       row.classList.toggle('tbl-row-created', isHighlighted);
       row.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      if (isSelected && !wasSelected) {
+        row.classList.remove('tbl-row-select-pop');
+        requestAnimationFrame(() => {
+          row.classList.add('tbl-row-select-pop');
+          setTimeout(() => row.classList.remove('tbl-row-select-pop'), 400);
+        });
+      }
     });
 
     if (options.focus && state.selectedAcuseId) {
