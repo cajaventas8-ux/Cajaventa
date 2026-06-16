@@ -1094,18 +1094,21 @@
     if (!shell) return;
     if (full && window.gsap) {
       shell.style.animation = 'none';
-      gsap.fromTo(shell,
-        { opacity: 0, y: 12, scale: 0.996 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: 'power3.out', clearProps: 'all' });
+      // gsap.set aplica sincrónicamente (antes del siguiente paint) — evita el flash
+      // que causaba fromTo porque este aplicaba el estado inicial en el siguiente rAF
+      gsap.set(shell, { opacity: 0, y: 12, scale: 0.996 });
+      gsap.to(shell, { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: 'power3.out', clearProps: 'all' });
     }
     // CSS stagger — cada fila baja desde -6px (mismo patrón que itemsborrados)
     const rows = shell.querySelectorAll('tbody tr');
-    rows.forEach((r, i) => {
-      r.style.animation = 'none';
-      void r.offsetWidth;
-      r.style.animation = '';
-      r.style.animationDelay = (i * 0.04) + 's';
-    });
+    if (rows.length) {
+      rows.forEach(r => { r.style.animation = 'none'; });
+      void shell.offsetHeight; // un único reflow para todas las filas
+      rows.forEach((r, i) => {
+        r.style.animation = '';
+        r.style.animationDelay = (i * 0.04) + 's';
+      });
+    }
   }
   // ─────────────────────────────────────────────────────────────────────────
 
