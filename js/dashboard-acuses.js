@@ -1089,23 +1089,23 @@
   }
 
   function gsapPanelEnter(panel, full = true) {
-    if (!window.gsap || !panel) return;
+    if (!panel) return;
     const shell = panel.querySelector('.content-panel');
     if (!shell) return;
-    if (full) {
+    if (full && window.gsap) {
       shell.style.animation = 'none';
       gsap.fromTo(shell,
         { opacity: 0, y: 12, scale: 0.996 },
         { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: 'power3.out', clearProps: 'all' });
     }
+    // CSS stagger — cada fila baja desde -6px (mismo patrón que itemsborrados)
     const rows = shell.querySelectorAll('tbody tr');
-    if (rows.length) {
-      rows.forEach(r => { r.style.animation = 'none'; });
-      gsap.fromTo(rows,
-        { opacity: 0, x: -7 },
-        { opacity: 1, x: 0, duration: 0.2, stagger: { amount: Math.min(rows.length * 0.03, 0.35) },
-          ease: 'power2.out', delay: full ? 0.07 : 0, clearProps: 'all' });
-    }
+    rows.forEach((r, i) => {
+      r.style.animation = 'none';
+      void r.offsetWidth;
+      r.style.animation = '';
+      r.style.animationDelay = (i * 0.04) + 's';
+    });
   }
   // ─────────────────────────────────────────────────────────────────────────
 

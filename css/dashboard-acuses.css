@@ -673,25 +673,15 @@
 
   /* ── Animación stagger de filas de tabla ── */
   @keyframes tblRowIn {
-    from { opacity: 0; transform: translateX(-4px); }
-    to   { opacity: 1; transform: translateX(0); }
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   #contentPanel tbody tr {
-    animation: tblRowIn 0.22s ease both;
+    animation: tblRowIn 0.3s ease both;
   }
   #contentPanel tbody tr.group-header-row {
-    animation: tblRowIn 0.28s ease both;
+    animation: tblRowIn 0.3s ease both;
   }
-  #contentPanel tbody tr:nth-child(2)  { animation-delay: 0.025s; }
-  #contentPanel tbody tr:nth-child(3)  { animation-delay: 0.05s;  }
-  #contentPanel tbody tr:nth-child(4)  { animation-delay: 0.07s;  }
-  #contentPanel tbody tr:nth-child(5)  { animation-delay: 0.09s;  }
-  #contentPanel tbody tr:nth-child(6)  { animation-delay: 0.11s;  }
-  #contentPanel tbody tr:nth-child(7)  { animation-delay: 0.13s;  }
-  #contentPanel tbody tr:nth-child(8)  { animation-delay: 0.15s;  }
-  #contentPanel tbody tr:nth-child(9)  { animation-delay: 0.17s;  }
-  #contentPanel tbody tr:nth-child(10) { animation-delay: 0.19s;  }
-  #contentPanel tbody tr:nth-child(n+11) { animation-delay: 0.21s; }
 
   .panel-header {
     padding: 16px 24px;
