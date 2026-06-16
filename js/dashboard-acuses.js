@@ -2003,7 +2003,7 @@
   function renderPanel(kpi, response, options = {}) {
     const preserveShell = Boolean(options.preserveShell);
     const cfg = PANEL_CONFIG[kpi];
-    const colCount = 11;
+    const colCount = 10;
     _selectedEntregas.clear();
     updateBulkBar();
     const rowsHtml = renderPanelRows(kpi, response.items || []);
@@ -2130,9 +2130,9 @@
   function panelTableHeaders(kpi) {
     const cbHead = '<th class="th-cb"><label class="cb-all-wrap"><input type="checkbox" id="cb-select-all" onclick="cvSelectAll(this)"></label></th>';
     if (kpi === 'anulados') {
-      return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th></th><th>Motivo de anulacion</th>';
+      return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Cod.cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th></th><th>Motivo de anulacion</th>';
     }
-    return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Solic.</th><th>Cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Detalles</th><th>Acciones</th>';
+    return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Cod.cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Detalles</th><th>Acciones</th>';
   }
 
   let _gruposMap = new Map();
@@ -2424,7 +2424,7 @@
         ? `<button class="tbl-group-wa-btn act-wa" onclick="event.stopPropagation();abrirPedidoContado('${clienteJs}')"><span class="tip">Enviar Pedido</span>${waIcon}</button>`
         : '';
 
-      html += `<tr class="group-header-row ${rowCls}"><td colspan="11">
+      html += `<tr class="group-header-row ${rowCls}"><td colspan="10">
         <div class="group-header-content">
           <div class="group-vendor-name">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -2498,8 +2498,7 @@
       <td>${escapeHtml(formatDate(primaryDate))}</td>
       <td>${copyCell(guide)}</td>
       <td>${pedidoVal ? copyCell(pedidoVal) : '<span style="color:#cbd5e1">—</span>'}</td>
-      <td>${solicVal  ? copyCell(solicVal) : '<span style="color:#cbd5e1">—</span>'}</td>
-      <td><span class="tbl-cell-meta">${clientRowIcon()}<span class="tbl-cell-meta__text">${escapeHtml(clientLabel)}</span></span></td>
+      <td>${item.Cod_Cliente ? copyCell(escapeHtml(item.Cod_Cliente)) : '<span style="color:#cbd5e1">—</span>'}</td>
       <td>${renderAlmacenBadge(item.Almacen, item.Almacen_Origen)}</td>
       <td class="monto-cell" onclick="event.stopPropagation();abrirMonto(this,'${acuseId}')" title="Click para ingresar monto">${renderMontoCell(item.Monto)}</td>
       <td class="obs-cell" onclick="event.stopPropagation();openObsView(this,'${acuseId}','${escapeInlineJs(item.Observacion||'')}','${escapeInlineJs(clientLabel)}')">${renderObservacionCell(item.Observacion)}</td>
