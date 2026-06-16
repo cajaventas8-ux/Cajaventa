@@ -3614,7 +3614,7 @@
       const detalles = acuse.detalles || [];
       const pedido = escapeHtml(acuse.pedido || '—');
       const solicitud = escapeHtml(acuse.solicitud || '—');
-      const fecha = escapeHtml(formatDate(acuse.Fecha_Emision));
+      const fecha = escapeHtml(formatDateTime(acuse.Fecha_Emision));
       const vendedor = escapeHtml(acuse.Nombre_Repartidor || '—');
       const totalUnidades = detalles.reduce((s, d) => s + Number(d.Cantidad || 0), 0);
 
@@ -3641,9 +3641,9 @@
           </tr>`).join('')
         : `<tr><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;font-weight:600">Sin líneas registradas</td></tr>`;
 
-      const fContab    = acuse.Fecha_Contabilizado ? escapeHtml(formatDate(acuse.Fecha_Contabilizado)) : null;
-      const fFact      = acuse.Fecha_Facturado     ? escapeHtml(formatDate(acuse.Fecha_Facturado))     : null;
-      const fAnul      = acuse.Fecha_Anulado       ? escapeHtml(formatDate(acuse.Fecha_Anulado))       : null;
+      const fContab    = acuse.Fecha_Contabilizado ? escapeHtml(formatDateTime(acuse.Fecha_Contabilizado)) : null;
+      const fFact      = acuse.Fecha_Facturado     ? escapeHtml(formatDateTime(acuse.Fecha_Facturado))     : null;
+      const fAnul      = acuse.Fecha_Anulado       ? escapeHtml(formatDateTime(acuse.Fecha_Anulado))       : null;
       const isAnulado  = (acuse.Estado || '').toLowerCase() === 'anulado';
       const isTraspasado = String(acuse.Almacen_Origen || '').toUpperCase() === 'FABRICA';
 
