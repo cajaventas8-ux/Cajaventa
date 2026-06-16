@@ -1238,7 +1238,13 @@
     overflow: visible;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   }
-  tbody tr:hover td { background: #F8FAFC; }
+  tbody tr.tbl-row-selectable:hover > td {
+    background: rgba(14,165,233,0.055);
+    border-bottom-color: rgba(14,165,233,0.13);
+  }
+  tbody tr.tbl-row-selectable:hover > td:first-child {
+    box-shadow: inset 3px 0 0 rgba(14,165,233,0.45);
+  }
   tbody tr.tbl-row-selectable:focus-visible {
     outline: none;
   }
