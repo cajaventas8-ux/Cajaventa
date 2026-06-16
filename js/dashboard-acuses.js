@@ -2498,7 +2498,7 @@
       <td>${escapeHtml(formatDate(primaryDate))}</td>
       <td>${copyCell(guide)}</td>
       <td>${pedidoVal ? copyCell(pedidoVal) : '<span style="color:#cbd5e1">—</span>'}</td>
-      <td>${item.Cod_Cliente ? copyCell(escapeHtml(item.Cod_Cliente)) : '<span style="color:#cbd5e1">—</span>'}</td>
+      <td>${solicVal ? copyCell(solicVal) : '<span style="color:#cbd5e1">—</span>'}</td>
       <td>${renderAlmacenBadge(item.Almacen, item.Almacen_Origen)}</td>
       <td class="monto-cell" onclick="event.stopPropagation();abrirMonto(this,'${acuseId}')" title="Click para ingresar monto">${renderMontoCell(item.Monto)}</td>
       <td class="obs-cell" onclick="event.stopPropagation();openObsView(this,'${acuseId}','${escapeInlineJs(item.Observacion||'')}','${escapeInlineJs(clientLabel)}')">${renderObservacionCell(item.Observacion)}</td>
