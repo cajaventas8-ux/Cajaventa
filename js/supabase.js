@@ -562,12 +562,24 @@
         data = data.filter(function (p) { return p.fecha >= inicio && p.fecha <= fin; });
       }
 
+      // Mapa cliente → tiene DEPOSITO / tiene FABRICA (sobre datos ya filtrados por mes)
+      var summaryClientMap = {};
+      data.forEach(function (p) {
+        var c = p.cliente || '';
+        if (!summaryClientMap[c]) summaryClientMap[c] = { hasFabrica: false, hasDeposito: false };
+        if ((p.almacen || '').toUpperCase() === 'FABRICA') summaryClientMap[c].hasFabrica = true;
+        else summaryClientMap[c].hasDeposito = true;
+      });
+      // Cliente con al menos 1 DEPOSITO → DEPOSITO. Cliente 100% FABRICA → FABRICA.
+      function summaryEsDeposito(p) { var i = summaryClientMap[p.cliente || '']; return i && i.hasDeposito; }
+      function summaryEsFabrica(p)  { var i = summaryClientMap[p.cliente || '']; return i && i.hasFabrica && !i.hasDeposito; }
+
       // Filtro de almacén para KPIs (aplica sobre el slice de datos ya filtrado por mes)
       var kpiData = data;
       if (almacen === 'DEPOSITO') {
-        kpiData = data.filter(function (p) { return (p.almacen || '').toUpperCase() !== 'FABRICA'; });
+        kpiData = data.filter(summaryEsDeposito);
       } else if (almacen === 'FABRICA') {
-        kpiData = data.filter(function (p) { return (p.almacen || '').toUpperCase() === 'FABRICA'; });
+        kpiData = data.filter(summaryEsFabrica);
       }
 
       // ── KPIs ──
@@ -587,11 +599,11 @@
         else if (p.estado === 'facturado')     { kpis.en_transito++; kpis.monto_en_transito += m; }
         else if (p.estado === 'anulado')       { kpis.anulados++;    kpis.monto_anulados    += m; }
       });
-      // Conteos FABRICA/DEPOSITO desde data SIN filtro de almacén → ambos badges siempre visibles
+      // Conteos FABRICA/DEPOSITO usando la misma lógica de cliente para que los badges reflejen la vista
       data.forEach(function (p) {
         var m = Number(p.monto) || 0;
-        if ((p.almacen || '').toUpperCase() === 'FABRICA') { kpis.fabrica++;  kpis.monto_fabrica  += m; }
-        else                                               { kpis.deposito++; kpis.monto_deposito += m; }
+        if (summaryEsFabrica(p)) { kpis.fabrica++;  kpis.monto_fabrica  += m; }
+        else                     { kpis.deposito++; kpis.monto_deposito += m; }
       });
       kpis.acuses = kpis.pendientes + kpis.entregados + kpis.en_transito;
 
@@ -803,10 +815,28 @@
       });
     }
 
-    if (params.almacen === 'FABRICA') {
-      pedidos = pedidos.filter(function (p) { return (p.almacen || '').toUpperCase() === 'FABRICA'; });
-    } else if (params.almacen === 'DEPOSITO') {
-      pedidos = pedidos.filter(function (p) { return (p.almacen || '').toUpperCase() !== 'FABRICA'; });
+    if (params.almacen === 'FABRICA' || params.almacen === 'DEPOSITO') {
+      // Lógica a nivel de cliente: si un cliente tiene al menos 1 entrega DEPOSITO
+      // todas sus entregas (incluyendo FABRICA) van a DEPOSITO.
+      // Solo clientes 100% FABRICA van al tab FABRICA.
+      var panelClientMap = {};
+      pedidos.forEach(function (p) {
+        var c = p.cliente || '';
+        if (!panelClientMap[c]) panelClientMap[c] = { hasFabrica: false, hasDeposito: false };
+        if ((p.almacen || '').toUpperCase() === 'FABRICA') panelClientMap[c].hasFabrica = true;
+        else panelClientMap[c].hasDeposito = true;
+      });
+      if (params.almacen === 'FABRICA') {
+        pedidos = pedidos.filter(function (p) {
+          var i = panelClientMap[p.cliente || ''];
+          return i && i.hasFabrica && !i.hasDeposito;
+        });
+      } else {
+        pedidos = pedidos.filter(function (p) {
+          var i = panelClientMap[p.cliente || ''];
+          return i && i.hasDeposito;
+        });
+      }
     }
 
     var total = pedidos.length;
