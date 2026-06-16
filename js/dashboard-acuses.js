@@ -1056,6 +1056,59 @@
     }
   }
 
+  // ── GSAP KPI animations ──────────────────────────────────────────────────
+  function _kpiRawNum(el) {
+    return parseInt(String(el ? el.textContent : '0').replace(/\D/g, ''), 10) || 0;
+  }
+
+  function animateKpiVal(id, target, kpiKey) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!window.gsap) { el.textContent = formatNumber(target); return; }
+    const from = _kpiRawNum(el);
+    if (from === target) return;
+    if (kpiKey) {
+      const card = document.querySelector(`.kpi-card[data-kpi="${kpiKey}"]`);
+      if (card) gsap.fromTo(card, { scale: 1 }, { scale: 1.018, duration: 0.13, ease: 'power2.out', yoyo: true, repeat: 1 });
+    }
+    const obj = { n: from };
+    gsap.to(obj, { n: target, duration: 0.65, ease: 'power2.out',
+      onUpdate() { el.textContent = formatNumber(Math.round(obj.n)); } });
+  }
+
+  function animateKpiMonto(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const n = Math.round(Number(value) || 0);
+    if (n === 0) { el.textContent = ''; el.style.display = 'none'; return; }
+    el.style.display = '';
+    if (!window.gsap) { el.textContent = 'Gs ' + n.toLocaleString('es-PY'); return; }
+    const obj = { n: _kpiRawNum(el) };
+    gsap.to(obj, { n, duration: 0.65, ease: 'power2.out',
+      onUpdate() { el.textContent = 'Gs ' + Math.round(obj.n).toLocaleString('es-PY'); } });
+  }
+
+  function gsapPanelEnter(panel, full = true) {
+    if (!window.gsap || !panel) return;
+    const shell = panel.querySelector('.content-panel');
+    if (!shell) return;
+    if (full) {
+      shell.style.animation = 'none';
+      gsap.fromTo(shell,
+        { opacity: 0, y: 12, scale: 0.996 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: 'power3.out', clearProps: 'all' });
+    }
+    const rows = shell.querySelectorAll('tbody tr');
+    if (rows.length) {
+      rows.forEach(r => { r.style.animation = 'none'; });
+      gsap.fromTo(rows,
+        { opacity: 0, x: -7 },
+        { opacity: 1, x: 0, duration: 0.2, stagger: { amount: Math.min(rows.length * 0.03, 0.35) },
+          ease: 'power2.out', delay: full ? 0.07 : 0, clearProps: 'all' });
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   function renderKpis() {
     const kpis = state.kpiSummary && state.kpiSummary.kpis
       ? state.kpiSummary.kpis
@@ -1063,19 +1116,19 @@
         ? state.summary.kpis
         : {};
 
-    setText('val-pendientes',  formatNumber(kpis.pendientes  || 0));
-    setText('val-entregados',  formatNumber(kpis.entregados  || 0));
-    setText('val-acuses',      formatNumber(kpis.acuses      || 0));
-    setText('val-en_transito', formatNumber(kpis.en_transito || 0));
-    setText('val-anulados',    formatNumber(kpis.anulados    || 0));
-    setText('val-deposito',    formatNumber(kpis.deposito    || 0));
-    setText('val-fabrica',     formatNumber(kpis.fabrica     || 0));
+    animateKpiVal('val-pendientes',  kpis.pendientes  || 0, 'pendientes');
+    animateKpiVal('val-entregados',  kpis.entregados  || 0, 'entregados');
+    animateKpiVal('val-acuses',      kpis.acuses      || 0, 'acuses');
+    animateKpiVal('val-en_transito', kpis.en_transito || 0, 'en_transito');
+    animateKpiVal('val-anulados',    kpis.anulados    || 0, 'anulados');
+    setText('val-deposito', formatNumber(kpis.deposito || 0));
+    setText('val-fabrica',  formatNumber(kpis.fabrica  || 0));
 
-    setKpiMonto('monto-pendientes',  kpis.monto_pendientes);
-    setKpiMonto('monto-entregados',  kpis.monto_entregados);
-    setKpiMonto('monto-en_transito', kpis.monto_en_transito);
-    setKpiMonto('monto-anulados',    kpis.monto_anulados);
-    setKpiMonto('monto-acuses',      kpis.monto_total);
+    animateKpiMonto('monto-pendientes',  kpis.monto_pendientes);
+    animateKpiMonto('monto-entregados',  kpis.monto_entregados);
+    animateKpiMonto('monto-en_transito', kpis.monto_en_transito);
+    animateKpiMonto('monto-anulados',    kpis.monto_anulados);
+    animateKpiMonto('monto-acuses',      kpis.monto_total);
   }
 
   function setKpiMonto(id, value) {
@@ -1838,6 +1891,10 @@
     }
 
     if (panel && !useSoft) {
+      const _exitShell = panel.querySelector('.content-panel');
+      if (_exitShell && window.gsap) {
+        await new Promise(r => gsap.to(_exitShell, { opacity: 0, y: -8, duration: 0.15, ease: 'power2.in', onComplete: r }));
+      }
       panel.innerHTML = `<div class="content-panel">${renderPanelLoaderMarkup('Cargando datos reales...')}</div>`;
     } else if (useSoft && currentShell) {
       currentShell.classList.add('content-panel--soft-loading');
@@ -2031,6 +2088,7 @@
         shell.innerHTML = innerHtml;
         initPanelDatePicker(kpi);
         syncDashboardSelectedRowState({ focus: Boolean(state.highlightedAcuseId), behavior: 'smooth' });
+        gsapPanelEnter(panel, false);
         return;
       }
     }
@@ -2038,6 +2096,7 @@
     panel.innerHTML = `<div class="content-panel">${innerHtml}</div>`;
     initPanelDatePicker(kpi);
     syncDashboardSelectedRowState({ focus: Boolean(state.highlightedAcuseId), behavior: 'smooth' });
+    gsapPanelEnter(panel, true);
   }
 
   function panelHeaderHTML(kpi, cfg) {

@@ -363,6 +363,7 @@
     border-radius: var(--radius);
     padding: 14px 16px;
     cursor: pointer;
+    will-change: transform;
     transition: transform    var(--alas-dur-normal) var(--alas-ease),
                 border-color var(--alas-dur-normal) var(--alas-ease);
     border: 2px solid transparent;
@@ -431,6 +432,7 @@
     color: var(--primary);
     line-height: 1;
     margin-bottom: 3px;
+    will-change: contents;
   }
   .kpi-label {
     font-size: 11px;
