@@ -2454,7 +2454,8 @@
     const motivoAnulacion = escapeHtml(item.Motivo_Anulacion || item.Observacion || 'Sin motivo registrado');
 
     const esFabrica = (item.Almacen || '').toUpperCase() === 'FABRICA';
-    const traspasarBtnHtml = (esFabrica && !cancelled)
+    const enSegmentoDeposito = (state.panelFilters.almacen || '').toUpperCase() === 'DEPOSITO';
+    const traspasarBtnHtml = (esFabrica && !cancelled && !enSegmentoDeposito)
       ? `<button class="tbl-btn act-traspasar" onclick="event.stopPropagation();traspasarPedido(${acuseId}, this)"><span class="tip">Traspasar a Depósito</span>${traspasarIcon()}</button>`
       : '';
 
