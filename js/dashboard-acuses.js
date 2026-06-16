@@ -2146,7 +2146,11 @@
     const n = _selectedEntregas.size;
     if (n > 0) {
       bar.style.display = 'flex';
-      if (cnt) cnt.textContent = n === 1 ? '1 seleccionado' : n + ' seleccionados';
+      if (cnt) {
+        const prev = cnt.textContent;
+        cnt.textContent = n;
+        if (prev !== String(n)) { cnt.classList.remove('bump'); void cnt.offsetWidth; cnt.classList.add('bump'); }
+      }
     } else {
       bar.style.display = 'none';
     }
@@ -2156,6 +2160,15 @@
       cbAll.checked = all.length > 0 && _selectedEntregas.size >= all.length;
       cbAll.indeterminate = _selectedEntregas.size > 0 && _selectedEntregas.size < all.length;
     }
+  }
+
+  function setBulkLoading(loading, label) {
+    const actEl  = document.getElementById('bulkBarActions');
+    const loadEl = document.getElementById('bulkBarLoading');
+    const lblEl  = document.getElementById('bulkLoadingLabel');
+    if (actEl)  actEl.style.display  = loading ? 'none' : '';
+    if (loadEl) loadEl.style.display = loading ? 'flex' : 'none';
+    if (lblEl && label) lblEl.textContent = label;
   }
 
   window.cvToggleSelect = function (entrega, cb) {
@@ -2192,29 +2205,38 @@
   window.cvBulkChangeEstado = async function (estado) {
     if (!estado || !_selectedEntregas.size) return;
     const ids = [..._selectedEntregas];
-    const labels = { pendiente: 'Pendiente', en_transito: 'Contabilizado', entregado: 'Facturado', anulado: 'Anulado' };
-    const label = labels[estado] || estado;
-    const msg = ids.length === 1
-      ? `¿Cambiar 1 entrega a "${label}"?`
-      : `¿Cambiar ${ids.length} entregas a "${label}"?`;
-    if (!confirm(msg)) return;
+    const labels    = { pendiente: 'Pendiente', en_transito: 'Contabilizado', entregado: 'Facturado', anulado: 'Anulado' };
+    const apiEstados = { pendiente: 'Pendiente', en_transito: 'En Transito', entregado: 'Entregado', anulado: 'Anulado' };
+    const variantMap = { pendiente: '', en_transito: 'blue', entregado: 'green', anulado: '' };
+    const label   = labels[estado] || estado;
+    const count   = ids.length;
+    const isDanger = estado === 'anulado';
 
-    const usuario = resolveCurrentOperator() || 'sistema';
-    let errors = 0;
-    for (const entrega of ids) {
-      try {
-        const apiEstado = { pendiente: 'Pendiente', en_transito: 'En Transito', entregado: 'Entregado', anulado: 'Anulado' }[estado] || estado;
-        await AcuseAPI.patch(`/api/acuses/${encodeURIComponent(entrega)}/estado`, {
-          Estado: apiEstado,
-          Usuario: usuario,
-          Observacion: 'Cambio masivo desde dashboard'
-        });
-      } catch (_) { errors++; }
-    }
+    const ok = await showCvConfirm(
+      `¿Cambiar a ${label}?`,
+      count === 1 ? `1 entrega pasará a estado "${label}".` : `${count} entregas pasarán a estado "${label}".`,
+      { confirmLabel: `Pasar a ${label}`, variant: variantMap[estado], danger: isDanger }
+    );
+    if (!ok) return;
+
+    const usuario   = resolveCurrentOperator() || 'sistema';
+    const apiEstado = apiEstados[estado] || estado;
+    setBulkLoading(true, `Aplicando ${label}…`);
+
+    const results = await Promise.allSettled(ids.map(entrega =>
+      AcuseAPI.patch(`/api/acuses/${encodeURIComponent(entrega)}/estado`, {
+        Estado: apiEstado,
+        Usuario: usuario,
+        Observacion: 'Cambio masivo desde dashboard'
+      })
+    ));
+
+    const errors = results.filter(r => r.status === 'rejected').length;
+    setBulkLoading(false);
     window.cvClearSelection();
     await refreshDashboardData({ softPanel: true });
     if (errors) notify(`${errors} entrega(s) no se pudieron actualizar.`, 'warning');
-    else notify(`${ids.length - errors} entrega(s) actualizadas a ${label}.`, 'success');
+    else        notify(`${count} entrega(s) actualizadas a ${label}.`, 'success');
   };
 
   function showDeleteConfirm(count) {
@@ -2250,42 +2272,19 @@
     const confirmed = await showDeleteConfirm(ids.length);
     if (!confirmed) return;
 
-    const usuario    = resolveCurrentOperator() || 'sistema';
-    const actionsEl  = document.getElementById('bulkBarActions');
-    const progressEl = document.getElementById('bulkBarProgress');
-    const fillEl     = document.getElementById('bulkProgressFill');
-    const labelEl    = document.getElementById('bulkProgressLabel');
-    const pctEl      = document.getElementById('bulkProgressPct');
-    const countEl    = document.getElementById('bulkCount');
+    const usuario = resolveCurrentOperator() || 'sistema';
+    setBulkLoading(true, `Eliminando ${ids.length}…`);
 
-    if (actionsEl)  actionsEl.style.display  = 'none';
-    if (progressEl) progressEl.style.display = 'flex';
+    const results = await Promise.allSettled(
+      ids.map(entrega => window.Supabase.Pedidos.borrar(entrega, usuario))
+    );
 
-    let errors = 0;
-    for (let i = 0; i < ids.length; i++) {
-      try { await window.Supabase.Pedidos.borrar(ids[i], usuario); }
-      catch (_) { errors++; }
-      const done = i + 1;
-      const pct  = Math.round((done / ids.length) * 100);
-      if (fillEl)  fillEl.style.width  = pct + '%';
-      if (pctEl)   pctEl.textContent   = pct + '%';
-      if (labelEl) labelEl.textContent = `Eliminando ${done} de ${ids.length}…`;
-      if (countEl) countEl.textContent = `${ids.length - done} restantes`;
-    }
-
-    if (fillEl) { fillEl.classList.add(errors ? 'is-error' : 'is-done'); fillEl.style.width = '100%'; }
-    if (labelEl) labelEl.textContent = errors ? `${errors} error(s)` : `${ids.length - errors} eliminadas`;
-    if (pctEl)   pctEl.textContent   = '100%';
-    await new Promise(r => setTimeout(r, 900));
-
-    if (actionsEl)  actionsEl.style.display  = '';
-    if (progressEl) progressEl.style.display = 'none';
-    if (fillEl)     { fillEl.style.width = '0%'; fillEl.classList.remove('is-done','is-error'); }
-
+    const errors = results.filter(r => r.status === 'rejected').length;
+    setBulkLoading(false);
     window.cvClearSelection();
     await refreshDashboardData({ softPanel: false });
     if (errors) notify(`${errors} entrega(s) no se pudieron eliminar.`, 'warning');
-    else        notify(`${ids.length - errors} entrega(s) eliminadas.`, 'success');
+    else        notify(`${ids.length} entrega(s) eliminadas.`, 'success');
   };
 
   function renderPanelRows(kpi, items) {
