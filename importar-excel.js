@@ -113,9 +113,10 @@ async function importar() {
   rows.forEach(row => {
     const entrega = String(row['Entrega'] || '').trim();
     if (!entrega) return;
-    // Saltar entregas con Cond.exp. 08 o 09
-    const condExp = String(row['Cond.exp.'] || row['Cond. exp.'] || row['CondExp'] || row['Cond.Exp.'] || row['Cond.Exp'] || '').trim();
-    if (condExp === '08' || condExp === '09') { condExpExcluidos.add(entrega); return; }
+    // Saltar entregas con Cond.exp. 08 o 09 (puede llegar como número 8/9 o string '08'/'09')
+    const condExp = String(row['Cond.exp.'] || row['Cond. exp.'] || row['CondExp'] || row['Cond.Exp.'] || row['Cond.Exp'] || row['Cl.exp.'] || row['Cl. exp.'] || '').trim();
+    const condExpNum = parseInt(condExp, 10);
+    if (condExpNum === 8 || condExpNum === 9) { condExpExcluidos.add(entrega); return; }
     if (condExpExcluidos.has(entrega)) return;
     if (!grupos[entrega]) {
       const puestExped = String(

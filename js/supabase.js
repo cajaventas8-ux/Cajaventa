@@ -296,9 +296,10 @@
       } else {
         var key = String(r.Entrega || '').trim();
         if (!key) return;
-        // Saltar entregas con Cond.exp. 08 o 09
-        var condExp = String(r['Cond.exp.'] || r['Cond. exp.'] || r['CondExp'] || r['Cond.Exp.'] || r['Cond.Exp'] || '').trim();
-        if (condExp === '08' || condExp === '09') { _condExpExcluidos[key] = true; return; }
+        // Saltar entregas con Cond.exp. 08 o 09 (puede llegar como número 8/9 o string '08'/'09')
+        var condExp = String(r['Cond.exp.'] || r['Cond. exp.'] || r['CondExp'] || r['Cond.Exp.'] || r['Cond.Exp'] || r['Cl.exp.'] || r['Cl. exp.'] || '').trim();
+        var condExpNum = parseInt(condExp, 10);
+        if (condExpNum === 8 || condExpNum === 9) { _condExpExcluidos[key] = true; return; }
         if (_condExpExcluidos[key]) return;
         if (!grupos[key]) {
           grupos[key] = {
