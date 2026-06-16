@@ -208,6 +208,7 @@
   function setAlmacenFilter(val) {
     if (state.panelFilters.almacen === val) return;
     state.panelFilters.almacen = val;
+    state.panelFilters.condExp = '';
     const btnDep = document.getElementById('btnAlmacenDeposito');
     const btnFab = document.getElementById('btnAlmacenFabrica');
     if (btnDep) btnDep.classList.toggle('active', val === 'DEPOSITO');
@@ -1792,6 +1793,7 @@
   async function selectKPI(kpi) {
     const normalizedKpi = normalizeDashboardKpi(kpi, { fallback: 'acuses' });
     state.activeKPI = normalizedKpi;
+    state.panelFilters.condExp = '';
     state.panelOpenFilter = null;
     saveDashboardState();
     syncActiveKpiCards();
