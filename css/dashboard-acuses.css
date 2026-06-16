@@ -4549,12 +4549,14 @@ tr.acuse-row-new::after {
 .cond-exp-seg {
   display: inline-flex; align-items: center; gap: 2px;
   background: #f1f5f9; border: 1px solid #dbe3ef;
-  border-radius: 14px; padding: 3px;
+  border-radius: 14px; padding: 4px;
+  min-height: 44px; box-sizing: border-box;
 }
 .cond-exp-btn {
   border: none; background: transparent; border-radius: 11px;
-  padding: 4px 12px; font: 600 13px/1 'DM Sans', sans-serif;
+  padding: 0 14px; font: 600 14px/1 'DM Sans', sans-serif;
   color: #64748b; cursor: pointer; white-space: nowrap;
+  height: 34px; display: inline-flex; align-items: center;
   transition: background .15s, color .15s;
 }
 .cond-exp-btn:hover { background: #e2e8f0; color: #0f172a; }
