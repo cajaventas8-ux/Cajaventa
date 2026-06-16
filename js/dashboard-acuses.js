@@ -2833,6 +2833,8 @@
 
   async function openDeleteAcuse(id, button) {
     setDashboardSelectedAcuse(id, { clearHighlight: false });
+    const rowDel = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
+    if (rowDel) { rowDel.classList.add('row-sweep-red'); _createSweepOverlay(rowDel, 'red'); }
     await runButtonLoading(button, async () => {
       openAcuseEmbed('delete', id);
     });
@@ -2968,6 +2970,15 @@
         await refreshDashboardData({ softPanel: true });
         if ((completedAction === 'create' || completedAction === 'edit') && completedId) {
           destacarFilaGuardada(completedId);
+        }
+        if (completedAction === 'annul' && completedId) {
+          await new Promise(r => setTimeout(r, 120));
+          const arrivedRed = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${completedId}"]`);
+          if (arrivedRed) {
+            arrivedRed.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            arrivedRed.classList.add('row-arrive-red');
+            setTimeout(() => arrivedRed.classList.remove('row-arrive-red'), 1800);
+          }
         }
       } catch (error) {
         notify(error.message || 'Se guardo el acuse, pero no se pudo refrescar el dashboard completo.', 'warning');
