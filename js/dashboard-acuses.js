@@ -2003,7 +2003,7 @@
   function renderPanel(kpi, response, options = {}) {
     const preserveShell = Boolean(options.preserveShell);
     const cfg = PANEL_CONFIG[kpi];
-    const colCount = 10;
+    const colCount = kpi === 'entregados' ? 9 : 10;
     _selectedEntregas.clear();
     updateBulkBar();
     const rowsHtml = renderPanelRows(kpi, response.items || []);
@@ -2131,6 +2131,9 @@
     const cbHead = '<th class="th-cb"><label class="cb-all-wrap"><input type="checkbox" id="cb-select-all" onclick="cvSelectAll(this)"></label></th>';
     if (kpi === 'anulados') {
       return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Cod.cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th></th><th>Motivo de anulacion</th>';
+    }
+    if (kpi === 'entregados') {
+      return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Cod.cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Detalles</th>';
     }
     return cbHead + '<th>Fecha</th><th>Entrega</th><th>Pedido</th><th>Cod.cliente</th><th>Almacén</th><th>Monto Gs</th><th>Observación</th><th>Detalles</th><th>Acciones</th>';
   }
@@ -2503,7 +2506,7 @@
       <td class="monto-cell" onclick="event.stopPropagation();abrirMonto(this,'${acuseId}')" title="Click para ingresar monto">${renderMontoCell(item.Monto)}</td>
       <td class="obs-cell" onclick="event.stopPropagation();openObsView(this,'${acuseId}','${escapeInlineJs(item.Observacion||'')}','${escapeInlineJs(clientLabel)}')">${renderObservacionCell(item.Observacion)}</td>
       <td><button class="tbl-btn-ver" onclick="openDetalleModal('${acuseId}')">Ver detalles</button></td>
-      <td>${accionesHtml}</td>
+      ${!delivered ? `<td>${accionesHtml}</td>` : ''}
     </tr>`;
   }
 

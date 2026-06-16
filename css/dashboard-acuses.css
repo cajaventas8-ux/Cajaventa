@@ -1207,7 +1207,7 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    padding: 11px 16px;
+    padding: 8px 12px;
     text-align: left;
     font-size: 11px;
     font-weight: 600;
@@ -1220,7 +1220,7 @@
     white-space: nowrap;
   }
   tbody td {
-    padding: 10px 16px;
+    padding: 6px 12px;
     font-size: 13px;
     color: #334155;
     border-bottom: 1px solid #F1F5F9;
@@ -1228,6 +1228,7 @@
     vertical-align: middle;
     transition: background-color 0.2s ease;
   }
+  tbody td.obs-cell { min-width: 200px; max-width: 280px; white-space: normal; }
   tbody tr { }
     tbody tr.tbl-row-selectable {
     position: relative;
