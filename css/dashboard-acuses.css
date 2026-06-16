@@ -4545,6 +4545,21 @@ tr.acuse-row-new::after {
 .date-btn-trigger.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(11,95,141,0.2); }
 .date-btn-trigger.active svg { color: white; }
 
+/* Filtro Cond.exp. — solo visible en FABRICA */
+.cond-exp-seg {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: #f1f5f9; border: 1px solid #dbe3ef;
+  border-radius: 14px; padding: 3px;
+}
+.cond-exp-btn {
+  border: none; background: transparent; border-radius: 11px;
+  padding: 4px 12px; font: 600 13px/1 'DM Sans', sans-serif;
+  color: #64748b; cursor: pointer; white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.cond-exp-btn:hover { background: #e2e8f0; color: #0f172a; }
+.cond-exp-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(15,23,42,0.1); }
+
 @media (max-width: 600px) {
   .date-range-fields { flex-direction: column; }
   .date-range-arrow { display: none; }

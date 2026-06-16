@@ -85,6 +85,7 @@
           vendedor: String(row['Nombre Vend.'] || '').trim(),
           fecha: String(row['Fecha Creac'] || '').trim(),
           usuarioEmpaque: String(row['Usuario Empaque'] || '').trim(),
+          condExp: condExpRaw,
           almacen: '',
           _totalItems: 0,
           _aldfItems: 0,

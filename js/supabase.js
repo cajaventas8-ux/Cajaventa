@@ -108,6 +108,7 @@
       usuarioEmpaque: row.usuario_empaque || '',
       almacen: row.almacen || '',
       almacenOrigen: row.almacen_origen || null,
+      condExp: row.cond_exp || null,
       observacion: row.observacion || '',
       monto: Number(row.monto) || 0,
       estado: row.estado || 'pendiente',
@@ -288,6 +289,7 @@
           vendedor: String(r.vendedor || '').trim(),
           fecha: formatearFecha(String(r.fecha || '')),
           usuarioEmpaque: String(r.usuarioEmpaque || '').trim(),
+          condExp: String(r.condExp || '').trim(),
           almacen: String(r.almacen || ''),
           items: (r.items || []).map(function (it) {
             return { material: String(it.material || '').trim(), denominacion: String(it.denominacion || '').trim(), cantidad: Number(it.cantidad) || 0, unidad: String(it.unidad || '').trim(), contEntr: Number(it.contEntr) || 0, contArt: Number(it.contArt) || 0 };
@@ -299,7 +301,10 @@
         // Saltar entregas con Cond.exp. 08 o 09 (puede llegar como número 8/9 o string '08'/'09')
         var condExp = String(r['Cond.exp.'] || r['Cond. exp.'] || r['CondExp'] || r['Cond.Exp.'] || r['Cond.Exp'] || r['Cl.exp.'] || r['Cl. exp.'] || '').trim();
         var condExpNum = parseInt(condExp, 10);
-        if (condExpNum === 8 || condExpNum === 9) { _condExpExcluidos[key] = true; return; }
+        var pe = String(r.PuestExped || r['Puest.Exped'] || r['Puest. Exped'] || r['Puesto Exped'] || r['PstExp'] || '').trim();
+        if (condExpNum === 8 || condExpNum === 9) {
+          if (pe !== 'ALDF') { _condExpExcluidos[key] = true; return; }
+        }
         if (_condExpExcluidos[key]) return;
         if (!grupos[key]) {
           grupos[key] = {
@@ -310,10 +315,10 @@
             vendedor: String(r['Nombre Vend.'] || r.Nombre_Vend || '').trim(),
             fecha: formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')),
             usuarioEmpaque: String(r['Usuario Empaque'] || r.Usuario_Empaque || '').trim(),
+            condExp: condExp,
             almacen: '', _totalItems: 0, _aldfItems: 0, items: []
           };
         }
-        var pe = String(r.PuestExped || r['Puest.Exped'] || r['Puest. Exped'] || r['Puesto Exped'] || r['PstExp'] || '').trim();
         grupos[key]._totalItems++;
         if (pe === 'ALDF') grupos[key]._aldfItems++;
         grupos[key].items.push({ material: String(r.Material || '').trim(), denominacion: String(r.Denomin || r.Denominacion || '').trim(), cantidad: Number(String(r['Ctd.entr.'] || r.Ctd_entr || '0').replace(',', '.')) || 0, unidad: String(r.Unidad || '').trim(), contEntr: Number(String(r['Cont.Entr'] || r.Cont_Entr || '0').replace(',', '.')) || 0, contArt: Number(String(r['Cont.Art'] || r.Cont_Art || '0').replace(',', '.')) || 0 });
@@ -346,7 +351,7 @@
     var pedidosPayload = entregas.map(function (key) {
       var g = grupos[key];
       var estado = existingMap[g.entrega] ? existingMap[g.entrega].estado : 'pendiente';
-      return { entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud, cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null, usuario_empaque: g.usuarioEmpaque, almacen: g.almacen || '', estado: estado };
+      return { entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud, cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null, usuario_empaque: g.usuarioEmpaque, cond_exp: g.condExp || null, almacen: g.almacen || '', estado: estado };
     });
     try { await upsert('pedidos', pedidosPayload, 'entrega'); } catch (e) { logErr('importar.pedidos.batch', e); throw e; }
 
@@ -872,6 +877,13 @@
           return i && i.hasDeposito;
         });
       }
+    }
+
+    if (params.condExp) {
+      var ce = String(params.condExp).trim();
+      pedidos = pedidos.filter(function (p) {
+        return String(p.condExp || '').trim() === ce;
+      });
     }
 
     var total = pedidos.length;

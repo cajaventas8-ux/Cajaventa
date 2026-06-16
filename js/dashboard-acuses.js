@@ -61,7 +61,8 @@
       clienteLabel: '',
       repartidorId: '',
       repartidorLabel: '',
-      almacen: 'DEPOSITO'
+      almacen: 'DEPOSITO',
+      condExp: ''
     },
     panelFilterQuery: {
       cliente: '',
@@ -1955,6 +1956,7 @@
     if (state.panelFilters.repartidorId) params.idRepartidor = state.panelFilters.repartidorId;
     if (state.panelFilters.clienteCode) params.codCliente = state.panelFilters.clienteCode;
     if (state.panelFilters.almacen) params.almacen = state.panelFilters.almacen;
+    if (state.panelFilters.condExp) params.condExp = state.panelFilters.condExp;
 
     return params;
   }
@@ -2045,6 +2047,7 @@
       <div class="panel-header-left">
         <div class="panel-title"><span class="dot" style="background:${cfg.dot}"></span> ${cfg.title}</div>
         ${panelDateFilterHTML(kpi)}
+        ${state.panelFilters.almacen === 'FABRICA' ? panelCondExpFilterHTML() : ''}
         ${panelEntityFilterHTML(kpi)}
         <button class="btn-action btn-clear-filters btn-clear-filters--inline" type="button" onclick="clearCurrentPanelFilters(this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m14.356 2A8 8 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.343 15m13.076 0H15"/></svg><span class="btn-action__label">Limpiar filtros</span></button>
       </div>
@@ -2065,6 +2068,21 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span>${escapeHtml(label)}</span>
     </button>`;
+  }
+
+  window.setPanelCondExp = function(val) {
+    if (state.panelFilters.condExp === val) return;
+    state.panelFilters.condExp = val;
+    resetPanelPages();
+    loadPanel(state.activeKPI, { soft: true }).catch(handleError);
+  };
+
+  function panelCondExpFilterHTML() {
+    const cur = state.panelFilters.condExp || '';
+    const opts = [['', 'Todos'], ['08', 'Cod. 08'], ['09', 'Cod. 09']];
+    return `<div class="cond-exp-seg">${opts.map(([v, lbl]) =>
+      `<button class="cond-exp-btn${cur === v ? ' active' : ''}" onclick="setPanelCondExp('${v}')">${lbl}</button>`
+    ).join('')}</div>`;
   }
 
   function panelEntityFilterHTML(kpi) {
@@ -4617,6 +4635,7 @@
       state.panelFilters.clienteLabel = '';
       state.panelFilters.repartidorId = '';
       state.panelFilters.repartidorLabel = '';
+      state.panelFilters.condExp = '';
       state.panelFilterQuery.cliente = '';
       state.panelFilterQuery.repartidor = '';
       closePanelFilter();
