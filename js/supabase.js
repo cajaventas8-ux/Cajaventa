@@ -276,6 +276,12 @@
 
     // Detectar si viene pre-parseado (pedidos-data.js) o en formato raw Excel
     var isPreparsed = rows.length > 0 && typeof rows[0].entrega === 'string' && Array.isArray(rows[0].items);
+    // DIAGNÓSTICO TEMPORAL — muestra columnas del Excel en consola
+    if (!isPreparsed && rows.length > 0) {
+      console.log('[ALAS Import] Columnas del Excel:', Object.keys(rows[0]));
+      var condVal = rows[0]['Cond.exp.'] || rows[0]['Cond. exp.'] || rows[0]['CondExp'] || rows[0]['Cond.Exp.'] || rows[0]['Cond.Exp'] || rows[0]['Cl.exp.'] || rows[0]['Cl. exp.'];
+      console.log('[ALAS Import] Valor Cond.exp. fila 1:', condVal, '| tipo:', typeof condVal);
+    }
     rows.forEach(function (r) {
       if (isPreparsed) {
         var key = String(r.entrega || '').trim();
