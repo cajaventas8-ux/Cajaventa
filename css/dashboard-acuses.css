@@ -530,7 +530,6 @@
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     overflow: visible;
     position: relative;
-    animation: panelIn var(--alas-dur-page) var(--alas-ease);
     border: 1px solid var(--gray-200);
   }
   .content-panel--soft-loading {

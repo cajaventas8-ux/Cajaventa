@@ -1097,7 +1097,7 @@
       // gsap.set aplica sincrónicamente (antes del siguiente paint) — evita el flash
       // que causaba fromTo porque este aplicaba el estado inicial en el siguiente rAF
       gsap.set(shell, { opacity: 0, y: 12, scale: 0.996 });
-      gsap.to(shell, { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: 'power3.out', clearProps: 'all' });
+      gsap.to(shell, { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: 'power3.out', clearProps: 'opacity,transform' });
     }
     // CSS stagger — cada fila baja desde -6px (mismo patrón que itemsborrados)
     const rows = shell.querySelectorAll('tbody tr');
