@@ -1269,30 +1269,17 @@
     color: #1e3a5f;
   }
 
-  /* ── Animación de selección: shimmer de izquierda a derecha ── */
-  @keyframes rowSelectWipe {
-    0%   { transform: translateX(-110%); opacity: 0.9; }
-    100% { transform: translateX(200%);  opacity: 0; }
+  /* ── Animación de selección: zoom spring ── */
+  @keyframes rowZoomPop {
+    0%   { transform: scale(1); }
+    42%  { transform: scale(1.018); }
+    72%  { transform: scale(0.996); }
+    100% { transform: scale(1); }
   }
-  @keyframes rowSelectFadeIn {
-    0%   { background: rgba(59,130,246,0.2); }
-    100% { background: rgba(59,130,246,0.055); }
-  }
-  tbody tr.tbl-row-select-pop > td {
-    animation: rowSelectFadeIn 0.38s ease-out forwards;
-    overflow: hidden;
-  }
-  tbody tr.tbl-row-select-pop > td::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(147,197,253,0.55) 45%,
-      rgba(255,255,255,0.7) 55%,
-      rgba(147,197,253,0.3) 70%,
-      transparent 100%);
-    animation: rowSelectWipe 0.42s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-    pointer-events: none;
+  tbody tr.tbl-row-select-pop {
+    animation: rowZoomPop 0.38s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    position: relative;
+    z-index: 2;
   }
   tbody tr:last-child td {
     border-bottom: none;
