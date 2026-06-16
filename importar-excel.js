@@ -113,10 +113,17 @@ async function importar() {
   rows.forEach(row => {
     const entrega = String(row['Entrega'] || '').trim();
     if (!entrega) return;
-    // Saltar entregas con Cond.exp. 08 o 09 (puede llegar como número 8/9 o string '08'/'09')
+    // Cond.exp. 08/09: solo excluir si es DEPOSITO; FABRICA (ALDF) se importa normalmente
     const condExp = String(row['Cond.exp.'] || row['Cond. exp.'] || row['CondExp'] || row['Cond.Exp.'] || row['Cond.Exp'] || row['Cl.exp.'] || row['Cl. exp.'] || '').trim();
     const condExpNum = parseInt(condExp, 10);
-    if (condExpNum === 8 || condExpNum === 9) { condExpExcluidos.add(entrega); return; }
+    if (condExpNum === 8 || condExpNum === 9) {
+      const puestExpedRow = String(
+        row['PuestExped'] || row['Puest.Exped'] || row['Puest. Exped'] ||
+        row['Puesto Exped'] || row['Puesto de Expedición'] || row['PstExp'] ||
+        row['Puest.Exped.'] || row['Puest Exped'] || ''
+      ).trim();
+      if (puestExpedRow !== 'ALDF') { condExpExcluidos.add(entrega); return; }
+    }
     if (condExpExcluidos.has(entrega)) return;
     if (!grupos[entrega]) {
       const puestExped = String(
@@ -148,7 +155,7 @@ async function importar() {
 
   // Eliminar entregas con Cond.exp. 08/09 (por si alguna se creó antes de detectar el código)
   condExpExcluidos.forEach(k => delete grupos[k]);
-  if (condExpExcluidos.size) console.log('Entregas omitidas por Cond.exp. 08/09:', condExpExcluidos.size);
+  if (condExpExcluidos.size) console.log('Entregas omitidas por Cond.exp. 08/09 (DEPOSITO):', condExpExcluidos.size);
 
   const entregas = Object.values(grupos);
   console.log('Entregas únicas:', entregas.length);
