@@ -2227,7 +2227,7 @@
       AcuseAPI.patch(`/api/acuses/${encodeURIComponent(entrega)}/estado`, {
         Estado: apiEstado,
         Usuario: usuario,
-        Observacion: 'Cambio masivo desde dashboard'
+        Observacion: `Pasado a ${label} — cambio masivo (${ids.length} entregas)`
       })
     ));
 
@@ -2453,7 +2453,7 @@
     const clientLabel = item.Nom_Cliente || item.Cod_Cliente || 'Sin cliente';
     const destination = item.Zona || item.Ciudad_Cliente || item.Zona_Cliente || 'Sin zona';
     const telefono = escapeHtml(item.Telefono_Cliente || item.Telef_Cliente || item.TelF_Cliente || '');
-    const motivoAnulacion = escapeHtml(item.Motivo_Anulacion || item.Observacion || 'Sin motivo registrado');
+    const motivoAnulacion = escapeHtml(item.Motivo_Anulacion || '—');
 
     const esFabrica = (item.Almacen || '').toUpperCase() === 'FABRICA';
     const enSegmentoDeposito = (state.panelFilters.almacen || '').toUpperCase() === 'DEPOSITO';
