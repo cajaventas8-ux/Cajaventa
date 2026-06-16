@@ -3234,20 +3234,45 @@
   window.compartirPedidoWhatsApp = function () {
     const modal = document.getElementById('pedidoContadoModal');
     if (!modal) return;
-    const tel = modal.dataset.tel || '';
-    const cliente = modal.dataset.cliente || '';
-    const items = _gruposMap.get(cliente) || [];
-    const first = items[0] || {};
-    const fecha = formatDate(first.Fecha_Emision);
+    const tel      = modal.dataset.tel || '';
+    const cliente  = modal.dataset.cliente || '';
+    const items    = _gruposMap.get(cliente) || [];
+    const first    = items[0] || {};
+    const fecha    = formatDate(first.Fecha_Emision);
     const vendedor = first.Nombre_Repartidor || first.vendedor || '';
+    const solic    = first.solicitud || first.Solicitud || '';
+
+    const SEP = '─────────────────────';
+
     const lineas = items.map(i => {
-      const e = normalizeEstadoValue(i.Estado);
-      const label = e === 'entregado' ? 'Facturado' : e === 'en_transito' ? 'Contabilizado' : 'Pendiente';
+      const e    = normalizeEstadoValue(i.Estado);
+      const est  = e === 'entregado' ? 'Facturado' : e === 'en_transito' ? 'Contabilizado' : 'Pendiente';
+      const alm  = (i.Almacen || '').toUpperCase();
+      const almL = alm === 'FABRICA' ? ' | Fábrica' : alm === 'DEPOSITO' ? ' | Depósito' : '';
+      const nro  = i.Nro_Acuse || i.entrega || i.ID_Acuse || '';
       const monto = Number(i.Monto) || 0;
-      return `• ${i.Nro_Acuse || i.entrega || i.ID_Acuse} — ${label} — ${monto > 0 ? formatGs(monto) : 'Gs 0'}`;
-    }).join('\n');
+      return `*N° ${nro}*\n_${est}${almL}_\nMonto: ${monto > 0 ? formatGs(monto) : 'Gs 0'}`;
+    }).join('\n\n');
+
     const total = items.reduce((s, i) => s + (Number(i.Monto) || 0), 0);
-    const msg = `*Pedido Contado*\nFecha: ${fecha}\nCliente: ${cliente}\nVendedor: ${vendedor}\n\n*Entregas:*\n${lineas}\n\n*Total: ${total > 0 ? formatGs(total) : 'Gs 0'}*`;
+
+    const msg = [
+      '*PEDIDO CONTADO*',
+      SEP,
+      `Fecha:    ${fecha}`,
+      `Cliente:  *${cliente}*`,
+      vendedor ? `Vendedor: ${vendedor}` : null,
+      solic    ? `Solic.:   ${solic}`   : null,
+      SEP,
+      '*DETALLE DE ENTREGAS*',
+      '',
+      lineas,
+      SEP,
+      `*TOTAL: ${total > 0 ? formatGs(total) : 'Gs 0'}*`,
+      SEP,
+      '_Ante cualquier consulta, estamos a su disposición._'
+    ].filter(l => l !== null).join('\n');
+
     const url = tel
       ? `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`
       : `https://wa.me/?text=${encodeURIComponent(msg)}`;
