@@ -4333,8 +4333,10 @@
 
   function renderHistoryItem(item) {
     const type = mapHistoryType(item);
-    const city = escapeHtml(item.Ciudad || item.Zona || item.Ciudad_Cliente || item.Zona_Cliente || 'CIUDAD');
-    const meta = `${formatDateTime(item.Fecha)} · PARA LA CIUDAD ${city}`;
+    const cityRaw = item.Ciudad || item.Zona || item.Ciudad_Cliente || item.Zona_Cliente || '';
+    const cityValid = cityRaw && cityRaw.toUpperCase() !== 'CIUDAD' && cityRaw.trim().length > 1;
+    const cityStr = cityValid ? ` · ${escapeHtml(cityRaw)}` : '';
+    const meta = `${formatDateTime(item.Fecha)}${cityStr}`;
 
     return `<div class="hist-item">
       <div class="hist-dot-col"><div class="hist-dot ${historyClass(type)}">${historyIcon(type)}</div></div>
@@ -4349,38 +4351,53 @@
     const text = `${item.Tipo || ''} ${item.Accion || ''}`.toLowerCase();
     if (text.includes('impres')) return 'impreso';
     if (text.includes('crear')) return 'creado';
+    if (text.includes('anular') || text.includes('elim') || text.includes('anulado')) return 'eliminado';
+    if (text.includes('entregado') || text.includes('estado: entregado')) return 'entregado';
+    if (text.includes('estado') || text.includes('transito')) return 'estado';
     if (text.includes('edit')) return 'editado';
-    if (text.includes('elim') || text.includes('anular')) return 'eliminado';
-    if (text.includes('estado') || text.includes('entregado')) return 'entregado';
     return 'editado';
   }
 
   function historyIcon(type) {
-    if (type === 'creado') return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>';
+    if (type === 'creado')   return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>';
     if (type === 'eliminado') return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
-    if (type === 'impreso') return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>';
+    if (type === 'impreso')  return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>';
     if (type === 'entregado') return '<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>';
+    if (type === 'estado')   return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
     return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
   }
 
   function historyClass(type) {
-    if (type === 'creado') return 'h-create';
+    if (type === 'creado')   return 'h-create';
     if (type === 'eliminado') return 'h-delete';
-    if (type === 'impreso') return 'h-print';
+    if (type === 'impreso')  return 'h-print';
     if (type === 'entregado') return 'h-deliver';
+    if (type === 'estado')   return 'h-estado';
     return 'h-edit';
   }
 
   function historyText(type, item) {
-    const user = escapeHtml(item.Usuario || 'Sistema');
-    const client = escapeHtml(item.Cliente || 'Sin cliente');
-    const acuse = escapeHtml(item.Nro_Acuse || `#${item.ID_Acuse || '--'}`);
+    const user   = escapeHtml(item.Usuario || 'Sistema');
+    const client = item.Cliente ? `del cliente <strong>${escapeHtml(item.Cliente)}</strong>` : '';
+    const acuse  = item.Nro_Acuse
+      ? `<strong>${escapeHtml(item.Nro_Acuse)}</strong>`
+      : item.ID_Acuse ? `<strong>#${item.ID_Acuse}</strong>` : '<strong>—</strong>';
 
-    if (type === 'creado') return `<strong>${user}</strong> creo nuevo acuse <strong>${acuse}</strong> para el cliente <strong>${client}</strong>`;
-    if (type === 'eliminado') return `<strong>${user}</strong> elimino el acuse <strong>${acuse}</strong> del cliente <strong>${client}</strong>`;
-    if (type === 'impreso') return `<strong>${user}</strong> imprimio el acuse <strong>${acuse}</strong> del cliente <strong>${client}</strong>`;
-    if (type === 'entregado') return `<strong>${user}</strong> marco como entregado el acuse <strong>${acuse}</strong> del cliente <strong>${client}</strong>`;
-    return `<strong>${user}</strong> edito el acuse <strong>${acuse}</strong> del cliente <strong>${client}</strong>`;
+    const accionEstado = (() => {
+      const a = (item.Accion || '').toLowerCase();
+      if (a.includes('entregado')) return 'Facturado';
+      if (a.includes('transito') || a.includes('en transito')) return 'Contabilizado';
+      if (a.includes('pendiente')) return 'Pendiente';
+      if (a.includes('anulado')) return 'Anulado';
+      return item.Accion || 'nuevo estado';
+    })();
+
+    if (type === 'creado')   return `<strong>${user}</strong> creó el acuse ${acuse} ${client}`.trim();
+    if (type === 'eliminado') return `<strong>${user}</strong> anuló el acuse ${acuse} ${client}`.trim();
+    if (type === 'impreso')   return `<strong>${user}</strong> imprimió el acuse ${acuse} ${client}`.trim();
+    if (type === 'entregado') return `<strong>${user}</strong> facturó el acuse ${acuse} ${client}`.trim();
+    if (type === 'estado')    return `<strong>${user}</strong> cambió ${acuse} a <strong>${accionEstado}</strong> ${client}`.trim();
+    return `<strong>${user}</strong> editó el acuse ${acuse} ${client}`.trim();
   }
 
   function renderHistoryTriggerState() {

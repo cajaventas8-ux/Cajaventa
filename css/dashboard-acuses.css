@@ -2468,6 +2468,7 @@
   .hist-dot.h-delete { background: rgba(239,68,68,0.1); color: #dc2626; }
   .hist-dot.h-create { background: rgba(59,130,246,0.12); color: #2563eb; }
   .hist-dot.h-print { background: rgba(59,130,246,0.12); color: #2563eb; }
+  .hist-dot.h-estado { background: rgba(99,102,241,0.12); color: #6366f1; }
   .hist-body { flex: 1; }
   .hist-text { font-size: 13px; color: var(--gray-600); line-height: 1.4; }
   .hist-text strong { color: var(--primary); font-weight: 600; }
