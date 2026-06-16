@@ -225,7 +225,7 @@
       ID_Repartidor: rep ? rep.id : '',
       Codigo_Repartidor: rep ? (rep.codigo || rep.id || '') : '',
       Nombre_Repartidor: rep ? rep.nombre : (p.vendedor || ''),
-      Observacion: '',
+      Motivo_Anulacion: p.estado === 'anulado' ? (p.observacion || '') : '',
       Detalle_Items: detalles.length,
       Detalle_Cantidad_Total: total,
       detalles: detalles,
@@ -467,7 +467,10 @@
       // DB 'facturado' = UI "Contabilizado" | DB 'contabilizado' = UI "Facturado"
       if (nuevoEstado === 'facturado')          updateFields.fecha_contabilizado = new Date().toISOString();
       else if (nuevoEstado === 'contabilizado') updateFields.fecha_facturado     = new Date().toISOString();
-      else if (nuevoEstado === 'anulado')        updateFields.fecha_anulado       = new Date().toISOString();
+      else if (nuevoEstado === 'anulado') {
+        updateFields.fecha_anulado = new Date().toISOString();
+        if (observacion) updateFields.observacion = observacion;
+      }
       await update('pedidos', 'entrega', entrega, updateFields);
       await post('pedidos_historial', { entrega: entrega, estado: nuevoEstado, usuario: usuario || 'sistema', observacion: observacion || '' });
       await registrarAuditoria('cambio_estado', usuario, null, entrega, 'Estado cambiado a ' + nuevoEstado);
@@ -476,10 +479,11 @@
   };
 
   Pedidos.eliminar = async function (entrega, usuario, observacion) {
+    var motivo = observacion || 'Anulado del sistema';
     try {
-      await post('pedidos_historial', { entrega: entrega, estado: 'anulado', usuario: usuario || 'sistema', observacion: observacion || 'Anulado del sistema' });
-      await update('pedidos', 'entrega', entrega, { estado: 'anulado', fecha_anulado: new Date().toISOString() });
-      await registrarAuditoria('anulacion', usuario, null, entrega, observacion || 'Pedido anulado');
+      await post('pedidos_historial', { entrega: entrega, estado: 'anulado', usuario: usuario || 'sistema', observacion: motivo });
+      await update('pedidos', 'entrega', entrega, { estado: 'anulado', fecha_anulado: new Date().toISOString(), observacion: motivo });
+      await registrarAuditoria('anulacion', usuario, null, entrega, motivo);
       return true;
     } catch (e) { logErr('eliminar', e); throw e; }
   };
