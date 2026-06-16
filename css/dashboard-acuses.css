@@ -1525,15 +1525,21 @@
   }
   .monto-input {
     width: 148px; text-align: right;
-    border: 2px solid #818cf8; border-radius: 10px;
-    padding: 7px 12px; font: 700 15px/1 'DM Sans', sans-serif; color: #312e81;
-    background: #eef2ff; outline: none;
-    box-shadow: 0 0 0 3px rgba(99,102,241,.18);
-    transition: border-color .15s, box-shadow .15s;
+    border: 2px solid transparent; border-radius: 10px;
+    padding: 7px 12px; font: 700 15px/1 'DM Sans', sans-serif; color: #065f46;
+    /* Borde degradado verde pro: padding-box limita el bg al interior */
+    background:
+      linear-gradient(#f0fdf4, #f0fdf4) padding-box,
+      linear-gradient(135deg, #6ee7b7 0%, #10b981 50%, #059669 100%) border-box;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(16,185,129,.14);
+    transition: box-shadow .15s, background .15s;
   }
   .monto-input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 4px rgba(99,102,241,.22);
+    background:
+      linear-gradient(#ecfdf5, #ecfdf5) padding-box,
+      linear-gradient(135deg, #34d399 0%, #059669 50%, #047857 100%) border-box;
+    box-shadow: 0 0 0 4px rgba(16,185,129,.2), 0 2px 8px rgba(16,185,129,.12);
   }
   .monto-input::-webkit-inner-spin-button { -webkit-appearance: none; }
   .tbl-group-monto {
