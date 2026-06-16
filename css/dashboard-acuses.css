@@ -1207,7 +1207,7 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    padding: 8px 12px;
+    padding: 7px 8px;
     text-align: left;
     font-size: 11px;
     font-weight: 600;
@@ -1220,7 +1220,7 @@
     white-space: nowrap;
   }
   tbody td {
-    padding: 6px 12px;
+    padding: 6px 8px;
     font-size: 13px;
     color: #334155;
     border-bottom: 1px solid #F1F5F9;
@@ -1228,7 +1228,7 @@
     vertical-align: middle;
     transition: background-color 0.2s ease;
   }
-  tbody td.obs-cell { min-width: 200px; max-width: 280px; white-space: normal; }
+  tbody td.obs-cell { min-width: 220px; max-width: 320px; white-space: normal; }
   tbody tr { }
     tbody tr.tbl-row-selectable {
     position: relative;
@@ -1507,9 +1507,9 @@
 
   /* Copiar al portapapeles — chip gris premium */
   .copy-cell {
-    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-    background: #f8f9fb; border: 1px solid #dde1e9; border-radius: 8px;
-    padding: 5px 8px 5px 10px; user-select: none;
+    display: inline-flex; align-items: center; gap: 4px; cursor: pointer;
+    background: #f8f9fb; border: 1px solid #dde1e9; border-radius: 7px;
+    padding: 3px 6px 3px 8px; user-select: none;
     transition: border-color .15s, background .15s, box-shadow .15s, transform .12s;
   }
   .copy-cell:hover {
@@ -1519,11 +1519,11 @@
   .copy-cell:active { transform: scale(.96); box-shadow: none; }
   .copy-cell.copied { background: #f0fdf4; border-color: #86efac; }
   .copy-cell__val {
-    font: 600 12px/1 'DM Sans', sans-serif; color: #4b5675;
+    font: 600 11.5px/1 'DM Sans', sans-serif; color: #4b5675;
     letter-spacing: .01em;
   }
-  .copy-cell--text .copy-cell__val { font: 600 12.5px/1 'DM Sans', sans-serif; color: #4b5675; }
-  .copy-cell svg { width: 11px; height: 11px; flex-shrink: 0; color: #b0b8cc; }
+  .copy-cell--text .copy-cell__val { font: 600 12px/1 'DM Sans', sans-serif; color: #4b5675; }
+  .copy-cell svg { width: 10px; height: 10px; flex-shrink: 0; color: #b0b8cc; }
   .copy-cell:hover svg { color: #7c85a0; }
   .copy-cell.copied svg { color: #16a34a; }
 
