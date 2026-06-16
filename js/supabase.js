@@ -777,6 +777,28 @@
     catch (e) { logErr('auditoria', e); }
   }
 
+  async function getAuditoria(params) {
+    params = params || {};
+    var parts = ['select=*', 'order=created_at.desc'];
+    var limit = Math.min(Number(params.limit) || 500, 2000);
+    parts.push('limit=' + limit);
+    if (params.offset) parts.push('offset=' + params.offset);
+    if (params.usuario) parts.push('usuario=ilike.*' + encodeURIComponent(params.usuario) + '*');
+    if (params.cliente)  parts.push('cliente=ilike.*'  + encodeURIComponent(params.cliente)  + '*');
+    if (params.fechaDesde) parts.push('created_at=gte.' + encodeURIComponent(params.fechaDesde));
+    if (params.fechaHasta) parts.push('created_at=lte.' + encodeURIComponent(params.fechaHasta + 'T23:59:59'));
+    try {
+      var url = REST + '/auditoria?' + parts.join('&');
+      var r = await fetch(url, { headers: headers({ 'Prefer': 'count=exact' }) });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      var data = await r.json();
+      var total = data.length;
+      var range = r.headers.get('content-range');
+      if (range) { var m = range.match(/\/(\d+)$/); if (m) total = parseInt(m[1], 10); }
+      return { items: data || [], total: total };
+    } catch (e) { logErr('getAuditoria', e); return { items: [], total: 0 }; }
+  }
+
   /* ---- HELPERS ---- */
   function formatearFecha(val) {
     if (!val) return '';
@@ -793,7 +815,8 @@
   window.Supabase = {
     Pedidos: Pedidos, Dashboard: Dashboard, Calendario: Calendario,
     Historial: Historial, Repartidores: Repartidores, Catalogos: Catalogos,
-    registrarAuditoria: registrarAuditoria
+    registrarAuditoria: registrarAuditoria,
+    getAuditoria: getAuditoria
   };
 
   async function getRepartidoresApi() {

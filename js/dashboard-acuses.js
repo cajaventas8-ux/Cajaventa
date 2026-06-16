@@ -2234,6 +2234,7 @@
     const errors = results.filter(r => r.status === 'rejected').length;
     setBulkLoading(false);
     window.cvClearSelection();
+    if (!errors) registrarAccion('bulk_estado', usuario, null, null, `${count} entrega(s) pasadas a ${label}`);
     await refreshDashboardData({ softPanel: true });
     if (errors) notify(`${errors} entrega(s) no se pudieron actualizar.`, 'warning');
     else        notify(`${count} entrega(s) actualizadas a ${label}.`, 'success');
@@ -2282,6 +2283,7 @@
     const errors = results.filter(r => r.status === 'rejected').length;
     setBulkLoading(false);
     window.cvClearSelection();
+    if (!errors) registrarAccion('bulk_anular', usuario, null, null, `${ids.length} entrega(s) eliminadas`);
     await refreshDashboardData({ softPanel: false });
     if (errors) notify(`${errors} entrega(s) no se pudieron eliminar.`, 'warning');
     else        notify(`${ids.length} entrega(s) eliminadas.`, 'success');
@@ -3088,6 +3090,8 @@
       if (res.status === 'rejected') throw res.reason;
 
       if (row) { row.classList.remove('row-sweep-blue'); row.classList.add('row-exit-blue'); }
+      const itemData = resolveItemData(id);
+      registrarAccion('contabilizar', usuario, itemData.Nom_Cliente || itemData.Cod_Cliente || null, itemData.Nro_Acuse || String(id), 'Pasado a Contabilizado');
       loadKpiSummary().catch(() => {});
       await new Promise(r => setTimeout(r, 300));
 
@@ -3135,6 +3139,8 @@
       if (res.status === 'rejected') throw res.reason;
 
       if (row) { row.classList.remove('row-sweep-green'); row.classList.add('row-exit-green'); }
+      const itemData = resolveItemData(id);
+      registrarAccion('facturar', usuario, itemData.Nom_Cliente || itemData.Cod_Cliente || null, itemData.Nro_Acuse || String(id), 'Pasado a Facturado');
       loadKpiSummary().catch(() => {});
       await new Promise(r => setTimeout(r, 300));
 
@@ -4275,41 +4281,47 @@
   }
 
   async function loadHistorial() {
-    const items = [];
-    let offset = 0;
-    let total = 0;
-    let iterations = 0;
-    const maxIterations = Math.ceil(HISTORY_MAX_ROWS / HISTORY_BATCH_SIZE) + 2;
+    const params = { limit: HISTORY_MAX_ROWS };
+    if (state.history.filters.histDesde) params.fechaDesde = state.history.filters.histDesde;
+    if (state.history.filters.histHasta) params.fechaHasta = state.history.filters.histHasta;
+    if (state.history.filters.usuario)   params.usuario    = state.history.filters.usuario;
+    if (state.history.filters.cliente)   params.cliente    = state.history.filters.cliente;
 
-    do {
-      if (++iterations > maxIterations) break;
+    const sb = window.Supabase;
+    if (!sb || !sb.getAuditoria) { renderHistorial(); return; }
 
-      const params = {
-        limit: HISTORY_BATCH_SIZE,
-        offset
-      };
+    const response = await sb.getAuditoria(params);
+    const raw = Array.isArray(response.items) ? response.items : [];
 
-      if (state.history.filters.histDesde) params.fechaDesde = state.history.filters.histDesde;
-      if (state.history.filters.histHasta) params.fechaHasta = state.history.filters.histHasta;
-      if (state.history.filters.usuario) params.usuario = state.history.filters.usuario;
-      if (state.history.filters.cliente) params.cliente = state.history.filters.cliente;
+    const items = raw.map(r => ({
+      Fecha:      r.created_at,
+      Usuario:    r.usuario || 'Sistema',
+      Accion:     r.accion,
+      Tipo:       r.accion,
+      Observacion: r.detalle,
+      Cliente:    r.cliente,
+      Nro_Acuse:  r.entrega,
+      ID_Acuse:   null
+    }));
 
-      const response = await AcuseAPI.get('/api/auditoria', params);
-      const batch = Array.isArray(response.items) ? response.items : [];
-      total = Number(response.total || 0);
-      items.push(...batch);
-      offset += batch.length;
-
-      if (!batch.length) break;
-    } while (offset < total && items.length < HISTORY_MAX_ROWS);
-
-    state.history.response = {
-      total,
-      items: items.slice(0, HISTORY_MAX_ROWS)
-    };
-    state.history.suggestions.usuario = uniqueValues(state.history.response.items || [], 'Usuario');
-    state.history.suggestions.cliente = uniqueValues(state.history.response.items || [], 'Cliente');
+    state.history.response = { total: response.total || items.length, items };
+    state.history.suggestions.usuario = uniqueValues(items, 'Usuario');
+    state.history.suggestions.cliente = uniqueValues(items, 'Cliente');
     renderHistorial();
+  }
+
+  function registrarAccion(accion, usuario, cliente, entrega, detalle) {
+    try {
+      const sb = window.Supabase;
+      if (sb && sb.registrarAuditoria) {
+        sb.registrarAuditoria(accion, usuario || 'Sistema', cliente || null, entrega ? String(entrega) : null, detalle || '').catch(() => {});
+      }
+    } catch (_) {}
+  }
+
+  function resolveItemData(id) {
+    const items = state.panelResponse && Array.isArray(state.panelResponse.items) ? state.panelResponse.items : [];
+    return items.find(i => String(i.ID_Acuse || i.id || '') === String(id)) || {};
   }
 
   function renderHistorial() {
@@ -4348,13 +4360,18 @@
   }
 
   function mapHistoryType(item) {
-    const text = `${item.Tipo || ''} ${item.Accion || ''}`.toLowerCase();
-    if (text.includes('impres')) return 'impreso';
-    if (text.includes('crear')) return 'creado';
-    if (text.includes('anular') || text.includes('elim') || text.includes('anulado')) return 'eliminado';
-    if (text.includes('entregado') || text.includes('estado: entregado')) return 'entregado';
-    if (text.includes('estado') || text.includes('transito')) return 'estado';
-    if (text.includes('edit')) return 'editado';
+    const a = String(item.Accion || item.Tipo || '').toLowerCase();
+    if (a === 'facturar') return 'entregado';
+    if (a === 'contabilizar') return 'estado';
+    if (a === 'creacion' || a === 'importacion_excel') return 'creado';
+    if (a === 'anulacion' || a === 'eliminacion' || a === 'bulk_anular') return 'eliminado';
+    if (a === 'traspaso_almacen' || a === 'cambio_estado' || a === 'bulk_estado') return 'estado';
+    if (a.includes('impres')) return 'impreso';
+    if (a.includes('factur')) return 'entregado';
+    if (a.includes('contabiliz')) return 'estado';
+    if (a.includes('anul') || a.includes('elim')) return 'eliminado';
+    if (a.includes('cre')) return 'creado';
+    if (a.includes('estado') || a.includes('transito') || a.includes('traspas')) return 'estado';
     return 'editado';
   }
 
@@ -4377,27 +4394,49 @@
   }
 
   function historyText(type, item) {
-    const user   = escapeHtml(item.Usuario || 'Sistema');
-    const client = item.Cliente ? `del cliente <strong>${escapeHtml(item.Cliente)}</strong>` : '';
-    const acuse  = item.Nro_Acuse
-      ? `<strong>${escapeHtml(item.Nro_Acuse)}</strong>`
-      : item.ID_Acuse ? `<strong>#${item.ID_Acuse}</strong>` : '<strong>—</strong>';
+    const user    = escapeHtml(item.Usuario || 'Sistema');
+    const accion  = String(item.Accion || '').toLowerCase();
+    const detalle = escapeHtml(item.Observacion || '');
+    const entrega = item.Nro_Acuse ? `<strong>${escapeHtml(String(item.Nro_Acuse))}</strong>` : null;
+    const cliente = item.Cliente ? ` del cliente <strong>${escapeHtml(item.Cliente)}</strong>` : '';
 
-    const accionEstado = (() => {
-      const a = (item.Accion || '').toLowerCase();
-      if (a.includes('entregado')) return 'Facturado';
-      if (a.includes('transito') || a.includes('en transito')) return 'Contabilizado';
-      if (a.includes('pendiente')) return 'Pendiente';
-      if (a.includes('anulado')) return 'Anulado';
-      return item.Accion || 'nuevo estado';
-    })();
-
-    if (type === 'creado')   return `<strong>${user}</strong> creó el acuse ${acuse} ${client}`.trim();
-    if (type === 'eliminado') return `<strong>${user}</strong> anuló el acuse ${acuse} ${client}`.trim();
-    if (type === 'impreso')   return `<strong>${user}</strong> imprimió el acuse ${acuse} ${client}`.trim();
-    if (type === 'entregado') return `<strong>${user}</strong> facturó el acuse ${acuse} ${client}`.trim();
-    if (type === 'estado')    return `<strong>${user}</strong> cambió ${acuse} a <strong>${accionEstado}</strong> ${client}`.trim();
-    return `<strong>${user}</strong> editó el acuse ${acuse} ${client}`.trim();
+    if (accion === 'importacion_excel') {
+      return `<strong>${user}</strong> importó datos desde Excel · <span style="color:#6b7280">${detalle}</span>`;
+    }
+    if (accion === 'contabilizar') {
+      return `<strong>${user}</strong> contabilizó la entrega ${entrega || '—'}${cliente}`;
+    }
+    if (accion === 'facturar') {
+      return `<strong>${user}</strong> facturó la entrega ${entrega || '—'}${cliente}`;
+    }
+    if (accion === 'anulacion') {
+      return `<strong>${user}</strong> anuló la entrega ${entrega || '—'}${cliente}`;
+    }
+    if (accion === 'traspaso_almacen') {
+      return `<strong>${user}</strong> traspasó ${entrega ? entrega + ' ' : ''}de Fábrica a Depósito${cliente}`;
+    }
+    if (accion === 'bulk_estado') {
+      return `<strong>${user}</strong> cambió en masa · <span style="color:#6b7280">${detalle}</span>`;
+    }
+    if (accion === 'bulk_anular') {
+      return `<strong>${user}</strong> anuló en masa · <span style="color:#6b7280">${detalle}</span>`;
+    }
+    if (accion === 'cambio_estado') {
+      return `<strong>${user}</strong> cambió estado${entrega ? ' de ' + entrega : ''}${cliente} · <span style="color:#6b7280">${detalle}</span>`;
+    }
+    if (accion === 'creacion') {
+      return `<strong>${user}</strong> creó el pedido ${entrega || '—'}${cliente}`;
+    }
+    if (accion === 'eliminacion') {
+      return `<strong>${user}</strong> eliminó permanentemente ${entrega || 'un pedido'}${cliente}`;
+    }
+    // Fallback por tipo
+    if (type === 'creado')    return `<strong>${user}</strong> creó la entrega ${entrega || '—'}${cliente}`;
+    if (type === 'eliminado') return `<strong>${user}</strong> anuló la entrega ${entrega || '—'}${cliente}`;
+    if (type === 'entregado') return `<strong>${user}</strong> facturó la entrega ${entrega || '—'}${cliente}`;
+    if (type === 'estado')    return `<strong>${user}</strong> cambió ${entrega || '—'}${cliente} · <span style="color:#6b7280">${detalle}</span>`;
+    if (type === 'impreso')   return `<strong>${user}</strong> imprimió ${entrega || '—'}${cliente}`;
+    return `<strong>${user}</strong> editó la entrega ${entrega || '—'}${cliente}`;
   }
 
   function renderHistoryTriggerState() {
