@@ -3536,12 +3536,12 @@
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 6l12 12M6 18L18 6"/></svg>
           </button>
           <div class="detalle-header" id="detalleHeader">
-            <div class="detalle-header__main">
+            <div class="detalle-header__top">
               <div class="detalle-entrega-num" id="detalleEntrega">—</div>
-              <div class="detalle-cliente-name" id="detalleCliente">—</div>
-              <div class="detalle-header__badges" id="detalleBadges" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;"></div>
-              <div class="detalle-header__kpis" id="detalleHeaderKpis"></div>
+              <div class="detalle-header__badges" id="detalleBadges"></div>
             </div>
+            <div class="detalle-cliente-name" id="detalleCliente">—</div>
+            <div class="detalle-header__kpis" id="detalleHeaderKpis"></div>
           </div>
           <div class="detalle-body" id="detalleBody">
             <div class="detalle-loader"><div class="detalle-spinner"></div>Cargando detalle...</div>
@@ -3568,12 +3568,7 @@
     try {
       const acuse = await AcuseAPI.get(`/api/acuses/${encodeURIComponent(id)}`);
 
-      const pedidoLabel = escapeHtml(acuse.pedido || '');
-      const solicLabel  = escapeHtml(acuse.solicitud || '');
-      if (entregaEl) entregaEl.innerHTML =
-        `<span>${escapeHtml(acuse.Nro_Acuse || acuse.entrega || `#${id}`)}</span>` +
-        (pedidoLabel ? `<span class="detalle-header-sub">Pedido&nbsp;<strong>${pedidoLabel}</strong></span>` : '') +
-        (solicLabel  ? `<span class="detalle-header-sub">Solic.&nbsp;<strong>${solicLabel}</strong></span>`  : '');
+      if (entregaEl) entregaEl.textContent = acuse.Nro_Acuse || acuse.entrega || `#${id}`;
       if (clienteEl) clienteEl.textContent = acuse.Nom_Cliente || acuse.Cod_Cliente || '—';
       if (badgesEl) badgesEl.innerHTML = renderStatusBadge(acuse.Estado) + (acuse.Almacen ? ' ' + renderAlmacenBadge(acuse.Almacen, acuse.Almacen_Origen) : '');
 
