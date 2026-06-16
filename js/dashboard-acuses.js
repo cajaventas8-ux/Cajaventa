@@ -1865,7 +1865,7 @@
   // ── Sincronización en tiempo real (polling + Page Visibility) ──────────────
   // Mantiene la vista actualizada para todos los usuarios sin recargar la página.
   function startRealtimeSync() {
-    const POLL_MS     = 20000; // refresco cada 20 s en tab activo
+    const POLL_MS     = 30000; // refresco cada 30 s en tab activo
     const STALE_MS    = 8000;  // si la tab estuvo oculta >8 s, refrescar al volver
     let _timer        = null;
     let _lastPoll     = Date.now();
@@ -1911,9 +1911,13 @@
     const tasks = [
       { key: 'summary', run: () => loadSummary() },
       { key: 'kpis',    run: () => loadKpiSummary() },
-      { key: 'panel',   run: () => loadPanel(state.activeKPI, { soft: softPanel }) },
     ];
 
+    // En background: solo actualizar números (KPIs/resumen) sin tocar la tabla.
+    // La tabla solo se refresca en acciones del usuario o cambios de panel.
+    if (!isBackground) {
+      tasks.push({ key: 'panel', run: () => loadPanel(state.activeKPI, { soft: softPanel }) });
+    }
     if (!isBackground || state.currentView === 'calendario') {
       tasks.push({ key: 'calendar', run: () => loadCalendarMonth() });
     }
