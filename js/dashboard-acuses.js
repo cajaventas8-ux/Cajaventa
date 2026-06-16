@@ -3647,6 +3647,52 @@
       const isAnulado  = (acuse.Estado || '').toLowerCase() === 'anulado';
       const isTraspasado = String(acuse.Almacen_Origen || '').toUpperCase() === 'FABRICA';
 
+      const elCreCont  = calcElapsed(acuse.Fecha_Emision,        acuse.Fecha_Contabilizado);
+      const elContFact = calcElapsed(acuse.Fecha_Contabilizado,  acuse.Fecha_Facturado);
+      const elTotal    = calcElapsed(acuse.Fecha_Emision,        acuse.Fecha_Facturado);
+      const elEnCurso  = calcElapsed(acuse.Fecha_Emision,        null);
+
+      const elapsedBlock = (() => {
+        const svgClock = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+        if (isAnulado) return '';
+        if (elTotal) {
+          const breakdown = (elCreCont && elContFact)
+            ? `<div class="tl-el__breakdown"><span>Creado → Cont. <b>${elCreCont}</b></span><span class="tl-el__dot">·</span><span>Cont. → Fact. <b>${elContFact}</b></span></div>`
+            : '';
+          return `<div class="tl-elapsed">
+            ${svgClock}
+            <div class="tl-elapsed__body">
+              <div class="tl-elapsed__main">
+                <span class="tl-el__lbl">Creado → Facturado</span>
+                <span class="tl-el__val tl-el__val--total">${elTotal}</span>
+              </div>
+              ${breakdown}
+            </div>
+          </div>`;
+        }
+        if (elCreCont) {
+          return `<div class="tl-elapsed tl-elapsed--partial">
+            ${svgClock}
+            <div class="tl-elapsed__body">
+              <div class="tl-elapsed__main">
+                <span class="tl-el__lbl">Creado → Contabilizado</span>
+                <span class="tl-el__val tl-el__val--partial">${elCreCont}</span>
+              </div>
+              <div class="tl-el__breakdown"><span>En curso · <b>${elEnCurso}</b> desde la creación</span></div>
+            </div>
+          </div>`;
+        }
+        return `<div class="tl-elapsed tl-elapsed--pending">
+          ${svgClock}
+          <div class="tl-elapsed__body">
+            <div class="tl-elapsed__main">
+              <span class="tl-el__lbl">Pendiente</span>
+              <span class="tl-el__val tl-el__val--pending">${elEnCurso} desde la creación</span>
+            </div>
+          </div>
+        </div>`;
+      })();
+
       const timelineStep = (icon, label, dateStr, done, variant) => `
         <div class="tl-step${done ? ' tl-step--done' : ' tl-step--pending'}${variant ? ' tl-step--' + variant : ''}">
           <div class="tl-step__track"><div class="tl-step__dot">${icon}</div><div class="tl-step__line"></div></div>
@@ -3691,6 +3737,7 @@
           ${timelineStep(svgBill,     'Facturado',             fFact,   Boolean(fFact))}
           ${isAnulado || fAnul ? timelineStep(svgAnul, 'Anulado', fAnul, Boolean(fAnul), 'anulado') : ''}
         </div>
+        ${elapsedBlock}
         <div>
           <div class="detalle-section-title">Líneas de entrega</div>
           <div class="detalle-table-wrap">
@@ -4690,6 +4737,22 @@
     const text = String(value).replace('T', ' ').slice(0, 19);
     const [datePart, timePart = ''] = text.split(' ');
     return `${formatDate(datePart)}${timePart ? ` ${timePart.slice(0, 5)}` : ''}`;
+  }
+
+  function calcElapsed(from, to) {
+    if (!from) return null;
+    const start = new Date(String(from).replace(' ', 'T'));
+    const end   = to ? new Date(String(to).replace(' ', 'T')) : new Date();
+    if (isNaN(start)) return null;
+    const diffMs = end - start;
+    if (diffMs < 0) return null;
+    const totalMin = Math.floor(diffMs / 60000);
+    const days  = Math.floor(totalMin / 1440);
+    const hours = Math.floor((totalMin % 1440) / 60);
+    const mins  = totalMin % 60;
+    if (days > 0)  return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+    if (hours > 0) return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+    return `${mins}min`;
   }
 
   function formatLongDay(value) {
