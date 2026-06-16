@@ -3672,15 +3672,47 @@
           </tr>`).join('')
         : `<tr><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;font-weight:600">Sin líneas registradas</td></tr>`;
 
-      const fContab    = acuse.Fecha_Contabilizado ? escapeHtml(formatDateTime(acuse.Fecha_Contabilizado)) : null;
-      const fFact      = acuse.Fecha_Facturado     ? escapeHtml(formatDateTime(acuse.Fecha_Facturado))     : null;
-      const fAnul      = acuse.Fecha_Anulado       ? escapeHtml(formatDateTime(acuse.Fecha_Anulado))       : null;
+      // Derivar fechas de transición del historial (ORDER BY Fecha DESC → buscar de atrás = más antigua)
+      const _hist = acuse.historial || [];
+      const _histDateOf = (estado) => {
+        const n = estado.toLowerCase();
+        for (let i = _hist.length - 1; i >= 0; i--) {
+          if (String(_hist[i].Estado || '').toLowerCase() === n) return _hist[i].Fecha;
+        }
+        return null;
+      };
+      // Convertir datetime UTC (MySQL NOW()) a hora Paraguay (America/Asuncion, incluye DST)
+      const _toLocalDT = (v) => {
+        if (!v) return null;
+        const raw = String(v).trim().replace(' ', 'T');
+        const date = new Date(raw.includes('Z') || raw.includes('+') ? raw : raw + 'Z');
+        if (isNaN(date)) return formatDateTime(v);
+        try {
+          const parts = new Intl.DateTimeFormat('es-PY', {
+            timeZone: 'America/Asuncion',
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: false
+          }).formatToParts(date);
+          const get = (t) => (parts.find(p => p.type === t) || {}).value || '00';
+          return `${get('day')}/${get('month')}/${get('year')} ${get('hour')}:${get('minute')}`;
+        } catch (e) {
+          return formatDateTime(v);
+        }
+      };
+
+      const rawContab = acuse.Fecha_Contabilizado || _histDateOf('En Transito');
+      const rawFact   = acuse.Fecha_Facturado     || _histDateOf('Entregado');
+      const rawAnul   = acuse.Fecha_Anulado       || _histDateOf('Anulado');
+
+      const fContab    = rawContab ? escapeHtml(_toLocalDT(rawContab)) : null;
+      const fFact      = rawFact   ? escapeHtml(_toLocalDT(rawFact))   : null;
+      const fAnul      = rawAnul   ? escapeHtml(_toLocalDT(rawAnul))   : null;
       const isAnulado  = (acuse.Estado || '').toLowerCase() === 'anulado';
       const isTraspasado = String(acuse.Almacen_Origen || '').toUpperCase() === 'FABRICA';
 
-      const elCreCont  = calcElapsed(acuse.Fecha_Emision,        acuse.Fecha_Contabilizado);
-      const elContFact = calcElapsed(acuse.Fecha_Contabilizado,  acuse.Fecha_Facturado);
-      const elTotal    = calcElapsed(acuse.Fecha_Emision,        acuse.Fecha_Facturado);
+      const elCreCont  = calcElapsed(acuse.Fecha_Emision, rawContab);
+      const elContFact = calcElapsed(rawContab,           rawFact);
+      const elTotal    = calcElapsed(acuse.Fecha_Emision, rawFact);
       const elEnCurso  = calcElapsed(acuse.Fecha_Emision,        null);
 
       const elapsedBlock = (() => {

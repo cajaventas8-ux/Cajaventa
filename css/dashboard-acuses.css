@@ -1593,18 +1593,18 @@
   .obs-cell { cursor: pointer; min-width: 220px; max-width: 340px; white-space: normal; }
   .obs-chip {
     display: inline-flex; align-items: flex-start; gap: 5px;
-    background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.18);
+    background: linear-gradient(135deg, #f2f0f6 0%, #ffffff 100%); border: 1px solid rgba(139,92,246,0.32);
     border-radius: 7px; padding: 4px 9px 4px 7px;
     max-width: 100%; cursor: pointer;
     transition: background .15s, border-color .15s;
   }
-  .obs-chip:hover { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.3); }
-  .obs-chip svg { width: 11px; height: 11px; flex-shrink: 0; margin-top: 1px; color: rgba(109,40,217,0.55); stroke: rgba(109,40,217,0.55); }
+  .obs-chip:hover { background: linear-gradient(135deg, #e9e6f2 0%, #f8f7fc 100%); border-color: rgba(139,92,246,0.5); }
+  .obs-chip svg { width: 11px; height: 11px; flex-shrink: 0; margin-top: 1px; color: rgba(109,40,217,0.6); stroke: rgba(109,40,217,0.6); }
   .obs-chip__text {
-    font: 500 12px/1.45 'DM Sans', sans-serif; color: #6d28d9;
+    font: 500 12px/1.45 'DM Sans', sans-serif; color: #4c3d72;
     white-space: normal; word-break: break-word;
   }
-  .obs-chip--long .obs-chip__text { color: #7c3aed; }
+  .obs-chip--long .obs-chip__text { color: #5b4a82; }
   .obs-textarea {
     width: 100%; min-width: 160px; max-width: 220px; min-height: 52px; resize: none;
     border: 1.5px solid #818cf8; border-radius: 8px;
