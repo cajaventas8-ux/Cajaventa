@@ -1509,8 +1509,20 @@
   }
   .cell-action-chip svg { width: 13px; height: 13px; flex-shrink: 0; }
   .cell-action-chip:active { transform: scale(.95); }
-  .cell-action-chip--green { background: #f0fdf4; border-color: #6ee7b7; color: #059669; }
-  .cell-action-chip--green:hover { background: #dcfce7; border-color: #34d399; border-style: solid; }
+  .cell-action-chip--green {
+    border: 1.5px solid transparent;
+    background:
+      linear-gradient(135deg, #f0fdf4, #ecfdf5) padding-box,
+      linear-gradient(135deg, #6ee7b7 0%, #10b981 55%, #059669 100%) border-box;
+    color: #047857;
+  }
+  .cell-action-chip--green:hover {
+    background:
+      linear-gradient(135deg, #dcfce7, #d1fae5) padding-box,
+      linear-gradient(135deg, #34d399 0%, #059669 55%, #047857 100%) border-box;
+    box-shadow: 0 3px 10px rgba(16,185,129,.2);
+    transform: translateY(-1px);
+  }
   .cell-action-chip--purple { background: #f5f3ff; border-color: #c4b5fd; color: #7c3aed; }
   .cell-action-chip--purple:hover { background: #ede9fe; border-color: #8b5cf6; border-style: solid; }
 
