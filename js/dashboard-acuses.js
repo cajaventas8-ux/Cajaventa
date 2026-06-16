@@ -3270,7 +3270,7 @@
       SEP,
       `*TOTAL: ${total > 0 ? formatGs(total) : 'Gs 0'}*`,
       SEP,
-      '_Ante cualquier consulta, estamos a su disposición._'
+      '_Equipo Caja Ventas — ALAS S.A._'
     ].filter(l => l !== null).join('\n');
 
     const url = tel

@@ -3384,49 +3384,49 @@ tr.acuse-row-new::after {
 
 /* Header */
 .detalle-header {
-  padding: 26px 52px 22px 28px;
+  padding: 14px 48px 12px 20px;
   background: linear-gradient(135deg, #0f2f57 0%, #1a4a8a 100%);
   flex-shrink: 0;
 }
 .detalle-header__main { flex: 1; min-width: 0; }
 .detalle-entrega-num {
-  display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px;
-  font: 800 24px/1 'Outfit', sans-serif;
-  color: #fff; letter-spacing: -.02em; margin-bottom: 7px;
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px;
+  font: 800 19px/1 'Outfit', sans-serif;
+  color: #fff; letter-spacing: -.02em; margin-bottom: 4px;
 }
 .detalle-header-sub {
-  font: 500 13px/1 'DM Sans', sans-serif;
+  font: 500 11.5px/1 'DM Sans', sans-serif;
   color: rgba(255,255,255,.6); letter-spacing: 0;
 }
 .detalle-header-sub strong { font-weight: 700; color: rgba(255,255,255,.9); }
 .detalle-cliente-name {
-  font: 600 13.5px/1.35 'DM Sans', sans-serif;
+  font: 600 12.5px/1.3 'DM Sans', sans-serif;
   color: rgba(255,255,255,.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .detalle-header__badges {
-  display: flex; flex-direction: column; gap: 7px; align-items: flex-end; flex-shrink: 0;
+  display: flex; flex-direction: row; gap: 6px; align-items: center;
+  flex-wrap: wrap; margin-top: 8px;
 }
 .detalle-header__kpis {
-  display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+  display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;
 }
 .dh-kpi {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 8px 16px;
+  display: flex; flex-direction: row; align-items: center;
+  padding: 5px 12px; gap: 7px;
   background: rgba(255,255,255,.1);
   border: 1px solid rgba(255,255,255,.15);
-  border-radius: 12px;
-  min-width: 72px; gap: 3px;
+  border-radius: 8px;
   transition: background .15s;
 }
 .dh-kpi:hover { background: rgba(255,255,255,.16); }
 .dh-kpi__icon { color: rgba(255,255,255,.45); }
-.dh-kpi__icon svg { width: 13px; height: 13px; display: block; }
+.dh-kpi__icon svg { width: 12px; height: 12px; display: block; }
 .dh-kpi__val {
-  font: 700 17px/1 'Outfit', sans-serif;
+  font: 700 14px/1 'Outfit', sans-serif;
   color: #fff; letter-spacing: -.01em;
 }
 .dh-kpi__lbl {
-  font: 500 10.5px/1 'DM Sans', sans-serif;
+  font: 500 10px/1 'DM Sans', sans-serif;
   color: rgba(255,255,255,.5);
   text-transform: uppercase; letter-spacing: .05em;
 }
@@ -3461,17 +3461,27 @@ tr.acuse-row-new::after {
   display: flex; align-items: center; gap: 5px;
 }
 
-/* ── Timeline de seguimiento ── */
-.detalle-timeline { display: flex; flex-direction: column; margin-bottom: 20px; }
-.tl-step { display: flex; gap: 12px; position: relative; }
-.tl-step__track { display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0; }
+/* ── Timeline de seguimiento — horizontal ── */
+.detalle-timeline {
+  display: flex; flex-direction: row;
+  align-items: flex-start; gap: 0;
+  margin-bottom: 16px;
+}
+.tl-step {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1; position: relative; gap: 0;
+}
+.tl-step__track {
+  display: flex; flex-direction: row; align-items: center;
+  width: 100%;
+}
 .tl-step__dot {
-  width: 28px; height: 28px; border-radius: 50%;
+  width: 26px; height: 26px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; z-index: 1;
 }
-.tl-step__dot svg { width: 13px; height: 13px; }
-.tl-step__line { width: 2px; flex: 1; min-height: 14px; margin: 2px 0; }
+.tl-step__dot svg { width: 12px; height: 12px; }
+.tl-step__line { flex: 1; height: 2px; min-width: 8px; margin: 0; }
 .tl-step:last-child .tl-step__line { display: none; }
 .tl-step--done .tl-step__dot {
   background: #dcfce7; border: 1.5px solid #86efac; color: #16a34a;
@@ -3481,10 +3491,14 @@ tr.acuse-row-new::after {
   background: #f1f5f9; border: 1.5px dashed #cbd5e1; color: #94a3b8;
 }
 .tl-step--pending .tl-step__line { background: #e2e8f0; }
-.tl-step__content { padding: 4px 0 18px; display: flex; flex-direction: column; gap: 2px; }
-.tl-step__label { font: 700 12.5px 'DM Sans', sans-serif; color: #1e293b; }
+.tl-step__content {
+  padding: 6px 4px 0; display: flex; flex-direction: column;
+  align-items: center; text-align: center; gap: 2px;
+  width: 100%;
+}
+.tl-step__label { font: 700 11px 'DM Sans', sans-serif; color: #1e293b; }
 .tl-step--pending .tl-step__label { color: #94a3b8; }
-.tl-step__date { font: 400 11.5px 'DM Sans', sans-serif; color: #64748b; }
+.tl-step__date { font: 400 10.5px 'DM Sans', sans-serif; color: #64748b; }
 .tl-step__date em { color: #cbd5e1; font-style: normal; }
 
 /* ── Fecha secundaria en tabla (contabilizado/facturado) ── */
