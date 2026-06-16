@@ -1228,7 +1228,6 @@
     vertical-align: middle;
     transition: background-color 0.2s ease;
   }
-  tbody td.obs-cell { min-width: 220px; max-width: 320px; white-space: normal; }
   tbody tr { }
     tbody tr.tbl-row-selectable {
     position: relative;
@@ -1591,16 +1590,21 @@
   .tbl-group-monto strong { font-weight: 800; color: #047857; }
 
   /* Observación */
-  .obs-cell { cursor: pointer; min-width: 150px; max-width: 210px; }
-  .obs-text {
-    font: 500 12.5px/1.4 'DM Sans', sans-serif; color: #475569;
-    display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
+  .obs-cell { cursor: pointer; min-width: 220px; max-width: 340px; white-space: normal; }
+  .obs-chip {
+    display: inline-flex; align-items: flex-start; gap: 5px;
+    background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.18);
+    border-radius: 7px; padding: 4px 9px 4px 7px;
+    max-width: 100%; cursor: pointer;
+    transition: background .15s, border-color .15s;
   }
-  .obs-text--truncated {
-    cursor: zoom-in;
-    background: linear-gradient(90deg, #475569 60%, transparent 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  .obs-chip:hover { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.3); }
+  .obs-chip svg { width: 11px; height: 11px; flex-shrink: 0; margin-top: 1px; color: rgba(109,40,217,0.55); stroke: rgba(109,40,217,0.55); }
+  .obs-chip__text {
+    font: 500 12px/1.45 'DM Sans', sans-serif; color: #6d28d9;
+    white-space: normal; word-break: break-word;
   }
+  .obs-chip--long .obs-chip__text { color: #7c3aed; }
   .obs-textarea {
     width: 100%; min-width: 160px; max-width: 220px; min-height: 52px; resize: none;
     border: 1.5px solid #818cf8; border-radius: 8px;
