@@ -3537,10 +3537,10 @@
           </button>
           <div class="detalle-header" id="detalleHeader">
             <div class="detalle-header__top">
-              <div class="detalle-entrega-num" id="detalleEntrega">—</div>
+              <div class="detalle-cliente-name" id="detalleCliente">—</div>
               <div class="detalle-header__badges" id="detalleBadges"></div>
             </div>
-            <div class="detalle-cliente-name" id="detalleCliente">—</div>
+            <div class="detalle-entrega-num" id="detalleEntrega">—</div>
             <div class="detalle-header__kpis" id="detalleHeaderKpis"></div>
           </div>
           <div class="detalle-body" id="detalleBody">
@@ -3568,8 +3568,8 @@
     try {
       const acuse = await AcuseAPI.get(`/api/acuses/${encodeURIComponent(id)}`);
 
-      if (entregaEl) entregaEl.textContent = acuse.Nro_Acuse || acuse.entrega || `#${id}`;
       if (clienteEl) clienteEl.textContent = acuse.Nom_Cliente || acuse.Cod_Cliente || '—';
+      if (entregaEl) entregaEl.innerHTML = `<span class="detalle-entrega-label">Entrega</span>${escapeHtml(acuse.Nro_Acuse || acuse.entrega || String(id))}`;
       if (badgesEl) badgesEl.innerHTML = renderStatusBadge(acuse.Estado) + (acuse.Almacen ? ' ' + renderAlmacenBadge(acuse.Almacen, acuse.Almacen_Origen) : '');
 
       const detalles = acuse.detalles || [];

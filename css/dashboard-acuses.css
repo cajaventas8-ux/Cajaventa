@@ -3402,17 +3402,23 @@ tr.acuse-row-new::after {
 }
 .detalle-header__top {
   display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 10px; margin-bottom: 5px;
-}
-.detalle-entrega-num {
-  font: 800 22px/1 'Outfit', sans-serif;
-  color: #fff; letter-spacing: -.03em;
+  gap: 10px; margin-bottom: 4px;
 }
 .detalle-cliente-name {
-  font: 600 13px/1.3 'DM Sans', sans-serif;
-  color: rgba(255,255,255,.65);
+  font: 700 16px/1.2 'DM Sans', sans-serif;
+  color: #fff; min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.detalle-entrega-num {
+  display: flex; align-items: baseline; gap: 6px;
+  font: 600 13px/1 'DM Sans', sans-serif;
+  color: rgba(255,255,255,.55); letter-spacing: 0;
   margin-bottom: 12px;
+}
+.detalle-entrega-label {
+  font: 500 10.5px/1 'DM Sans', sans-serif;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase; letter-spacing: .06em;
 }
 .detalle-header__badges {
   display: flex; flex-direction: row; gap: 6px; align-items: center;
