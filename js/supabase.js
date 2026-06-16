@@ -272,6 +272,7 @@
   Pedidos.importar = async function (rows, onProgress) {
     var prog = typeof onProgress === 'function' ? onProgress : function () {};
     var grupos = {};
+    var _condExpExcluidos = {};
 
     // Detectar si viene pre-parseado (pedidos-data.js) o en formato raw Excel
     var isPreparsed = rows.length > 0 && typeof rows[0].entrega === 'string' && Array.isArray(rows[0].items);
@@ -295,6 +296,10 @@
       } else {
         var key = String(r.Entrega || '').trim();
         if (!key) return;
+        // Saltar entregas con Cond.exp. 08 o 09
+        var condExp = String(r['Cond.exp.'] || r['Cond. exp.'] || r['CondExp'] || r['Cond.Exp.'] || r['Cond.Exp'] || '').trim();
+        if (condExp === '08' || condExp === '09') { _condExpExcluidos[key] = true; return; }
+        if (_condExpExcluidos[key]) return;
         if (!grupos[key]) {
           grupos[key] = {
             entrega: key,
@@ -315,6 +320,8 @@
     });
 
     if (!isPreparsed) {
+      // Eliminar entregas marcadas con Cond.exp. 08/09 (pueden haberse creado parcialmente)
+      Object.keys(_condExpExcluidos).forEach(function (k) { delete grupos[k]; });
       Object.keys(grupos).forEach(function (k) {
         var g = grupos[k];
         var total = g._totalItems || 0, aldf = g._aldfItems || 0;

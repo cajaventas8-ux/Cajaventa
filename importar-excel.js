@@ -109,9 +109,14 @@ async function importar() {
 
   // Agrupar por Entrega
   const grupos = {};
+  const condExpExcluidos = new Set();
   rows.forEach(row => {
     const entrega = String(row['Entrega'] || '').trim();
     if (!entrega) return;
+    // Saltar entregas con Cond.exp. 08 o 09
+    const condExp = String(row['Cond.exp.'] || row['Cond. exp.'] || row['CondExp'] || row['Cond.Exp.'] || row['Cond.Exp'] || '').trim();
+    if (condExp === '08' || condExp === '09') { condExpExcluidos.add(entrega); return; }
+    if (condExpExcluidos.has(entrega)) return;
     if (!grupos[entrega]) {
       const puestExped = String(
         row['PuestExped'] || row['Puest.Exped'] || row['Puest. Exped'] ||
@@ -139,6 +144,10 @@ async function importar() {
       contArt: parseFloat(String(row['Cont.Art'] || '0').replace(',', '.')) || 0
     });
   });
+
+  // Eliminar entregas con Cond.exp. 08/09 (por si alguna se creó antes de detectar el código)
+  condExpExcluidos.forEach(k => delete grupos[k]);
+  if (condExpExcluidos.size) console.log('Entregas omitidas por Cond.exp. 08/09:', condExpExcluidos.size);
 
   const entregas = Object.values(grupos);
   console.log('Entregas únicas:', entregas.length);
