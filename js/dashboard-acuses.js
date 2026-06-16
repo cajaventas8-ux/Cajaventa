@@ -3073,18 +3073,37 @@
     if (!ok) return;
 
     setDashboardSelectedAcuse(id, { clearHighlight: false });
+    const row = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
+    if (row) row.classList.add('row-sweep-blue');
+    if (button) button.disabled = true;
+
     try {
-      await runButtonLoading(button, async () => {
-        await AcuseAPI.patch(`/api/acuses/${id}/estado`, {
-          Estado: 'En Transito',
-          Fecha_Entrega: currentDateTimeValue(),
-          Usuario: usuario,
-          Observacion: 'Cambio a Contabilizado desde dashboard'
-        });
-        await refreshDashboardData({ softPanel: true });
-        showCvCheck('Contabilizado');
-      });
+      const [res] = await Promise.allSettled([
+        AcuseAPI.patch(`/api/acuses/${id}/estado`, {
+          Estado: 'En Transito', Fecha_Entrega: currentDateTimeValue(),
+          Usuario: usuario, Observacion: 'Cambio a Contabilizado desde dashboard'
+        }),
+        new Promise(r => setTimeout(r, 640))
+      ]);
+      if (res.status === 'rejected') throw res.reason;
+
+      if (row) { row.classList.remove('row-sweep-blue'); row.classList.add('row-exit-blue'); }
+      loadKpiSummary().catch(() => {});
+      await new Promise(r => setTimeout(r, 300));
+
+      await selectKPI('en_transito');
+
+      await new Promise(r => setTimeout(r, 120));
+      const arrived = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
+      if (arrived) {
+        arrived.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        arrived.classList.add('row-arrive-blue');
+        setTimeout(() => arrived.classList.remove('row-arrive-blue'), 1800);
+      }
+      showCvCheck('Contabilizado');
     } catch (error) {
+      if (row) { row.classList.remove('row-sweep-blue'); row.classList.remove('row-exit-blue'); }
+      if (button) button.disabled = false;
       notify(error.message, 'error');
     }
   }
@@ -3101,18 +3120,37 @@
     if (!ok) return;
 
     setDashboardSelectedAcuse(id, { clearHighlight: false });
+    const row = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
+    if (row) row.classList.add('row-sweep-green');
+    if (button) button.disabled = true;
+
     try {
-      await runButtonLoading(button, async () => {
-        await AcuseAPI.patch(`/api/acuses/${id}/estado`, {
-          Estado: 'Entregado',
-          Fecha_Entrega: currentDateTimeValue(),
-          Usuario: usuario,
-          Observacion: 'Cambio a Facturado desde dashboard'
-        });
-        await refreshDashboardData({ softPanel: true });
-        showCvCheck('Facturado');
-      });
+      const [res] = await Promise.allSettled([
+        AcuseAPI.patch(`/api/acuses/${id}/estado`, {
+          Estado: 'Entregado', Fecha_Entrega: currentDateTimeValue(),
+          Usuario: usuario, Observacion: 'Cambio a Facturado desde dashboard'
+        }),
+        new Promise(r => setTimeout(r, 640))
+      ]);
+      if (res.status === 'rejected') throw res.reason;
+
+      if (row) { row.classList.remove('row-sweep-green'); row.classList.add('row-exit-green'); }
+      loadKpiSummary().catch(() => {});
+      await new Promise(r => setTimeout(r, 300));
+
+      await selectKPI('entregados');
+
+      await new Promise(r => setTimeout(r, 120));
+      const arrived = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
+      if (arrived) {
+        arrived.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        arrived.classList.add('row-arrive-green');
+        setTimeout(() => arrived.classList.remove('row-arrive-green'), 1800);
+      }
+      showCvCheck('Facturado');
     } catch (error) {
+      if (row) { row.classList.remove('row-sweep-green'); row.classList.remove('row-exit-green'); }
+      if (button) button.disabled = false;
       notify(error.message, 'error');
     }
   }

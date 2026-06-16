@@ -2951,6 +2951,76 @@ tr.acuse-row-new::after {
   100%    { background: transparent !important; }
 }
 
+/* ═══════ ROW TRANSITION ANIMATIONS (contabilizar / facturar) ═══════ */
+
+/* ── sweep: overflow:hidden para clipar el ::after ── */
+.row-sweep-blue > td,
+.row-sweep-green > td { overflow: hidden; }
+
+/* ── fondo base durante el sweep ── */
+.row-sweep-blue  > td { background: rgba(59,130,246,0.04); }
+.row-sweep-green > td { background: rgba(16,185,129,0.04); }
+
+/* ── luz que viaja de izquierda a derecha ── */
+.row-sweep-blue > td::after,
+.row-sweep-green > td::after {
+  content: ''; position: absolute; inset: 0;
+  animation: rowSweepPass 0.58s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+  pointer-events: none;
+}
+.row-sweep-blue > td::after {
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(147,197,253,0) 20%,
+    rgba(147,197,253,0.6) 50%, rgba(59,130,246,0.4) 54%,
+    rgba(147,197,253,0) 78%, transparent 100%);
+}
+.row-sweep-green > td::after {
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(110,231,183,0) 20%,
+    rgba(110,231,183,0.6) 50%, rgba(16,185,129,0.4) 54%,
+    rgba(110,231,183,0) 78%, transparent 100%);
+}
+@keyframes rowSweepPass {
+  from { transform: translateX(-200%); }
+  to   { transform: translateX(260%); }
+}
+
+/* ── exit: fade + slide up suave ── */
+.row-exit-blue > td {
+  animation: rowExitBlue 0.28s ease-out forwards;
+  pointer-events: none;
+}
+.row-exit-green > td {
+  animation: rowExitGreen 0.28s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rowExitBlue {
+  from { opacity: 1; background: rgba(59,130,246,0.08); }
+  to   { opacity: 0; transform: translateY(-5px); }
+}
+@keyframes rowExitGreen {
+  from { opacity: 1; background: rgba(16,185,129,0.08); }
+  to   { opacity: 0; transform: translateY(-5px); }
+}
+
+/* ── arrive: highlight en el tab destino ── */
+.row-arrive-blue > td {
+  animation: rowArriveBlue 1.7s ease-out forwards;
+}
+.row-arrive-green > td {
+  animation: rowArriveGreen 1.7s ease-out forwards;
+}
+@keyframes rowArriveBlue {
+  0%   { background: rgba(59,130,246,0.22); box-shadow: inset 0 0 0 2px rgba(59,130,246,0.5); }
+  45%  { background: rgba(59,130,246,0.1);  box-shadow: inset 0 0 0 1px rgba(59,130,246,0.25); }
+  100% { background: transparent; box-shadow: none; }
+}
+@keyframes rowArriveGreen {
+  0%   { background: rgba(16,185,129,0.22); box-shadow: inset 0 0 0 2px rgba(16,185,129,0.5); }
+  45%  { background: rgba(16,185,129,0.1);  box-shadow: inset 0 0 0 1px rgba(16,185,129,0.25); }
+  100% { background: transparent; box-shadow: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   tr.acuse-row-new > td        { animation: none; }
   tr.acuse-row-new::after      { display: none; }
