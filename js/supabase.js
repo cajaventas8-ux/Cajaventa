@@ -354,8 +354,11 @@
     prog(35, 'Guardando ' + entregas.length + ' pedidos...', 'Un solo batch a Supabase');
     var pedidosPayload = entregas.map(function (key) {
       var g = grupos[key];
-      var estado = existingMap[g.entrega] ? existingMap[g.entrega].estado : 'pendiente';
-      return { entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud, cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null, usuario_empaque: g.usuarioEmpaque, cond_exp: g.condExp || null, almacen: g.almacen || '', estado: estado };
+      var existing = existingMap[g.entrega];
+      var estado = existing ? existing.estado : 'pendiente';
+      // Si fue traspasado manualmente (almacen_origen existe), respetar su almacen actual
+      var almacen = (existing && existing.almacen_origen) ? existing.almacen : (g.almacen || '');
+      return { entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud, cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null, usuario_empaque: g.usuarioEmpaque, cond_exp: g.condExp || null, almacen: almacen, estado: estado };
     });
     try { await upsert('pedidos', pedidosPayload, 'entrega'); } catch (e) { logErr('importar.pedidos.batch', e); throw e; }
 
