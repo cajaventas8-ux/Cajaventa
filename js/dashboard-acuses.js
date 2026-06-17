@@ -4425,7 +4425,7 @@
     const raw = Array.isArray(response.items) ? response.items : [];
 
     const items = raw.map(r => ({
-      Fecha:      r.created_at,
+      Fecha:      r.created_at || r.fecha || null,
       Usuario:    r.usuario || 'Sistema',
       Accion:     r.accion,
       Tipo:       r.accion,

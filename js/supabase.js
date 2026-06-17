@@ -788,14 +788,12 @@
 
   async function getAuditoria(params) {
     params = params || {};
-    var parts = ['select=*', 'order=created_at.desc'];
+    var parts = ['select=*', 'order=id.desc'];
     var limit = Math.min(Number(params.limit) || 500, 2000);
     parts.push('limit=' + limit);
     if (params.offset) parts.push('offset=' + params.offset);
     if (params.usuario) parts.push('usuario=ilike.*' + encodeURIComponent(params.usuario) + '*');
     if (params.cliente)  parts.push('cliente=ilike.*'  + encodeURIComponent(params.cliente)  + '*');
-    if (params.fechaDesde) parts.push('created_at=gte.' + encodeURIComponent(params.fechaDesde));
-    if (params.fechaHasta) parts.push('created_at=lte.' + encodeURIComponent(params.fechaHasta + 'T23:59:59'));
     try {
       var url = REST + '/auditoria?' + parts.join('&');
       console.log('[getAuditoria] URL:', url);
