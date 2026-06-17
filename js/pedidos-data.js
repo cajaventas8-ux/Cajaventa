@@ -72,6 +72,7 @@
       ).trim();
 
       if (condExpNum === 8 || condExpNum === 9) {
+        console.log('[Import 08/09]', entrega, '| condExp:', condExpRaw, '| PuestExped:', puestExped, '| incluido:', puestExped === 'ALDF');
         if (puestExped !== 'ALDF') { condExpExcluidos[entrega] = true; return; }
       }
       if (condExpExcluidos[entrega]) return;
