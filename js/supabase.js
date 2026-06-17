@@ -782,7 +782,6 @@
   /* ---- AUDITORÍA ---- */
   async function registrarAuditoria(accion, usuario, cliente, entrega, detalle) {
     var payload = { accion: accion, usuario: usuario || 'sistema', cliente: cliente || null, entrega: entrega || null, detalle: detalle || '' };
-    console.log('[Supabase] auditoria INSERT:', payload);
     await post('auditoria', payload);
   }
 
@@ -798,13 +797,8 @@
     if (params.fechaHasta) parts.push('created_at=lte.' + encodeURIComponent(params.fechaHasta + 'T23:59:59'));
     try {
       var url = REST + '/auditoria?' + parts.join('&');
-      console.log('[getAuditoria] URL:', url);
       var r = await fetch(url, { headers: headers({ 'Prefer': 'count=exact' }) });
-      if (!r.ok) {
-        var errBody = ''; try { errBody = await r.text(); } catch(_){}
-        console.error('[getAuditoria] HTTP ' + r.status + ':', errBody);
-        throw new Error('HTTP ' + r.status + ' ' + errBody);
-      }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
       var data = await r.json();
       var total = data.length;
       var range = r.headers.get('content-range');
