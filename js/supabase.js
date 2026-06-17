@@ -313,7 +313,7 @@
             solicitud: String(r['Solic.'] || r.Solic || '').trim(),
             cliente: String(r.Nombre || '').trim(),
             vendedor: String(r['Nombre Vend.'] || r.Nombre_Vend || '').trim(),
-            fecha: formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')),
+            fecha: (formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')) + ' ' + String(r['Hora Creac'] || r.Hora_Creac || '').trim()).trim(),
             usuarioEmpaque: String(r['Usuario Empaque'] || r.Usuario_Empaque || '').trim(),
             condExp: condExp,
             almacen: '', _totalItems: 0, _aldfItems: 0, items: []

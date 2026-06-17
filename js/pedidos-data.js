@@ -83,7 +83,7 @@
           solicitud: String(row['Solic.'] || '').trim(),
           cliente: String(row['Nombre'] || '').trim(),
           vendedor: String(row['Nombre Vend.'] || '').trim(),
-          fecha: String(row['Fecha Creac'] || '').trim(),
+          fecha: (String(row['Fecha Creac'] || '').trim() + ' ' + String(row['Hora Creac'] || '').trim()).trim(),
           usuarioEmpaque: String(row['Usuario Empaque'] || '').trim(),
           condExp: condExpRaw,
           almacen: '',
