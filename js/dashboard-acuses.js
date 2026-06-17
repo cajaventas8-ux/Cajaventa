@@ -2563,18 +2563,16 @@
     } else if (delivered) {
       accionesHtml = `<div class="tbl-actions tbl-actions--single"><span style="font-size:12px;color:#9ca3af;font-weight:600;">Facturado</span></div>`;
     } else if (pending) {
-      const delBtn = isAdmin() ? `<button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>` : '';
       accionesHtml = `<div class="tbl-actions">
           <button class="tbl-btn act-contabilizar" onclick="event.stopPropagation();markAcuseContabilizado(${acuseId}, this)"><span class="tip">Contabilizado</span>${contabilizarIcon()}</button>
           ${traspasarBtnHtml}
-          ${delBtn}
+          <button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>
         </div>`;
     } else {
-      const delBtn = isAdmin() ? `<button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>` : '';
       accionesHtml = `<div class="tbl-actions">
           <button class="tbl-btn act-facturar" onclick="event.stopPropagation();markAcuseFacturado(${acuseId}, this)"><span class="tip">Facturado</span>${facturarIcon()}</button>
           ${traspasarBtnHtml}
-          ${delBtn}
+          <button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>
         </div>`;
     }
 
@@ -2928,7 +2926,6 @@
   }
 
   async function openDeleteAcuse(id, button) {
-    if (!isAdmin()) { notify('Solo administradores pueden eliminar pedidos.', 'warning'); return; }
     setDashboardSelectedAcuse(id, { clearHighlight: false });
     const rowDel = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
     if (rowDel) { rowDel.classList.add('row-sweep-red'); _createSweepOverlay(rowDel, 'red'); }
