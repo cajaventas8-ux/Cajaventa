@@ -618,11 +618,12 @@
         else if (p.estado === 'facturado')     { kpis.en_transito++; kpis.monto_en_transito += m; }
         else if (p.estado === 'anulado')       { kpis.anulados++;    kpis.monto_anulados    += m; }
       });
-      // Conteos FABRICA/DEPOSITO usando la misma lógica de cliente para que los badges reflejen la vista
+      // Conteos FABRICA/DEPOSITO usando la misma lógica de cliente
       data.forEach(function (p) {
         var m = Number(p.monto) || 0;
-        if (summaryEsFabrica(p)) { kpis.fabrica++;  kpis.monto_fabrica  += m; }
-        else                     { kpis.deposito++; kpis.monto_deposito += m; }
+        var i = summaryClientMap[p.cliente || ''];
+        if (i && i.hasFabrica && !i.hasDeposito) { kpis.fabrica++;  kpis.monto_fabrica  += m; }
+        else if (i && i.hasDeposito)             { kpis.deposito++; kpis.monto_deposito += m; }
       });
       kpis.acuses = kpis.pendientes + kpis.entregados + kpis.en_transito;
 
