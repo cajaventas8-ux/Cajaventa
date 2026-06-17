@@ -1125,23 +1125,22 @@
 
     animateKpiVal('val-pendientes',  kpis.pendientes  || 0, 'pendientes');
     animateKpiVal('val-entregados',  kpis.entregados  || 0, 'entregados');
-    animateKpiVal('val-acuses',      kpis.acuses      || 0, 'acuses');
     animateKpiVal('val-en_transito', kpis.en_transito || 0, 'en_transito');
     animateKpiVal('val-anulados',    kpis.anulados    || 0, 'anulados');
-    setText('val-deposito', formatNumber(kpis.deposito || 0));
-    setText('val-fabrica',  formatNumber(kpis.fabrica  || 0));
 
     animateKpiMonto('monto-pendientes',  kpis.monto_pendientes);
     animateKpiMonto('monto-entregados',  kpis.monto_entregados);
     animateKpiMonto('monto-en_transito', kpis.monto_en_transito);
     animateKpiMonto('monto-anulados',    kpis.monto_anulados);
-    animateKpiMonto('monto-acuses',      kpis.monto_total);
 
-    const alm = state.panelFilters.almacen;
-    const totalLabel = alm === 'DEPOSITO' ? 'Total Depósito'
-                     : alm === 'FABRICA'  ? 'Total Fábrica'
-                     : 'Total de Pedidos Caja';
-    setText('label-acuses', totalLabel);
+    // Strip header: Depósito / Fábrica / Total
+    setText('val-deposito', formatNumber(kpis.deposito || 0));
+    setText('val-fabrica',  formatNumber(kpis.fabrica  || 0));
+    const totalCaja = (kpis.deposito || 0) + (kpis.fabrica || 0);
+    setText('val-acuses', formatNumber(totalCaja));
+    const montoTotal = (kpis.monto_deposito || 0) + (kpis.monto_fabrica || 0);
+    const montoEl = document.getElementById('monto-strip-total');
+    if (montoEl) montoEl.textContent = montoTotal > 0 ? 'Gs ' + Math.round(montoTotal).toLocaleString('es-PY') : '';
   }
 
   function setKpiMonto(id, value) {

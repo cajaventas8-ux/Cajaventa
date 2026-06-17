@@ -351,7 +351,7 @@
   /* ═══════════════════ KPI CARDS ═══════════════════ */
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 28px;
   }
@@ -457,8 +457,82 @@
   .kpi-card[data-kpi="anulados"] { order: 4; --kpi-color: #ef4444; }
   .kpi-card[data-kpi="anulados"] .kpi-icon { background: rgba(239,68,68,0.12); color: #dc2626; }
 
-  .kpi-card[data-kpi="acuses"] { order: 5; --kpi-color: var(--purple); }
-  .kpi-card[data-kpi="acuses"] .kpi-icon { background: var(--purple-soft); color: var(--purple); }
+  /* ═══════════════════ DASHBOARD KPI STRIP (Dep / Fab / Total) ═══════════════════ */
+  .dash-kpi-strip {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(15,36,64,0.06);
+  }
+  .dks-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    position: relative;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .dks-chip + .dks-chip { border-left: 1px solid var(--gray-200); }
+  .dks-chip:hover { background: rgba(14,165,233,0.04); }
+  .dks-chip.active {
+    background: var(--accent);
+    color: var(--white);
+  }
+  .dks-chip.active .dks-label { color: rgba(255,255,255,0.8); }
+  .dks-chip.active .dks-val { color: var(--white); }
+  .dks-chip.active .dks-icon { color: rgba(255,255,255,0.9); }
+  .dks-chip.active .dks-monto { color: rgba(255,255,255,0.7); }
+
+  .dks-icon {
+    width: 28px; height: 28px;
+    flex-shrink: 0;
+    color: var(--gray-400);
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .dks-chip:hover .dks-icon { transform: scale(1.08); }
+
+  .dks-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .dks-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--gray-400);
+    white-space: nowrap;
+  }
+  .dks-val {
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--gray-900);
+    line-height: 1;
+  }
+  .dks-monto {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gray-400);
+    white-space: nowrap;
+  }
+
+  .dks-chip--dep .dks-icon { color: var(--accent); }
+  .dks-chip--fab .dks-icon { color: #059669; }
+  .dks-chip--total { background: rgba(139,92,246,0.04); }
+  .dks-chip--total .dks-icon { color: var(--purple); }
+  .dks-chip--total .dks-val { color: var(--purple); }
+  .dks-chip--total:hover { background: rgba(139,92,246,0.08); }
 
   /* ═══════════════════ ALMACEN SEGMENT CONTROL ═══════════════════ */
   @keyframes asegPop {
