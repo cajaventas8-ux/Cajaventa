@@ -1235,10 +1235,10 @@
       state.charts.dona = new Chart(donutCtx, {
         type: 'doughnut',
         data: {
-          labels: ['Entregados', 'Pendientes', 'En Transito'],
+          labels: ['Facturados', 'Pendientes', 'Contabilizados', 'Anulados'],
           datasets: [{
-            data: [Number(donut.entregados || 0), Number(donut.pendientes || 0), Number(donut.en_transito || 0)],
-            backgroundColor: ['#22c55e', '#f59e0b', '#3b82f6'],
+            data: [Number(donut.entregados || 0), Number(donut.pendientes || 0), Number(donut.en_transito || 0), Number(donut.anulados || 0)],
+            backgroundColor: ['#22c55e', '#f59e0b', '#3b82f6', '#ef4444'],
             borderWidth: 0,
             spacing: 0
           }]

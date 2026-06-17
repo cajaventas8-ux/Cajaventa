@@ -636,6 +636,7 @@
       donut.porcentajeEntregados = donut.total > 0 ? Math.round(donut.entregados / donut.total * 100) : 0;
       donut.porcentajePendientes = donut.total > 0 ? Math.round(donut.pendientes / donut.total * 100) : 0;
       donut.porcentajeTransito   = donut.total > 0 ? Math.round(donut.en_transito / donut.total * 100) : 0;
+      donut.porcentajeAnulados   = donut.total > 0 ? Math.round(donut.anulados / donut.total * 100) : 0;
 
       // ── TOP CLIENTES ──
       var clienteCount = {};
