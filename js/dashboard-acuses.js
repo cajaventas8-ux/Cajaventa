@@ -3792,43 +3792,28 @@
       const elEnCurso  = calcElapsed(acuse.Fecha_Emision,        null);
 
       const elapsedBlock = (() => {
-        const svgClock = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+        const clockSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
         if (isAnulado) return '';
         if (elTotal) {
-          const breakdown = (elCreCont && elContFact)
-            ? `<div class="tl-el__breakdown"><span>Creado → Contabilizado <b>${elCreCont}</b></span><span>Contabilizado → Facturado <b>${elContFact}</b></span></div>`
+          const steps = (elCreCont && elContFact)
+            ? `<div class="tl-chips__steps">
+                <span class="tl-chip tl-chip--step">${clockSvg} Creado → Contabilizado <b>${elCreCont}</b></span>
+                <span class="tl-chip tl-chip--step">${clockSvg} Contabilizado → Facturado <b>${elContFact}</b></span>
+              </div>`
             : '';
-          return `<div class="tl-elapsed">
-            ${svgClock}
-            <div class="tl-elapsed__body">
-              <div class="tl-elapsed__main">
-                <span class="tl-el__lbl">Creado → Facturado</span>
-                <span class="tl-el__val tl-el__val--total">${elTotal}</span>
-              </div>
-              ${breakdown}
-            </div>
+          return `<div class="tl-chips">
+            <span class="tl-chip tl-chip--total">${clockSvg} Tiempo transcurrido <b>${elTotal}</b></span>
+            ${steps}
           </div>`;
         }
         if (elCreCont) {
-          return `<div class="tl-elapsed tl-elapsed--partial">
-            ${svgClock}
-            <div class="tl-elapsed__body">
-              <div class="tl-elapsed__main">
-                <span class="tl-el__lbl">Creado → Contabilizado</span>
-                <span class="tl-el__val tl-el__val--partial">${elCreCont}</span>
-              </div>
-              <div class="tl-el__breakdown"><span>En curso · <b>${elEnCurso}</b> desde la creación</span></div>
-            </div>
+          return `<div class="tl-chips">
+            <span class="tl-chip tl-chip--partial">${clockSvg} Tiempo transcurrido <b>${elCreCont}</b></span>
+            <span class="tl-chip tl-chip--step">${clockSvg} En curso · <b>${elEnCurso}</b> desde la creación</span>
           </div>`;
         }
-        return `<div class="tl-elapsed tl-elapsed--pending">
-          ${svgClock}
-          <div class="tl-elapsed__body">
-            <div class="tl-elapsed__main">
-              <span class="tl-el__lbl">Pendiente</span>
-              <span class="tl-el__val tl-el__val--pending">${elEnCurso} desde la creación</span>
-            </div>
-          </div>
+        return `<div class="tl-chips">
+          <span class="tl-chip tl-chip--pending">${clockSvg} Pendiente · <b>${elEnCurso}</b> desde la creación</span>
         </div>`;
       })();
 
