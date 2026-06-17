@@ -295,6 +295,7 @@
           usuarioEmpaque: String(r.usuarioEmpaque || '').trim(),
           condExp: String(r.condExp || '').trim(),
           almacen: String(r.almacen || ''),
+          almacenOrigen: r.almacenOrigen || null,
           items: (r.items || []).map(function (it) {
             return { material: String(it.material || '').trim(), denominacion: String(it.denominacion || '').trim(), cantidad: Number(it.cantidad) || 0, unidad: String(it.unidad || '').trim(), contEntr: Number(it.contEntr) || 0, contArt: Number(it.contArt) || 0 };
           })
