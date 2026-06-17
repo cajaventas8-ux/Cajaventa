@@ -72,7 +72,11 @@
       headers: headers({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
       body: JSON.stringify(Array.isArray(body) ? body : [body])
     });
-    if (!r.ok) throw new Error('HTTP ' + r.status + ' UPSERT ' + table);
+    if (!r.ok) {
+      var errBody = ''; try { errBody = await r.text(); } catch(_){}
+      console.error('[upsert ' + table + '] HTTP ' + r.status + ':', errBody);
+      throw new Error('HTTP ' + r.status + ' UPSERT ' + table);
+    }
     return [];
   }
 
