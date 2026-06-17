@@ -2133,7 +2133,13 @@
     min-height: 0;
     overflow-y: auto;
     padding-bottom: 24px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148,163,184,0.35) transparent;
   }
+  #viewResumen::-webkit-scrollbar { width: 5px; }
+  #viewResumen::-webkit-scrollbar-track { background: transparent; }
+  #viewResumen::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 10px; }
+  #viewResumen::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.5); }
   #viewResumen .header {
     flex-shrink: 0;
   }
