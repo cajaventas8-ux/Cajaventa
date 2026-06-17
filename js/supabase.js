@@ -579,24 +579,12 @@
         data = data.filter(function (p) { return p.fecha >= inicio && p.fecha <= fin; });
       }
 
-      // Mapa cliente → tiene DEPOSITO / tiene FABRICA (sobre datos ya filtrados por mes)
-      var summaryClientMap = {};
-      data.forEach(function (p) {
-        var c = p.cliente || '';
-        if (!summaryClientMap[c]) summaryClientMap[c] = { hasFabrica: false, hasDeposito: false };
-        if ((p.almacen || '').toUpperCase() === 'FABRICA') summaryClientMap[c].hasFabrica = true;
-        else summaryClientMap[c].hasDeposito = true;
-      });
-      // Cliente con al menos 1 DEPOSITO → DEPOSITO. Cliente 100% FABRICA → FABRICA.
-      function summaryEsDeposito(p) { var i = summaryClientMap[p.cliente || '']; return i && i.hasDeposito; }
-      function summaryEsFabrica(p)  { var i = summaryClientMap[p.cliente || '']; return i && i.hasFabrica && !i.hasDeposito; }
-
-      // Filtro de almacén para KPIs (aplica sobre el slice de datos ya filtrado por mes)
+      // Filtro de almacén para KPIs — por entrega individual
       var kpiData = data;
-      if (almacen === 'DEPOSITO') {
-        kpiData = data.filter(summaryEsDeposito);
-      } else if (almacen === 'FABRICA') {
-        kpiData = data.filter(summaryEsFabrica);
+      if (almacen === 'DEPOSITO' || almacen === 'FABRICA') {
+        kpiData = data.filter(function (p) {
+          return (p.almacen || '').toUpperCase() === almacen;
+        });
       }
 
       // ── KPIs ──
@@ -872,27 +860,9 @@
     }
 
     if (params.almacen === 'FABRICA' || params.almacen === 'DEPOSITO') {
-      // Lógica a nivel de cliente: si un cliente tiene al menos 1 entrega DEPOSITO
-      // todas sus entregas (incluyendo FABRICA) van a DEPOSITO.
-      // Solo clientes 100% FABRICA van al tab FABRICA.
-      var panelClientMap = {};
-      pedidos.forEach(function (p) {
-        var c = p.cliente || '';
-        if (!panelClientMap[c]) panelClientMap[c] = { hasFabrica: false, hasDeposito: false };
-        if ((p.almacen || '').toUpperCase() === 'FABRICA') panelClientMap[c].hasFabrica = true;
-        else panelClientMap[c].hasDeposito = true;
+      pedidos = pedidos.filter(function (p) {
+        return (p.almacen || '').toUpperCase() === params.almacen;
       });
-      if (params.almacen === 'FABRICA') {
-        pedidos = pedidos.filter(function (p) {
-          var i = panelClientMap[p.cliente || ''];
-          return i && i.hasFabrica && !i.hasDeposito;
-        });
-      } else {
-        pedidos = pedidos.filter(function (p) {
-          var i = panelClientMap[p.cliente || ''];
-          return i && i.hasDeposito;
-        });
-      }
     }
 
     if (params.condExp) {
