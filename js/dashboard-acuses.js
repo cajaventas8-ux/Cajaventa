@@ -1136,17 +1136,6 @@
     // Strip header badges
     setText('val-deposito', formatNumber(kpis.deposito || 0));
     setText('val-fabrica',  formatNumber(kpis.fabrica  || 0));
-
-    // Resumen KPIs (Depósito / Fábrica / Total)
-    const dep = kpis.deposito || 0, fab = kpis.fabrica || 0;
-    const mDep = kpis.monto_deposito || 0, mFab = kpis.monto_fabrica || 0;
-    setText('rk-dep-val', formatNumber(dep));
-    setText('rk-fab-val', formatNumber(fab));
-    setText('rk-total-val', formatNumber(dep + fab));
-    const fmtGs = v => v > 0 ? 'Gs ' + Math.round(v).toLocaleString('es-PY') : '';
-    setText('rk-dep-monto', fmtGs(mDep));
-    setText('rk-fab-monto', fmtGs(mFab));
-    setText('rk-total-monto', fmtGs(mDep + mFab));
   }
 
   function setKpiMonto(id, value) {
@@ -1433,6 +1422,18 @@
 
   function renderSummaryCardsEnhanced() {
     const model = buildSummaryVisualModelEnhanced();
+
+    // KPIs Resumen — conectados al filtro de mes del Resumen (state.summary)
+    const sk = state.summary && state.summary.kpis ? state.summary.kpis : {};
+    const sDep = sk.deposito || 0, sFab = sk.fabrica || 0;
+    const smDep = sk.monto_deposito || 0, smFab = sk.monto_fabrica || 0;
+    const fmtGs = v => v > 0 ? 'Gs ' + Math.round(v).toLocaleString('es-PY') : '';
+    setText('rk-dep-val', formatNumber(sDep));
+    setText('rk-fab-val', formatNumber(sFab));
+    setText('rk-total-val', formatNumber(sDep + sFab));
+    setText('rk-dep-monto', fmtGs(smDep));
+    setText('rk-fab-monto', fmtGs(smFab));
+    setText('rk-total-monto', fmtGs(smDep + smFab));
 
     setText('summaryStatusTitle', 'Estado de Acuses');
     setText('summaryStatusSubtitle', model.isAllScope ? 'Distribucion porcentual del historico' : 'Distribucion porcentual de acuses');
