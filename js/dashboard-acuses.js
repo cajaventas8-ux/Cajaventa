@@ -1133,14 +1133,20 @@
     animateKpiMonto('monto-en_transito', kpis.monto_en_transito);
     animateKpiMonto('monto-anulados',    kpis.monto_anulados);
 
-    // Strip header: Depósito / Fábrica / Total
+    // Strip header badges
     setText('val-deposito', formatNumber(kpis.deposito || 0));
     setText('val-fabrica',  formatNumber(kpis.fabrica  || 0));
-    const totalCaja = (kpis.deposito || 0) + (kpis.fabrica || 0);
-    setText('val-acuses', formatNumber(totalCaja));
-    const montoTotal = (kpis.monto_deposito || 0) + (kpis.monto_fabrica || 0);
-    const montoEl = document.getElementById('monto-strip-total');
-    if (montoEl) montoEl.textContent = montoTotal > 0 ? 'Gs ' + Math.round(montoTotal).toLocaleString('es-PY') : '';
+
+    // Resumen KPIs (Depósito / Fábrica / Total)
+    const dep = kpis.deposito || 0, fab = kpis.fabrica || 0;
+    const mDep = kpis.monto_deposito || 0, mFab = kpis.monto_fabrica || 0;
+    setText('rk-dep-val', formatNumber(dep));
+    setText('rk-fab-val', formatNumber(fab));
+    setText('rk-total-val', formatNumber(dep + fab));
+    const fmtGs = v => v > 0 ? 'Gs ' + Math.round(v).toLocaleString('es-PY') : '';
+    setText('rk-dep-monto', fmtGs(mDep));
+    setText('rk-fab-monto', fmtGs(mFab));
+    setText('rk-total-monto', fmtGs(mDep + mFab));
   }
 
   function setKpiMonto(id, value) {
