@@ -3512,7 +3512,7 @@
   }
 
   function currentDateTimeValue() {
-    return formatMysqlDateTime(new Date());
+    return new Date().toISOString();
   }
 
   function formatDateInputValue(date) {
