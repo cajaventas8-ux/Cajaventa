@@ -2020,6 +2020,10 @@
     if (state.panelFilters.almacen) params.almacen = state.panelFilters.almacen;
     if (state.panelFilters.condExp) params.condExp = state.panelFilters.condExp;
 
+    // KPI activo → estado DB para que el filtro almacén solo considere entregas de este estado
+    const kpiEstadoMap = { pendientes: 'pendiente', en_transito: 'facturado', entregados: 'contabilizado', anulados: 'anulado' };
+    if (kpiEstadoMap[normalizedKpi]) params.kpiEstado = kpiEstadoMap[normalizedKpi];
+
     return params;
   }
 

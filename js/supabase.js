@@ -876,19 +876,18 @@
 
     if (params.almacen === 'FABRICA' || params.almacen === 'DEPOSITO') {
       // Mixto → Depósito. Solo 100% FABRICA → Fábrica.
+      // Solo considerar entregas del KPI activo (kpiEstado) para determinar mixto
+      var kpiEstado = params.kpiEstado || '';
+      var scopePedidos = kpiEstado
+        ? pedidos.filter(function (p) { return p.estado === kpiEstado; })
+        : pedidos;
       var panelClientMap = {};
-      pedidos.forEach(function (p) {
+      scopePedidos.forEach(function (p) {
         var c = p.cliente || '';
         var alm = (p.almacen || '').toUpperCase();
-        if (!panelClientMap[c]) panelClientMap[c] = { hasFabrica: false, hasDeposito: false, _raw: [] };
-        panelClientMap[c]._raw.push(alm || '(vacio)');
+        if (!panelClientMap[c]) panelClientMap[c] = { hasFabrica: false, hasDeposito: false };
         if (alm === 'FABRICA') panelClientMap[c].hasFabrica = true;
         else if (alm === 'DEPOSITO') panelClientMap[c].hasDeposito = true;
-      });
-      console.log('[DIAG filtro almacen] param:', params.almacen);
-      Object.keys(panelClientMap).forEach(function (c) {
-        var i = panelClientMap[c];
-        console.log('[DIAG]', c, '→ hasFab:', i.hasFabrica, 'hasDep:', i.hasDeposito, 'raw:', i._raw.join(','));
       });
       if (params.almacen === 'FABRICA') {
         pedidos = pedidos.filter(function (p) {
