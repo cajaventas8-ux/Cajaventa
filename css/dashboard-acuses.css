@@ -573,13 +573,15 @@
   }
   .rk-icon svg { width: 22px; height: 22px; }
   .rk-monto {
-    font-family: 'Outfit', sans-serif;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--primary);
-    opacity: 0.55;
+    font-family: 'Space Grotesk', 'Outfit', sans-serif;
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: -1px;
+    color: #064E3B;
+    opacity: 0.9;
     margin-left: auto;
     white-space: nowrap;
+    line-height: 1;
   }
   .rk-val {
     font-family: 'Outfit', sans-serif;
