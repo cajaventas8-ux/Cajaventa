@@ -471,8 +471,8 @@
   .dks-chip {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
+    gap: 12px;
+    padding: 12px 28px;
     border: none;
     background: transparent;
     cursor: pointer;
@@ -492,7 +492,7 @@
   .dks-chip.active .dks-monto { color: rgba(255,255,255,0.7); }
 
   .dks-icon {
-    width: 28px; height: 28px;
+    width: 34px; height: 34px;
     flex-shrink: 0;
     color: var(--gray-400);
     transition: color 0.2s ease, transform 0.2s ease;
@@ -506,8 +506,8 @@
     min-width: 0;
   }
   .dks-label {
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.4px;
     color: var(--gray-400);
@@ -515,7 +515,7 @@
   }
   .dks-val {
     font-family: 'Outfit', sans-serif;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 800;
     color: var(--gray-900);
     line-height: 1;
