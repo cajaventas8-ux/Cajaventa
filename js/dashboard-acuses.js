@@ -3720,6 +3720,17 @@
     try {
       const acuse = await AcuseAPI.get(`/api/acuses/${encodeURIComponent(id)}`);
 
+      // UTC → Paraguay (UTC-4) — resta directa, sin depender de Intl
+      const _toLocalDT = (v) => {
+        if (!v) return null;
+        const raw = String(v).trim().replace(' ', 'T');
+        const date = new Date(raw.includes('Z') || raw.includes('+') ? raw : raw + 'Z');
+        if (isNaN(date)) return formatDateTime(v);
+        const py = new Date(date.getTime() - 4 * 60 * 60 * 1000);
+        const pad = n => String(n).padStart(2, '0');
+        return `${pad(py.getUTCDate())}/${pad(py.getUTCMonth()+1)}/${py.getUTCFullYear()} ${pad(py.getUTCHours())}:${pad(py.getUTCMinutes())}`;
+      };
+
       if (clienteEl) clienteEl.textContent = acuse.Nom_Cliente || acuse.Cod_Cliente || '—';
       if (entregaEl) entregaEl.innerHTML = `<span class="detalle-entrega-label">Entrega</span>${escapeHtml(acuse.Nro_Acuse || acuse.entrega || String(id))}`;
       if (badgesEl) badgesEl.innerHTML = renderStatusBadge(acuse.Estado) + (acuse.Almacen ? ' ' + renderAlmacenBadge(acuse.Almacen, acuse.Almacen_Origen) : '');
@@ -3727,7 +3738,7 @@
       const detalles = acuse.detalles || [];
       const pedido = escapeHtml(acuse.pedido || '—');
       const solicitud = escapeHtml(acuse.solicitud || '—');
-      const fecha = escapeHtml(formatDateTime(acuse.Fecha_Emision));
+      const fecha = escapeHtml(_toLocalDT(acuse.Fecha_Emision) || '—');
       const vendedor = escapeHtml(acuse.Nombre_Repartidor || '—');
       const totalUnidades = detalles.reduce((s, d) => s + Number(d.Cantidad || 0), 0);
 
@@ -3763,24 +3774,7 @@
         }
         return null;
       };
-      // Convertir datetime UTC (MySQL NOW()) a hora Paraguay (America/Asuncion, incluye DST)
-      const _toLocalDT = (v) => {
-        if (!v) return null;
-        const raw = String(v).trim().replace(' ', 'T');
-        const date = new Date(raw.includes('Z') || raw.includes('+') ? raw : raw + 'Z');
-        if (isNaN(date)) return formatDateTime(v);
-        try {
-          const parts = new Intl.DateTimeFormat('es-PY', {
-            timeZone: 'America/Asuncion',
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit', hour12: false
-          }).formatToParts(date);
-          const get = (t) => (parts.find(p => p.type === t) || {}).value || '00';
-          return `${get('day')}/${get('month')}/${get('year')} ${get('hour')}:${get('minute')}`;
-        } catch (e) {
-          return formatDateTime(v);
-        }
-      };
+      // _toLocalDT ya está definido al inicio del bloque
 
       const rawContab = acuse.Fecha_Contabilizado || _histDateOf('En Transito');
       const rawFact   = acuse.Fecha_Facturado     || _histDateOf('Entregado');
