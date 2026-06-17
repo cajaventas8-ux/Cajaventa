@@ -3723,8 +3723,17 @@
       // UTC → Paraguay (UTC-4) — resta directa, sin depender de Intl
       const _toLocalDT = (v) => {
         if (!v) return null;
-        const raw = String(v).trim().replace(' ', 'T');
-        const date = new Date(raw.includes('Z') || raw.includes('+') ? raw : raw + 'Z');
+        const raw = String(v).trim();
+        const hasTime = raw.includes(':') || /T\d/.test(raw);
+        if (!hasTime) {
+          // Solo fecha (del Excel), mostrar sin conversión de timezone
+          const d = new Date(raw);
+          if (isNaN(d)) return formatDateTime(v);
+          const pad = n => String(n).padStart(2, '0');
+          return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
+        }
+        const normalized = raw.replace(' ', 'T');
+        const date = new Date(normalized.includes('Z') || normalized.includes('+') ? normalized : normalized + 'Z');
         if (isNaN(date)) return formatDateTime(v);
         const py = new Date(date.getTime() - 4 * 60 * 60 * 1000);
         const pad = n => String(n).padStart(2, '0');
