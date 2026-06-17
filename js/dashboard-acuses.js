@@ -951,6 +951,8 @@
       ? { scope: 'month', year: state.panelMonth.year, month: state.panelMonth.month }
       : { scope: 'all', anchor: TODAY_ISO };
     if (state.panelFilters.almacen) params.almacen = state.panelFilters.almacen;
+    if (state.panelFilters.fechaDesde) params.fechaDesde = state.panelFilters.fechaDesde;
+    if (state.panelFilters.fechaHasta) params.fechaHasta = state.panelFilters.fechaHasta;
     state.kpiSummary = await AcuseAPI.get('/api/dashboard/interactivo/summary', params);
     renderKpis();
   }

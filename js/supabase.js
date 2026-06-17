@@ -578,13 +578,19 @@
   /* ---- DASHBOARD / SUMMARY ---- */
   var Dashboard = {};
 
-  Dashboard.getSummary = async function (scope, year, month, almacen) {
+  Dashboard.getSummary = async function (scope, year, month, almacen, fechaDesde, fechaHasta) {
     var Y = year || new Date().getFullYear();
     var M = month || new Date().getMonth() + 1;
     try {
-      var mesFiltro = scope !== 'all' ? (Y + '-' + String(M).padStart(2, '0')) : null;
-      var inicio = mesFiltro ? mesFiltro + '-01' : null;
-      var fin = mesFiltro ? (mesFiltro + '-' + String(new Date(Y, M, 0).getDate()).padStart(2, '0')) : null;
+      var inicio, fin;
+      if (fechaDesde || fechaHasta) {
+        inicio = fechaDesde || null;
+        fin = fechaHasta || null;
+      } else {
+        var mesFiltro = scope !== 'all' ? (Y + '-' + String(M).padStart(2, '0')) : null;
+        inicio = mesFiltro ? mesFiltro + '-01' : null;
+        fin = mesFiltro ? (mesFiltro + '-' + String(new Date(Y, M, 0).getDate()).padStart(2, '0')) : null;
+      }
 
       // Always fetch ALL data — dates may be stored in non-ISO formats (DD.MM.YYYY, etc.)
       // so we normalize client-side via formatearFecha before any filtering.
@@ -997,7 +1003,7 @@
           yearP  = d.getFullYear();
           monthP = d.getMonth() + 1;
         }
-        return await Dashboard.getSummary(scopeP, yearP, monthP, params && params.almacen);
+        return await Dashboard.getSummary(scopeP, yearP, monthP, params && params.almacen, params && params.fechaDesde, params && params.fechaHasta);
       }
       // Dashboard resumen
       if (path === '/api/dashboard/resumen') {
