@@ -330,7 +330,6 @@
     });
 
     if (!isPreparsed) {
-      // Eliminar entregas marcadas con Cond.exp. 08/09 (pueden haberse creado parcialmente)
       Object.keys(_condExpExcluidos).forEach(function (k) { delete grupos[k]; });
       Object.keys(grupos).forEach(function (k) {
         var g = grupos[k];
@@ -339,6 +338,22 @@
         delete g._totalItems; delete g._aldfItems;
       });
     }
+
+    // Mixto por cliente: si tiene FABRICA + DEPOSITO, mover FABRICA → DEPOSITO
+    var _clientAlm = {};
+    Object.values(grupos).forEach(function (g) {
+      var c = g.cliente || '';
+      if (!_clientAlm[c]) _clientAlm[c] = { hasFab: false, hasDep: false };
+      if (g.almacen === 'FABRICA') _clientAlm[c].hasFab = true;
+      else if (g.almacen === 'DEPOSITO') _clientAlm[c].hasDep = true;
+    });
+    Object.values(grupos).forEach(function (g) {
+      var i = _clientAlm[g.cliente || ''];
+      if (i && i.hasFab && i.hasDep && g.almacen === 'FABRICA') {
+        g.almacen = 'DEPOSITO';
+        g.almacenOrigen = 'FABRICA';
+      }
+    });
 
     var entregas = Object.keys(grupos);
     if (!entregas.length) return { importados: 0, actualizados: 0, total: 0 };
@@ -358,7 +373,8 @@
       var estado = existing ? existing.estado : 'pendiente';
       // Si fue traspasado manualmente (almacen_origen existe), respetar su almacen actual
       var almacen = (existing && existing.almacen_origen) ? existing.almacen : (g.almacen || '');
-      return { entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud, cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null, usuario_empaque: g.usuarioEmpaque, cond_exp: g.condExp || null, almacen: almacen, estado: estado };
+      var almacenOrigen = (existing && existing.almacen_origen) ? existing.almacen_origen : (g.almacenOrigen || null);
+      return { entrega: g.entrega, pedido: g.pedido, solicitud: g.solicitud, cliente: g.cliente, vendedor: g.vendedor, fecha: g.fecha || null, usuario_empaque: g.usuarioEmpaque, cond_exp: g.condExp || null, almacen: almacen, almacen_origen: almacenOrigen, estado: estado };
     });
     try { await upsert('pedidos', pedidosPayload, 'entrega'); } catch (e) { logErr('importar.pedidos.batch', e); throw e; }
 

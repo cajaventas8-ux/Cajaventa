@@ -145,6 +145,22 @@
       delete g._aldfItems;
     });
 
+    // Mixto por cliente: si un cliente tiene FABRICA + DEPOSITO, mover FABRICA → DEPOSITO
+    var clientAlmMap = {};
+    Object.values(entregasMap).forEach(function (g) {
+      var c = g.cliente || '';
+      if (!clientAlmMap[c]) clientAlmMap[c] = { hasFab: false, hasDep: false };
+      if (g.almacen === 'FABRICA') clientAlmMap[c].hasFab = true;
+      else if (g.almacen === 'DEPOSITO') clientAlmMap[c].hasDep = true;
+    });
+    Object.values(entregasMap).forEach(function (g) {
+      var i = clientAlmMap[g.cliente || ''];
+      if (i && i.hasFab && i.hasDep && g.almacen === 'FABRICA') {
+        g.almacen = 'DEPOSITO';
+        g.almacenOrigen = 'FABRICA';
+      }
+    });
+
     return Object.values(entregasMap);
   }
 
