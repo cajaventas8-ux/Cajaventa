@@ -579,11 +579,25 @@
         data = data.filter(function (p) { return p.fecha >= inicio && p.fecha <= fin; });
       }
 
-      // Filtro de almacén para KPIs — por entrega individual
+      // Filtro de almacén para KPIs — mixto va a Depósito, solo 100% FABRICA a Fábrica
+      var summaryClientMap = {};
+      data.forEach(function (p) {
+        var c = p.cliente || '';
+        var alm = (p.almacen || '').toUpperCase();
+        if (!summaryClientMap[c]) summaryClientMap[c] = { hasFabrica: false, hasDeposito: false };
+        if (alm === 'FABRICA') summaryClientMap[c].hasFabrica = true;
+        else if (alm === 'DEPOSITO') summaryClientMap[c].hasDeposito = true;
+      });
       var kpiData = data;
-      if (almacen === 'DEPOSITO' || almacen === 'FABRICA') {
+      if (almacen === 'FABRICA') {
         kpiData = data.filter(function (p) {
-          return (p.almacen || '').toUpperCase() === almacen;
+          var i = summaryClientMap[p.cliente || ''];
+          return i && i.hasFabrica && !i.hasDeposito;
+        });
+      } else if (almacen === 'DEPOSITO') {
+        kpiData = data.filter(function (p) {
+          var i = summaryClientMap[p.cliente || ''];
+          return i && i.hasDeposito;
         });
       }
 
@@ -860,9 +874,26 @@
     }
 
     if (params.almacen === 'FABRICA' || params.almacen === 'DEPOSITO') {
-      pedidos = pedidos.filter(function (p) {
-        return (p.almacen || '').toUpperCase() === params.almacen;
+      // Mixto → Depósito. Solo 100% FABRICA → Fábrica.
+      var panelClientMap = {};
+      pedidos.forEach(function (p) {
+        var c = p.cliente || '';
+        var alm = (p.almacen || '').toUpperCase();
+        if (!panelClientMap[c]) panelClientMap[c] = { hasFabrica: false, hasDeposito: false };
+        if (alm === 'FABRICA') panelClientMap[c].hasFabrica = true;
+        else if (alm === 'DEPOSITO') panelClientMap[c].hasDeposito = true;
       });
+      if (params.almacen === 'FABRICA') {
+        pedidos = pedidos.filter(function (p) {
+          var i = panelClientMap[p.cliente || ''];
+          return i && i.hasFabrica && !i.hasDeposito;
+        });
+      } else {
+        pedidos = pedidos.filter(function (p) {
+          var i = panelClientMap[p.cliente || ''];
+          return i && i.hasDeposito;
+        });
+      }
     }
 
     if (params.condExp) {
