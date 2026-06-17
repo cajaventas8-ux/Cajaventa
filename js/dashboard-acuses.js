@@ -1136,6 +1136,12 @@
     animateKpiMonto('monto-en_transito', kpis.monto_en_transito);
     animateKpiMonto('monto-anulados',    kpis.monto_anulados);
     animateKpiMonto('monto-acuses',      kpis.monto_total);
+
+    const alm = state.panelFilters.almacen;
+    const totalLabel = alm === 'DEPOSITO' ? 'Total Depósito'
+                     : alm === 'FABRICA'  ? 'Total Fábrica'
+                     : 'Total de Pedidos Caja';
+    setText('label-acuses', totalLabel);
   }
 
   function setKpiMonto(id, value) {
