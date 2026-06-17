@@ -4441,12 +4441,12 @@
   }
 
   function registrarAccion(accion, usuario, cliente, entrega, detalle) {
-    try {
-      const sb = window.Supabase;
-      if (sb && sb.registrarAuditoria) {
-        sb.registrarAuditoria(accion, usuario || 'Sistema', cliente || null, entrega ? String(entrega) : null, detalle || '').catch(() => {});
-      }
-    } catch (_) {}
+    const sb = window.Supabase;
+    if (sb && sb.registrarAuditoria) {
+      sb.registrarAuditoria(accion, usuario || 'Sistema', cliente || null, entrega ? String(entrega) : null, detalle || '')
+        .then(() => console.log('[Audit] OK:', accion, entrega))
+        .catch(e => console.error('[Audit] FALLO:', accion, e));
+    }
   }
 
   function resolveItemData(id) {

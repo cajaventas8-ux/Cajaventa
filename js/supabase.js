@@ -779,8 +779,9 @@
 
   /* ---- AUDITORÍA ---- */
   async function registrarAuditoria(accion, usuario, cliente, entrega, detalle) {
-    try { await post('auditoria', { accion: accion, usuario: usuario || 'sistema', cliente: cliente || null, entrega: entrega || null, detalle: detalle || '' }); }
-    catch (e) { logErr('auditoria', e); }
+    var payload = { accion: accion, usuario: usuario || 'sistema', cliente: cliente || null, entrega: entrega || null, detalle: detalle || '' };
+    console.log('[Supabase] auditoria INSERT:', payload);
+    await post('auditoria', payload);
   }
 
   async function getAuditoria(params) {
