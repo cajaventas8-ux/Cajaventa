@@ -796,8 +796,13 @@
     if (params.fechaHasta) parts.push('created_at=lte.' + encodeURIComponent(params.fechaHasta + 'T23:59:59'));
     try {
       var url = REST + '/auditoria?' + parts.join('&');
+      console.log('[getAuditoria] URL:', url);
       var r = await fetch(url, { headers: headers({ 'Prefer': 'count=exact' }) });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (!r.ok) {
+        var errBody = ''; try { errBody = await r.text(); } catch(_){}
+        console.error('[getAuditoria] HTTP ' + r.status + ':', errBody);
+        throw new Error('HTTP ' + r.status + ' ' + errBody);
+      }
       var data = await r.json();
       var total = data.length;
       var range = r.headers.get('content-range');
