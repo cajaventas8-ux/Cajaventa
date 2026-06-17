@@ -298,9 +298,9 @@
   #viewDashboard > .header .panel-header-right {
     justify-self: end;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 5px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
   .last-import-chip {
     display: inline-flex;
@@ -308,11 +308,13 @@
     gap: 5px;
     font: 500 11px 'DM Sans', sans-serif;
     color: #94a3b8;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 3px 9px 3px 7px;
-    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 5px 12px 5px 10px;
+    border-radius: 12px;
     white-space: nowrap;
+    height: 38px;
+    box-shadow: 0 1px 4px rgba(15,36,64,0.06);
   }
   .header h1,
   .cal-top-bar h1 {
