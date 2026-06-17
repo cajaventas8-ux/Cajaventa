@@ -579,26 +579,26 @@
         data = data.filter(function (p) { return p.fecha >= inicio && p.fecha <= fin; });
       }
 
-      // Filtro de almacén para KPIs — mixto va a Depósito, solo 100% FABRICA a Fábrica
-      var summaryClientMap = {};
+      // Mapa cliente por estado — cada KPI solo mira entregas de su propio estado
+      var clientMapByEstado = {};
       data.forEach(function (p) {
+        var est = p.estado || '';
         var c = p.cliente || '';
         var alm = (p.almacen || '').toUpperCase();
-        if (!summaryClientMap[c]) summaryClientMap[c] = { hasFabrica: false, hasDeposito: false };
-        if (alm === 'FABRICA') summaryClientMap[c].hasFabrica = true;
-        else if (alm === 'DEPOSITO') summaryClientMap[c].hasDeposito = true;
+        if (!clientMapByEstado[est]) clientMapByEstado[est] = {};
+        if (!clientMapByEstado[est][c]) clientMapByEstado[est][c] = { hasFabrica: false, hasDeposito: false };
+        if (alm === 'FABRICA') clientMapByEstado[est][c].hasFabrica = true;
+        else if (alm === 'DEPOSITO') clientMapByEstado[est][c].hasDeposito = true;
       });
+      function matchesAlmacen(p, alm) {
+        var m = (clientMapByEstado[p.estado] || {})[p.cliente || ''];
+        if (alm === 'FABRICA') return m && m.hasFabrica && !m.hasDeposito;
+        if (alm === 'DEPOSITO') return m && m.hasDeposito;
+        return true;
+      }
       var kpiData = data;
-      if (almacen === 'FABRICA') {
-        kpiData = data.filter(function (p) {
-          var i = summaryClientMap[p.cliente || ''];
-          return i && i.hasFabrica && !i.hasDeposito;
-        });
-      } else if (almacen === 'DEPOSITO') {
-        kpiData = data.filter(function (p) {
-          var i = summaryClientMap[p.cliente || ''];
-          return i && i.hasDeposito;
-        });
+      if (almacen === 'FABRICA' || almacen === 'DEPOSITO') {
+        kpiData = data.filter(function (p) { return matchesAlmacen(p, almacen); });
       }
 
       // ── KPIs ──
@@ -618,12 +618,11 @@
         else if (p.estado === 'facturado')     { kpis.en_transito++; kpis.monto_en_transito += m; }
         else if (p.estado === 'anulado')       { kpis.anulados++;    kpis.monto_anulados    += m; }
       });
-      // Conteos FABRICA/DEPOSITO usando la misma lógica de cliente
+      // Conteos FABRICA/DEPOSITO — misma lógica por estado
       data.forEach(function (p) {
         var m = Number(p.monto) || 0;
-        var i = summaryClientMap[p.cliente || ''];
-        if (i && i.hasFabrica && !i.hasDeposito) { kpis.fabrica++;  kpis.monto_fabrica  += m; }
-        else if (i && i.hasDeposito)             { kpis.deposito++; kpis.monto_deposito += m; }
+        if (matchesAlmacen(p, 'FABRICA'))       { kpis.fabrica++;  kpis.monto_fabrica  += m; }
+        else if (matchesAlmacen(p, 'DEPOSITO')) { kpis.deposito++; kpis.monto_deposito += m; }
       });
       kpis.acuses = kpis.pendientes + kpis.entregados + kpis.en_transito;
 
