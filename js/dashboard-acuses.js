@@ -18,6 +18,10 @@
   const HISTORY_BATCH_SIZE = 200;
   const HISTORY_MAX_ROWS = 2000;
   const STORAGE_USER_KEY = 'acuse.currentUser';
+  function isAdmin() {
+    var ac = window.AlasAuthClient;
+    return ac && typeof ac.getRole === 'function' && ac.getRole() === 'admin';
+  }
   const MESES_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const DIAS_ES = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
   const PANEL_CONFIG = {
@@ -2357,6 +2361,7 @@
   }
 
   window.cvBulkEliminar = async function () {
+    if (!isAdmin()) { notify('Solo administradores pueden eliminar pedidos.', 'warning'); return; }
     if (!_selectedEntregas.size) return;
     const ids = [..._selectedEntregas];
     const confirmed = await showDeleteConfirm(ids.length);
@@ -2558,16 +2563,18 @@
     } else if (delivered) {
       accionesHtml = `<div class="tbl-actions tbl-actions--single"><span style="font-size:12px;color:#9ca3af;font-weight:600;">Facturado</span></div>`;
     } else if (pending) {
+      const delBtn = isAdmin() ? `<button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>` : '';
       accionesHtml = `<div class="tbl-actions">
           <button class="tbl-btn act-contabilizar" onclick="event.stopPropagation();markAcuseContabilizado(${acuseId}, this)"><span class="tip">Contabilizado</span>${contabilizarIcon()}</button>
           ${traspasarBtnHtml}
-          <button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>
+          ${delBtn}
         </div>`;
     } else {
+      const delBtn = isAdmin() ? `<button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>` : '';
       accionesHtml = `<div class="tbl-actions">
           <button class="tbl-btn act-facturar" onclick="event.stopPropagation();markAcuseFacturado(${acuseId}, this)"><span class="tip">Facturado</span>${facturarIcon()}</button>
           ${traspasarBtnHtml}
-          <button class="tbl-btn act-delete" onclick="event.stopPropagation();openDeleteAcuse(${acuseId}, this)"><span class="tip">Anular</span>${deleteIcon()}</button>
+          ${delBtn}
         </div>`;
     }
 
@@ -2921,6 +2928,7 @@
   }
 
   async function openDeleteAcuse(id, button) {
+    if (!isAdmin()) { notify('Solo administradores pueden eliminar pedidos.', 'warning'); return; }
     setDashboardSelectedAcuse(id, { clearHighlight: false });
     const rowDel = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
     if (rowDel) { rowDel.classList.add('row-sweep-red'); _createSweepOverlay(rowDel, 'red'); }
