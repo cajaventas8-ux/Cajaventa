@@ -3796,7 +3796,7 @@
         if (isAnulado) return '';
         if (elTotal) {
           const breakdown = (elCreCont && elContFact)
-            ? `<div class="tl-el__breakdown"><span>Creado → Cont. <b>${elCreCont}</b></span><span class="tl-el__dot">·</span><span>Cont. → Fact. <b>${elContFact}</b></span></div>`
+            ? `<div class="tl-el__breakdown"><span>Creado → Contabilizado <b>${elCreCont}</b></span><span>Contabilizado → Facturado <b>${elContFact}</b></span></div>`
             : '';
           return `<div class="tl-elapsed">
             ${svgClock}
