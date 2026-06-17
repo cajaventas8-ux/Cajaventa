@@ -816,12 +816,21 @@
     return val;
   }
 
+  async function getLastImportDate() {
+    try {
+      var rows = await get('pedidos', 'select=fecha_importacion&order=fecha_importacion.desc&limit=1');
+      if (rows && rows.length && rows[0].fecha_importacion) return rows[0].fecha_importacion;
+      return null;
+    } catch (_) { return null; }
+  }
+
   /* ---- EXPORT ---- */
   window.Supabase = {
     Pedidos: Pedidos, Dashboard: Dashboard, Calendario: Calendario,
     Historial: Historial, Repartidores: Repartidores, Catalogos: Catalogos,
     registrarAuditoria: registrarAuditoria,
-    getAuditoria: getAuditoria
+    getAuditoria: getAuditoria,
+    getLastImportDate: getLastImportDate
   };
 
   async function getRepartidoresApi() {

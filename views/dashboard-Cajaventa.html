@@ -699,11 +699,17 @@
 </div>
 
 <script>
-  window.syncLastImportChip = function () {
+  window.syncLastImportChip = async function () {
     var chip = document.getElementById('lastImportChip');
     var label = document.getElementById('lastImportLabel');
     if (!chip || !label) return;
-    var iso = localStorage.getItem('cajaventa.lastImport');
+    var iso = null;
+    try {
+      var sb = window.Supabase;
+      if (sb && sb.getLastImportDate) {
+        iso = await sb.getLastImportDate();
+      }
+    } catch (_) {}
     if (!iso) { chip.style.display = 'none'; return; }
     var diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
     var text;
