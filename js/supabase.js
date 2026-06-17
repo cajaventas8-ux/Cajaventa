@@ -317,7 +317,7 @@
             solicitud: String(r['Solic.'] || r.Solic || '').trim(),
             cliente: String(r.Nombre || '').trim(),
             vendedor: String(r['Nombre Vend.'] || r.Nombre_Vend || '').trim(),
-            fecha: (formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')) + ' ' + String(r['Hora Creac'] || r.Hora_Creac || '').trim()).trim(),
+            fecha: (formatearFecha(String(r['Fecha Creac'] || r.Fecha_Creac || '')) + ' ' + excelTimeToHHMM(r['Hora Creac'] || r.Hora_Creac || '')).trim(),
             usuarioEmpaque: String(r['Usuario Empaque'] || r.Usuario_Empaque || '').trim(),
             condExp: condExp,
             almacen: '', _totalItems: 0, _aldfItems: 0, items: []
@@ -812,6 +812,17 @@
   }
 
   /* ---- HELPERS ---- */
+  function excelTimeToHHMM(v) {
+    var n = Number(v);
+    if (!isNaN(n) && n >= 0 && n < 1) {
+      var totalMin = Math.round(n * 1440);
+      var h = Math.floor(totalMin / 60);
+      var m = totalMin % 60;
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
+    return String(v || '').trim();
+  }
+
   function formatearFecha(val) {
     if (!val) return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;

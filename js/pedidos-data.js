@@ -44,6 +44,27 @@
     }
   }
 
+  function excelDateToISO(v) {
+    var n = Number(v);
+    if (!isNaN(n) && n > 30000 && n < 70000) {
+      var d = new Date((n - 25569) * 86400000);
+      var pad = function (x) { return String(x).padStart(2, '0'); };
+      return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
+    }
+    return String(v || '').trim();
+  }
+
+  function excelTimeToHHMM(v) {
+    var n = Number(v);
+    if (!isNaN(n) && n >= 0 && n < 1) {
+      var totalMin = Math.round(n * 1440);
+      var h = Math.floor(totalMin / 60);
+      var m = totalMin % 60;
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
+    return String(v || '').trim();
+  }
+
   function parseExcelData(workbook) {
     var sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) return [];
@@ -84,7 +105,7 @@
           solicitud: String(row['Solic.'] || '').trim(),
           cliente: String(row['Nombre'] || '').trim(),
           vendedor: String(row['Nombre Vend.'] || '').trim(),
-          fecha: (String(row['Fecha Creac'] || '').trim() + ' ' + String(row['Hora Creac'] || '').trim()).trim(),
+          fecha: (excelDateToISO(row['Fecha Creac']) + ' ' + excelTimeToHHMM(row['Hora Creac'])).trim(),
           usuarioEmpaque: String(row['Usuario Empaque'] || '').trim(),
           condExp: condExpRaw,
           almacen: '',
