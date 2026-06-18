@@ -4134,8 +4134,16 @@
     const canvas = document.querySelector('.canvas');
     if (canvas) canvas.classList.toggle('no-scroll', view === 'dashboard');
 
-    const notifGlobal = document.getElementById('cvNotifGlobal');
-    if (notifGlobal) notifGlobal.style.display = view === 'cargarDatos' ? 'none' : '';
+    // Mover campana al slot de la vista activa
+    const notifWrap = document.getElementById('cvNotifWrap');
+    if (notifWrap) {
+      const viewMap = { resumen: 'viewResumen', dashboard: 'viewDashboard', calendario: 'viewCalendario', historial: 'viewHistorial' };
+      const targetId = viewMap[view];
+      if (targetId) {
+        const slot = document.querySelector('#' + targetId + ' .cv-notif-inline');
+        if (slot) slot.appendChild(notifWrap);
+      }
+    }
 
     if (view === 'resumen') {
       const node = document.getElementById('viewResumen');
@@ -5468,20 +5476,29 @@
 
   const _cvNotifSound = (function () {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      let ctx;
       return function () {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.08);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.15, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.3);
+        if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const t = ctx.currentTime;
+        // Ding 1
+        const o1 = ctx.createOscillator();
+        const g1 = ctx.createGain();
+        o1.connect(g1); g1.connect(ctx.destination);
+        o1.type = 'sine';
+        o1.frequency.value = 523.25;
+        g1.gain.setValueAtTime(0.12, t);
+        g1.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        o1.start(t); o1.stop(t + 0.4);
+        // Ding 2 (más alto, con delay)
+        const o2 = ctx.createOscillator();
+        const g2 = ctx.createGain();
+        o2.connect(g2); g2.connect(ctx.destination);
+        o2.type = 'sine';
+        o2.frequency.value = 659.25;
+        g2.gain.setValueAtTime(0, t + 0.15);
+        g2.gain.linearRampToValueAtTime(0.1, t + 0.18);
+        g2.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+        o2.start(t + 0.15); o2.stop(t + 0.55);
       };
     } catch (_) { return function () {}; }
   })();
@@ -5591,6 +5608,20 @@
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && _cvNotifPoll) _cvCheckNotif();
   });
+
+  // Crear campana una sola vez
+  (function () {
+    const wrap = document.createElement('div');
+    wrap.className = 'cv-notif-wrap';
+    wrap.id = 'cvNotifWrap';
+    wrap.innerHTML = '<button class="cv-notif-btn" id="btnNotif" onclick="toggleCvNotifDropdown()" type="button" title="Notificaciones">' +
+      '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' +
+      '<span class="cv-notif-badge" id="cvNotifBadge" style="display:none">0</span></button>' +
+      '<div class="cv-notif-dropdown" id="cvNotifDropdown"><div class="cv-notif-head">Actividad Reciente</div>' +
+      '<div class="cv-notif-body" id="cvNotifBody"><div class="cv-notif-empty">Sin actividad reciente</div></div></div>';
+    const slot = document.querySelector('#viewDashboard .cv-notif-inline');
+    if (slot) slot.appendChild(wrap);
+  })();
 
   setTimeout(_cvStartNotifPoll, 2000);
 
