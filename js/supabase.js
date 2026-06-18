@@ -502,7 +502,8 @@
       }
       await update('pedidos', 'entrega', entrega, updateFields);
       await post('pedidos_historial', { entrega: entrega, estado: nuevoEstado, usuario: usuario || 'sistema', observacion: observacion || '' });
-      await registrarAuditoria('cambio_estado', usuario, null, entrega, 'Estado cambiado a ' + nuevoEstado);
+      var labelEstado = nuevoEstado === 'facturado' ? 'Contabilizado' : nuevoEstado === 'contabilizado' ? 'Facturado' : nuevoEstado === 'anulado' ? 'Anulado' : 'Pendiente';
+      await registrarAuditoria('cambio_estado', usuario, null, entrega, 'Pasado a ' + labelEstado);
       return true;
     } catch (e) { logErr('cambiarEstado', e); throw e; }
   };

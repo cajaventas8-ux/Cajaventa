@@ -3217,8 +3217,6 @@
       if (res.status === 'rejected') throw res.reason;
 
       if (row) { row.classList.remove('row-sweep-blue'); row.classList.add('row-exit-blue'); }
-      const itemData = resolveItemData(id);
-      registrarAccion('contabilizar', usuario, itemData.Nom_Cliente || itemData.Cod_Cliente || null, itemData.Nro_Acuse || String(id), 'Pasado a Contabilizado');
       loadKpiSummary().catch(() => {});
       await new Promise(r => setTimeout(r, 300));
 
@@ -3266,8 +3264,6 @@
       if (res.status === 'rejected') throw res.reason;
 
       if (row) { row.classList.remove('row-sweep-green'); row.classList.add('row-exit-green'); }
-      const itemData = resolveItemData(id);
-      registrarAccion('facturar', usuario, itemData.Nom_Cliente || itemData.Cod_Cliente || null, itemData.Nro_Acuse || String(id), 'Pasado a Facturado');
       loadKpiSummary().catch(() => {});
       await new Promise(r => setTimeout(r, 300));
 
