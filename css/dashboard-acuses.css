@@ -602,6 +602,106 @@
     .resumen-kpi-row { grid-template-columns: 1fr; }
   }
 
+  /* ═══════════════════ NOTIFICACIONES ═══════════════════ */
+  .sidebar-notif-wrap { position: relative; }
+  .cv-notif-badge {
+    position: absolute;
+    top: 2px; right: 2px;
+    min-width: 18px; height: 18px;
+    border-radius: 100px;
+    background: #ef4444;
+    color: #fff;
+    font: 800 10px/1 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    box-shadow: 0 2px 6px rgba(239,68,68,0.4);
+    pointer-events: none;
+    animation: cvBadgePop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes cvBadgePop {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+  }
+  .cv-notif-dropdown {
+    display: none;
+    position: fixed;
+    left: 68px;
+    top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+    width: 360px;
+    max-height: 420px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08);
+    z-index: 9999;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .cv-notif-dropdown.is-open {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  .cv-notif-head {
+    padding: 14px 18px;
+    font: 700 13px/1 'DM Sans', sans-serif;
+    color: var(--primary);
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .cv-notif-body {
+    max-height: 360px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .cv-notif-body::-webkit-scrollbar { width: 4px; }
+  .cv-notif-body::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 10px; }
+  .cv-notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--gray-100);
+    font: 400 13px/1.4 'DM Sans', sans-serif;
+    color: var(--gray-500);
+    transition: background 0.15s ease;
+  }
+  .cv-notif-item:last-child { border-bottom: none; }
+  .cv-notif-item:hover { background: var(--gray-50); }
+  .cv-notif-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .cv-notif-item-body { flex: 1; min-width: 0; }
+  .cv-notif-item-body strong { color: var(--primary); font-weight: 600; }
+  .cv-notif-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .cv-notif-tag {
+    font: 600 10px/1 'DM Sans', sans-serif;
+    padding: 2px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .cv-notif-time {
+    font-size: 11px;
+    color: var(--gray-400);
+    white-space: nowrap;
+  }
+  .cv-notif-empty {
+    padding: 28px 18px;
+    text-align: center;
+    color: var(--gray-400);
+    font-size: 13px;
+  }
+
   /* ═══════════════════ ALMACEN SEGMENT CONTROL ═══════════════════ */
   @keyframes asegPop {
     0%   { transform: scale(0.92); }

@@ -5458,4 +5458,137 @@
     return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>';
   }
 
+  // ═══════════════════ NOTIFICACIONES ═══════════════════
+  let _cvNotifOpen = false;
+  let _cvNotifPoll = null;
+  let _cvNotifLastCheck = localStorage.getItem('cv.notifLastCheck') || '';
+
+  const _cvNotifSound = (function () {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      return function () {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+      };
+    } catch (_) { return function () {}; }
+  })();
+
+  function _cvNotifTimeAgo(iso) {
+    if (!iso) return '';
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (diff < 60) return 'hace un momento';
+    if (diff < 3600) return 'hace ' + Math.floor(diff / 60) + ' min';
+    if (diff < 86400) return 'hace ' + Math.floor(diff / 3600) + ' h';
+    const d = new Date(iso);
+    return d.getDate() + '/' + (d.getMonth() + 1) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  const _cvNotifColors = {
+    cambio_estado: { dot: '#3b82f6', bg: 'rgba(59,130,246,0.1)', color: '#2563eb', label: 'Estado' },
+    contabilizar:  { dot: '#3b82f6', bg: 'rgba(59,130,246,0.1)', color: '#2563eb', label: 'Contabilizado' },
+    facturar:      { dot: '#10b981', bg: 'rgba(16,185,129,0.1)', color: '#059669', label: 'Facturado' },
+    anulacion:     { dot: '#ef4444', bg: 'rgba(239,68,68,0.1)',  color: '#dc2626', label: 'Anulado' },
+    bulk_estado:   { dot: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', color: '#7c3aed', label: 'Bulk' },
+    bulk_anular:   { dot: '#ef4444', bg: 'rgba(239,68,68,0.1)',  color: '#dc2626', label: 'Eliminado' },
+    importacion_excel: { dot: '#f59e0b', bg: 'rgba(245,158,11,0.1)', color: '#d97706', label: 'Importación' },
+    traspaso_almacen:  { dot: '#f97316', bg: 'rgba(249,115,22,0.1)', color: '#ea580c', label: 'Traspaso' },
+    impresion:     { dot: '#6b7280', bg: 'rgba(107,114,128,0.1)', color: '#4b5563', label: 'Impresión' },
+    creacion:      { dot: '#06b6d4', bg: 'rgba(6,182,212,0.1)',  color: '#0891b2', label: 'Creado' }
+  };
+
+  async function _cvCheckNotif() {
+    if (document.hidden) return;
+    const sb = window.Supabase;
+    if (!sb || !sb.getAuditoria) return;
+    if (!_cvNotifLastCheck) {
+      _cvNotifLastCheck = new Date().toISOString();
+      localStorage.setItem('cv.notifLastCheck', _cvNotifLastCheck);
+      return;
+    }
+    try {
+      const res = await sb.getAuditoria({ fechaDesde: _cvNotifLastCheck.slice(0, 10), limit: 50 });
+      const items = (res.items || []).filter(r => r.created_at > _cvNotifLastCheck);
+      const badge = document.getElementById('cvNotifBadge');
+      if (badge) {
+        badge.textContent = String(items.length);
+        badge.style.display = items.length > 0 ? 'flex' : 'none';
+      }
+      if (items.length > 0) _cvNotifSound();
+    } catch (_) {}
+  }
+
+  function _cvStartNotifPoll() {
+    _cvCheckNotif();
+    if (_cvNotifPoll) return;
+    _cvNotifPoll = setInterval(function () { if (!document.hidden) _cvCheckNotif(); }, 30000);
+  }
+
+  window.toggleCvNotifDropdown = function () {
+    const dd = document.getElementById('cvNotifDropdown');
+    if (!dd) return;
+    if (_cvNotifOpen) {
+      dd.classList.remove('is-open');
+      setTimeout(function () { dd.style.display = 'none'; }, 200);
+      _cvNotifOpen = false;
+      return;
+    }
+    dd.style.display = 'block';
+    setTimeout(function () { dd.classList.add('is-open'); }, 10);
+    _cvNotifOpen = true;
+
+    const badge = document.getElementById('cvNotifBadge');
+    if (badge) { badge.style.display = 'none'; badge.textContent = '0'; }
+    _cvNotifLastCheck = new Date().toISOString();
+    localStorage.setItem('cv.notifLastCheck', _cvNotifLastCheck);
+
+    const body = document.getElementById('cvNotifBody');
+    if (!body) return;
+    body.innerHTML = '<div class="cv-notif-empty">Cargando...</div>';
+
+    const sb = window.Supabase;
+    if (!sb || !sb.getAuditoria) { body.innerHTML = '<div class="cv-notif-empty">Sin conexión</div>'; return; }
+    sb.getAuditoria({ limit: 15 }).then(function (res) {
+      const items = res.items || [];
+      if (!items.length) { body.innerHTML = '<div class="cv-notif-empty">Sin actividad reciente</div>'; return; }
+      body.innerHTML = items.map(function (r) {
+        const c = _cvNotifColors[r.accion] || _cvNotifColors.cambio_estado;
+        const user = escapeHtml(r.usuario || 'Sistema');
+        const detail = escapeHtml(r.detalle || r.accion || '');
+        const entrega = r.entrega ? ' · <strong>' + escapeHtml(r.entrega) + '</strong>' : '';
+        return '<div class="cv-notif-item">' +
+          '<span class="cv-notif-dot" style="background:' + c.dot + '"></span>' +
+          '<div class="cv-notif-item-body">' +
+            '<strong>' + user + '</strong> ' + detail + entrega +
+            '<div class="cv-notif-meta">' +
+              '<span class="cv-notif-tag" style="background:' + c.bg + ';color:' + c.color + '">' + c.label + '</span>' +
+              '<span class="cv-notif-time">' + _cvNotifTimeAgo(r.created_at) + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }).catch(function () { body.innerHTML = '<div class="cv-notif-empty">Error al cargar</div>'; });
+  };
+
+  document.addEventListener('click', function (e) {
+    if (_cvNotifOpen && !e.target.closest('.cv-notif-dropdown') && !e.target.closest('#btnNotif')) {
+      toggleCvNotifDropdown();
+    }
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && _cvNotifPoll) _cvCheckNotif();
+  });
+
+  setTimeout(_cvStartNotifPoll, 2000);
+
 })();
