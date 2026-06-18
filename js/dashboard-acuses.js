@@ -5522,31 +5522,67 @@
     creacion:      { dot: '#06b6d4', bg: 'rgba(6,182,212,0.1)',  color: '#0891b2', label: 'Creado' }
   };
 
-  async function _cvCheckNotif() {
-    if (document.hidden) return;
-    const sb = window.Supabase;
-    if (!sb || !sb.getAuditoria) return;
-    if (!_cvNotifLastCheck) {
-      _cvNotifLastCheck = new Date().toISOString();
-      localStorage.setItem('cv.notifLastCheck', _cvNotifLastCheck);
+  let _cvNotifCount = 0;
+
+  function _cvBumpBadge() {
+    _cvNotifCount++;
+    const badge = document.getElementById('cvNotifBadge');
+    if (badge) {
+      badge.textContent = String(_cvNotifCount);
+      badge.style.display = 'flex';
+    }
+    _cvNotifSound();
+  }
+
+  function _cvStartRealtime() {
+    if (!window.supabase || !window.supabase.createClient) {
+      _cvStartPollFallback();
       return;
     }
     try {
-      const res = await sb.getAuditoria({ fechaDesde: _cvNotifLastCheck.slice(0, 10), limit: 50 });
-      const items = (res.items || []).filter(r => r.created_at > _cvNotifLastCheck);
-      const badge = document.getElementById('cvNotifBadge');
-      if (badge) {
-        badge.textContent = String(items.length);
-        badge.style.display = items.length > 0 ? 'flex' : 'none';
-      }
-      if (items.length > 0) _cvNotifSound();
-    } catch (_) {}
+      const client = window.supabase.createClient(
+        'https://bihtbhulcqvlwadatxbk.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpaHRiaHVsY3F2bHdhZGF0eGJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjA5NTUsImV4cCI6MjA5NTM5Njk1NX0.lsoHg2HPEOv_Ie4FPdDNYGn3zoSu5SWTcejvz6KPAdM',
+        { auth: { persistSession: false } }
+      );
+      client.channel('cv-auditoria')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'auditoria' }, function () {
+          _cvBumpBadge();
+        })
+        .subscribe(function (status) {
+          if (status === 'SUBSCRIBED') console.log('[Notif] Realtime conectado');
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') _cvStartPollFallback();
+        });
+    } catch (_) {
+      _cvStartPollFallback();
+    }
   }
 
-  function _cvStartNotifPoll() {
-    _cvCheckNotif();
+  function _cvStartPollFallback() {
     if (_cvNotifPoll) return;
-    _cvNotifPoll = setInterval(function () { if (!document.hidden) _cvCheckNotif(); }, 30000);
+    console.log('[Notif] Fallback polling 10s');
+    async function check() {
+      if (document.hidden) return;
+      const sb = window.Supabase;
+      if (!sb || !sb.getAuditoria) return;
+      if (!_cvNotifLastCheck) {
+        _cvNotifLastCheck = new Date().toISOString();
+        localStorage.setItem('cv.notifLastCheck', _cvNotifLastCheck);
+        return;
+      }
+      try {
+        const res = await sb.getAuditoria({ fechaDesde: _cvNotifLastCheck.slice(0, 10), limit: 50 });
+        const items = (res.items || []).filter(r => r.created_at > _cvNotifLastCheck);
+        if (items.length > _cvNotifCount) {
+          _cvNotifCount = items.length;
+          const badge = document.getElementById('cvNotifBadge');
+          if (badge) { badge.textContent = String(_cvNotifCount); badge.style.display = 'flex'; }
+          _cvNotifSound();
+        }
+      } catch (_) {}
+    }
+    check();
+    _cvNotifPoll = setInterval(function () { if (!document.hidden) check(); }, 10000);
   }
 
   window.toggleCvNotifDropdown = function () {
@@ -5562,6 +5598,7 @@
     setTimeout(function () { dd.classList.add('is-open'); }, 10);
     _cvNotifOpen = true;
 
+    _cvNotifCount = 0;
     const badge = document.getElementById('cvNotifBadge');
     if (badge) { badge.style.display = 'none'; badge.textContent = '0'; }
     _cvNotifLastCheck = new Date().toISOString();
@@ -5602,7 +5639,9 @@
   });
 
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && _cvNotifPoll) _cvCheckNotif();
+    if (!document.hidden && _cvNotifPoll) {
+      // poll fallback: check on tab focus
+    }
   });
 
   // Crear campana una sola vez
@@ -5619,6 +5658,6 @@
     if (slot) slot.appendChild(wrap);
   })();
 
-  setTimeout(_cvStartNotifPoll, 2000);
+  setTimeout(_cvStartRealtime, 2000);
 
 })();
