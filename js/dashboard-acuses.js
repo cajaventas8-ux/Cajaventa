@@ -4134,6 +4134,9 @@
     const canvas = document.querySelector('.canvas');
     if (canvas) canvas.classList.toggle('no-scroll', view === 'dashboard');
 
+    const notifGlobal = document.getElementById('cvNotifGlobal');
+    if (notifGlobal) notifGlobal.style.display = view === 'cargarDatos' ? 'none' : '';
+
     if (view === 'resumen') {
       const node = document.getElementById('viewResumen');
       node.style.display = 'flex';
