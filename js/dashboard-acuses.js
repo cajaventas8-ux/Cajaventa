@@ -5616,7 +5616,13 @@
       const items = res.items || [];
       if (!items.length) { body.innerHTML = '<div class="cv-notif-empty">Sin actividad reciente</div>'; return; }
       body.innerHTML = items.map(function (r) {
-        const c = _cvNotifColors[r.accion] || _cvNotifColors.cambio_estado;
+        var c = _cvNotifColors[r.accion] || _cvNotifColors.cambio_estado;
+        if (r.accion === 'cambio_estado') {
+          var det = String(r.detalle || '').toLowerCase();
+          if (det.includes('contabilizado')) c = { dot: '#3b82f6', bg: 'rgba(59,130,246,0.1)', color: '#2563eb', label: 'Contabilizado' };
+          else if (det.includes('facturado')) c = { dot: '#10b981', bg: 'rgba(16,185,129,0.1)', color: '#059669', label: 'Facturado' };
+          else if (det.includes('anulado')) c = _cvNotifColors.anulacion;
+        }
         const user = escapeHtml(r.usuario || 'Sistema');
         const detail = escapeHtml(r.detalle || r.accion || '');
         const entrega = r.entrega ? ' · <strong>' + escapeHtml(r.entrega) + '</strong>' : '';
