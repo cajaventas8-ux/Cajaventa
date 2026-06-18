@@ -43,19 +43,6 @@
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
           <span class="tooltip">Cargar Datos</span>
         </div>
-        <!-- Notificaciones -->
-        <div class="sidebar-icon sidebar-notif-wrap" id="btnNotif" onclick="toggleCvNotifDropdown()">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span class="tooltip">Notificaciones</span>
-          <span class="cv-notif-badge" id="cvNotifBadge" style="display:none">0</span>
-        </div>
-        <div class="cv-notif-dropdown" id="cvNotifDropdown">
-          <div class="cv-notif-head">Actividad Reciente</div>
-          <div class="cv-notif-body" id="cvNotifBody">
-            <div class="cv-notif-empty">Sin actividad reciente</div>
-          </div>
-        </div>
-
         <div class="sidebar-spacer"></div>
 
         <!-- Usuario SSO — chip ALAS (icono persona + nombre) -->
@@ -211,6 +198,18 @@
     </div>
 
     <div class="panel-header-right">
+      <div class="cv-notif-wrap">
+        <button class="cv-notif-btn" id="btnNotif" onclick="toggleCvNotifDropdown()" type="button" title="Notificaciones">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="cv-notif-badge" id="cvNotifBadge" style="display:none">0</span>
+        </button>
+        <div class="cv-notif-dropdown" id="cvNotifDropdown">
+          <div class="cv-notif-head">Actividad Reciente</div>
+          <div class="cv-notif-body" id="cvNotifBody">
+            <div class="cv-notif-empty">Sin actividad reciente</div>
+          </div>
+        </div>
+      </div>
       <div class="last-import-chip" id="lastImportChip" style="display:none">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span id="lastImportLabel">—</span>

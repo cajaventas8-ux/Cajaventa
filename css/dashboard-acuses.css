@@ -603,10 +603,25 @@
   }
 
   /* ═══════════════════ NOTIFICACIONES ═══════════════════ */
-  .sidebar-notif-wrap { position: relative; }
+  .cv-notif-wrap { position: relative; display: flex; align-items: center; }
+  .cv-notif-btn {
+    width: 38px; height: 38px;
+    border: 1px solid var(--gray-200);
+    background: var(--white);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--gray-400);
+    position: relative;
+    transition: background 0.2s ease, color 0.2s ease;
+    box-shadow: 0 1px 4px rgba(15,36,64,0.06);
+  }
+  .cv-notif-btn:hover { background: var(--gray-50); color: var(--primary); }
   .cv-notif-badge {
     position: absolute;
-    top: 2px; right: 2px;
+    top: -4px; right: -4px;
     min-width: 18px; height: 18px;
     border-radius: 100px;
     background: #ef4444;
@@ -626,12 +641,11 @@
   }
   .cv-notif-dropdown {
     display: none;
-    position: fixed;
-    left: 68px;
-    top: 50%;
-    transform: translateY(-50%) translateX(-8px);
-    width: 360px;
-    max-height: 420px;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 380px;
+    max-height: 440px;
     background: var(--white);
     border: 1px solid var(--gray-200);
     border-radius: 16px;
@@ -639,11 +653,12 @@
     z-index: 9999;
     overflow: hidden;
     opacity: 0;
+    transform: translateY(-8px);
     transition: opacity 0.2s ease, transform 0.2s ease;
   }
   .cv-notif-dropdown.is-open {
     opacity: 1;
-    transform: translateY(-50%) translateX(0);
+    transform: translateY(0);
   }
   .cv-notif-head {
     padding: 14px 18px;
