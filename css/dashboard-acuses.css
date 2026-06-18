@@ -606,9 +606,16 @@
   .cv-notif-wrap { position: relative; display: flex; align-items: center; }
   .cv-notif-global {
     position: fixed;
-    top: 18px;
-    right: 28px;
+    top: 24px;
+    right: 38px;
     z-index: 100;
+  }
+  .cv-notif-global .cv-notif-btn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 2px 8px rgba(15,23,42,0.08);
   }
   .cv-notif-btn {
     width: 38px; height: 38px;
