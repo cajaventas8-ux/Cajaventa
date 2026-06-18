@@ -2786,6 +2786,7 @@
       closePanelDateModal();
       resetPanelPages();
       loadPanel(state.activeKPI, { soft: true }).catch(handleError);
+      loadKpiSummary().catch(handleError);
     }
   }
 
