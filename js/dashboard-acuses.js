@@ -5629,7 +5629,7 @@
     contabilizar:  { dot: '#3b82f6', bg: 'rgba(59,130,246,0.1)', color: '#2563eb', label: 'Contabilizado' },
     facturar:      { dot: '#10b981', bg: 'rgba(16,185,129,0.1)', color: '#059669', label: 'Facturado' },
     anulacion:     { dot: '#ef4444', bg: 'rgba(239,68,68,0.1)',  color: '#dc2626', label: 'Anulado' },
-    bulk_estado:   { dot: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', color: '#7c3aed', label: 'Bulk' },
+    bulk_estado:   { dot: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', color: '#7c3aed', label: 'Varias' },
     bulk_anular:   { dot: '#ef4444', bg: 'rgba(239,68,68,0.1)',  color: '#dc2626', label: 'Eliminado' },
     importacion_excel: { dot: '#f59e0b', bg: 'rgba(245,158,11,0.1)', color: '#d97706', label: 'Importación' },
     traspaso_almacen:  { dot: '#f97316', bg: 'rgba(249,115,22,0.1)', color: '#ea580c', label: 'Traspaso' },
