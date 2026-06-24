@@ -78,6 +78,7 @@
     },
     panelOpenFilter: null,
     panelResponse: null,
+    panelSearchQuery: '',
     panelRequestSeq: 0,
     selectedAcuseId: null,
     highlightedAcuseId: null,
@@ -2114,6 +2115,7 @@
         initPanelDatePicker(kpi);
         syncDashboardSelectedRowState({ focus: Boolean(state.highlightedAcuseId), behavior: 'smooth' });
         gsapPanelEnter(panel, false);
+        if (kpi !== 'acuses' && state.panelSearchQuery) applyPanelSearch();
         return;
       }
     }
@@ -2122,6 +2124,7 @@
     initPanelDatePicker(kpi);
     syncDashboardSelectedRowState({ focus: Boolean(state.highlightedAcuseId), behavior: 'smooth' });
     gsapPanelEnter(panel, true);
+    if (kpi !== 'acuses' && state.panelSearchQuery) applyPanelSearch();
   }
 
   function panelHeaderHTML(kpi, cfg) {
@@ -2133,6 +2136,7 @@
       <div class="panel-header-left">
         <div class="panel-title"><span class="dot" style="background:${cfg.dot}"></span> ${cfg.title}</div>
         ${panelDateFilterHTML(kpi)}
+        ${kpi !== 'acuses' ? panelSearchHTML() : ''}
         ${state.panelFilters.almacen === 'FABRICA' ? panelCondExpFilterHTML() : ''}
         ${panelEntityFilterHTML(kpi)}
         <button class="btn-action btn-clear-filters btn-clear-filters--inline" type="button" onclick="clearCurrentPanelFilters(this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m14.356 2A8 8 0 005.582 9m0 0H9m11 11v-5h-.581m0 0A8.003 8.003 0 016.343 15m13.076 0H15"/></svg><span class="btn-action__label">Limpiar filtros</span></button>
@@ -2155,6 +2159,63 @@
       <span>${escapeHtml(label)}</span>
     </button>`;
   }
+
+  // ── Buscador general del panel (client-side, instantáneo) ──
+  function panelSearchHTML() {
+    const q = state.panelSearchQuery || '';
+    return `<div class="panel-search${q ? ' has-val' : ''}">
+      <svg class="panel-search-ic" width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="panelSearchInput" class="panel-search-input" placeholder="Buscar entrega, cliente, pedido…" value="${escapeHtml(q)}" oninput="cvPanelSearch(this.value)" autocomplete="off" spellcheck="false">
+      <button type="button" class="panel-search-clr" onclick="cvPanelSearchClear()" title="Limpiar búsqueda" tabindex="-1">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>`;
+  }
+
+  function _normSearch(value) {
+    return String(value == null ? '' : value).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+
+  function panelItemMatchesQuery(item, q) {
+    if (!q) return true;
+    const hay = _normSearch([
+      item.Nro_Acuse, item.entrega, item.ID_Acuse,
+      item.Nom_Cliente, item.Cod_Cliente,
+      item.pedido, item.Pedido, item.solicitud, item.Solicitud,
+      item.Monto, item.Observacion, item.observacion,
+      item.Nombre_Repartidor, item.vendedor,
+      item.Almacen, item.Motivo_Anulacion,
+      item.Zona, item.Ciudad_Cliente
+    ].join(' '));
+    return hay.includes(q);
+  }
+
+  function applyPanelSearch() {
+    const kpi = state.activeKPI;
+    if (kpi === 'acuses') return;
+    const tbody = document.querySelector('#contentPanel .table-wrapper tbody');
+    if (!tbody) return;
+    const items = (state.panelResponse && state.panelResponse.items) || [];
+    const q = _normSearch(state.panelSearchQuery).trim();
+    const filtered = q ? items.filter((it) => panelItemMatchesQuery(it, q)) : items;
+    const colCount = kpi === 'entregados' ? 9 : 10;
+    const rowsHtml = renderPanelRows(kpi, filtered);
+    tbody.innerHTML = rowsHtml || `<tr><td colspan="${colCount}" style="text-align:center;padding:32px;color:var(--gray-400);font-weight:600;">${q ? 'Sin coincidencias para “' + escapeHtml(state.panelSearchQuery) + '”' : 'Sin resultados para este filtro'}</td></tr>`;
+    const wrap = document.querySelector('#contentPanel .panel-search');
+    if (wrap) wrap.classList.toggle('has-val', Boolean(q));
+  }
+
+  window.cvPanelSearch = function (value) {
+    state.panelSearchQuery = value || '';
+    applyPanelSearch();
+  };
+
+  window.cvPanelSearchClear = function () {
+    state.panelSearchQuery = '';
+    const inp = document.querySelector('#contentPanel #panelSearchInput');
+    if (inp) { inp.value = ''; inp.focus(); }
+    applyPanelSearch();
+  };
 
   window.setPanelCondExp = function(val) {
     if (state.panelFilters.condExp === val) return;
@@ -2941,12 +3002,49 @@
   }
 
   async function openDeleteAcuse(id, button) {
+    const usuario = resolveCurrentOperator();
+    if (!usuario) { notify('Debés iniciar sesión para anular.', 'warning'); return; }
+
+    const motivo = await showCvConfirm(
+      '¿Anular esta entrega?',
+      'La entrega pasará a Anulados. Podés indicar el motivo.',
+      { confirmLabel: 'Anular', danger: true, input: { placeholder: 'Motivo de anulación (opcional)…', maxlength: 200 } }
+    );
+    if (!motivo) return;
+    const motivoFinal = typeof motivo === 'string' ? motivo : 'Anulado del sistema';
+
     setDashboardSelectedAcuse(id, { clearHighlight: false });
-    const rowDel = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
-    if (rowDel) { rowDel.classList.add('row-sweep-red'); _createSweepOverlay(rowDel, 'red'); }
-    await runButtonLoading(button, async () => {
-      openAcuseEmbed('delete', id);
-    });
+    const row = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
+    if (row) { row.classList.add('row-sweep-red'); _createSweepOverlay(row, 'red'); }
+    if (button) button.disabled = true;
+
+    try {
+      const [res] = await Promise.allSettled([
+        AcuseAPI.delete(`/api/acuses/${id}`, { Usuario: usuario, Observacion: motivoFinal }),
+        new Promise(r => setTimeout(r, 280))
+      ]);
+      if (res.status === 'rejected') throw res.reason;
+
+      if (row) { row.classList.remove('row-sweep-red'); row.classList.add('row-exit-red'); }
+      loadKpiSummary().catch(() => {});
+      await new Promise(r => setTimeout(r, 150));
+
+      await selectKPI('anulados');
+
+      requestAnimationFrame(() => {
+        const arrived = document.querySelector(`#contentPanel .tbl-row-selectable[data-acuse-id="${id}"]`);
+        if (arrived) {
+          arrived.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          arrived.classList.add('row-arrive-red');
+          setTimeout(() => arrived.classList.remove('row-arrive-red'), 1800);
+        }
+      });
+      showCvCheck('Anulado');
+    } catch (error) {
+      if (row) { row.classList.remove('row-sweep-red'); row.classList.remove('row-exit-red'); }
+      if (button) button.disabled = false;
+      notify(error.message || 'No se pudo anular.', 'error');
+    }
   }
 
   async function openPrintAcuse(id, button) {
@@ -3116,25 +3214,39 @@
         : variant === 'green'
         ? '<svg width="32" height="32" fill="none" stroke="#10b981" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 12l3 3 5-6"/></svg>'
         : '<svg width="28" height="28" fill="none" stroke="#60a5fa" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+      var inputHtml = opts.input
+        ? '<textarea id="cvCfmInput" class="cv-cfm-input" rows="2" maxlength="' + (opts.input.maxlength || 200) + '" placeholder="' + escapeHtml(opts.input.placeholder || '') + '">' + escapeHtml(opts.input.value || '') + '</textarea>'
+        : '';
       overlay.innerHTML =
         '<div class="' + cardClass + '" onclick="event.stopPropagation()">' +
           '<div class="cv-confirm-icon">' + iconSvg + '</div>' +
           '<h3 class="cv-confirm-title">' + escapeHtml(title) + '</h3>' +
           '<p class="cv-confirm-msg">' + escapeHtml(message) + '</p>' +
+          inputHtml +
           '<div class="cv-confirm-actions">' +
             '<button class="cv-confirm-btn cv-confirm-btn--cancel" id="cvCfmCancel">Cancelar</button>' +
             '<button class="cv-confirm-btn ' + okClass + '" id="cvCfmOk">' + escapeHtml(okLabel) + '</button>' +
           '</div>' +
         '</div>';
       document.body.appendChild(overlay);
+      var inputEl = overlay.querySelector('#cvCfmInput');
+      if (inputEl) inputEl.addEventListener('input', function () { inputEl.classList.remove('cv-cfm-input--err'); });
       function close(result) {
         overlay.classList.remove('is-open');
         overlay.classList.add('is-closing');
         setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); resolve(result); }, 260);
       }
-      requestAnimationFrame(function () { setTimeout(function () { overlay.classList.add('is-open'); }, 10); });
+      requestAnimationFrame(function () { setTimeout(function () { overlay.classList.add('is-open'); if (inputEl) inputEl.focus(); }, 10); });
       overlay.querySelector('#cvCfmCancel').onclick = function () { close(false); };
-      overlay.querySelector('#cvCfmOk').onclick     = function () { close(true); };
+      overlay.querySelector('#cvCfmOk').onclick     = function () {
+        if (opts.input) {
+          var val = (inputEl && inputEl.value || '').trim();
+          if (opts.input.required && !val) { if (inputEl) { inputEl.classList.add('cv-cfm-input--err'); inputEl.focus(); } return; }
+          close(val || true);
+        } else {
+          close(true);
+        }
+      };
       overlay.onclick = function (e) { if (e.target === overlay) close(false); };
     });
   }
@@ -4722,6 +4834,7 @@
       state.panelFilters.condExp = '';
       state.panelFilterQuery.cliente = '';
       state.panelFilterQuery.repartidor = '';
+      state.panelSearchQuery = '';
       closePanelFilter();
       resetPanelPages();
       await loadPanel(state.activeKPI, { soft: true });
