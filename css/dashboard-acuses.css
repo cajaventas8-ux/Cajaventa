@@ -5068,7 +5068,7 @@ tr.tbl-row--checked > td:first-child {
 }
 .obs-modal-card {
   background: #ffffff; border: 1px solid rgba(15,23,42,0.07);
-  border-radius: 22px; width: 100%; max-width: 440px;
+  border-radius: 22px; width: 100%; max-width: 500px;
   box-shadow: 0 30px 70px rgba(15,23,42,0.22), 0 8px 22px rgba(15,23,42,0.1),
               inset 0 1px 0 rgba(255,255,255,0.9);
   overflow: hidden;
@@ -5089,7 +5089,7 @@ tr.tbl-row--checked > td:first-child {
 }
 .obs-modal-header__info { flex: 1; min-width: 0; }
 .obs-modal-header__title { display: block; font: 700 15px 'DM Sans', sans-serif; color: #0f172a; letter-spacing: -0.2px; }
-.obs-modal-header__sub   { display: block; font: 500 12px 'DM Sans', sans-serif; color: #94a3b8; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.obs-modal-header__sub   { display: block; font: 500 12px/1.4 'DM Sans', sans-serif; color: #94a3b8; margin-top: 2px; white-space: normal; word-break: break-word; }
 .obs-modal-close {
   width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
   background: rgba(15,23,42,0.05); border: none; color: #94a3b8; cursor: pointer;
