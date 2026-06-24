@@ -3742,7 +3742,7 @@
     try {
       const acuse = await AcuseAPI.get(`/api/acuses/${encodeURIComponent(id)}`);
 
-      // UTC → Paraguay (UTC-4) — resta directa, sin depender de Intl
+      // UTC → Paraguay (UTC-3) — resta directa, sin depender de Intl
       const _toLocalDT = (v) => {
         if (!v) return null;
         const raw = String(v).trim();
@@ -3757,7 +3757,7 @@
         const normalized = raw.replace(' ', 'T');
         const date = new Date(normalized.includes('Z') || normalized.includes('+') ? normalized : normalized + 'Z');
         if (isNaN(date)) return formatDateTime(v);
-        const py = new Date(date.getTime() - 4 * 60 * 60 * 1000);
+        const py = new Date(date.getTime() - 3 * 60 * 60 * 1000);
         const pad = n => String(n).padStart(2, '0');
         return `${pad(py.getUTCDate())}/${pad(py.getUTCMonth()+1)}/${py.getUTCFullYear()} ${pad(py.getUTCHours())}:${pad(py.getUTCMinutes())}`;
       };
