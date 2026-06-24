@@ -3754,7 +3754,7 @@
     const body = overlay.querySelector('#obsModalBody');
     const editBtn = overlay.querySelector('#obsModalEditBtn');
 
-    if (sub)  sub.textContent  = clientLabel ? clientLabel + ' · #' + acuseId : '#' + acuseId;
+    if (sub)  sub.textContent  = clientLabel ? clientLabel + ' · Entrega ' + acuseId : 'Entrega ' + acuseId;
     if (body) body.innerHTML   = `<p class="obs-modal-text">${escapeHtml(texto)}</p>`;
     if (editBtn) {
       editBtn.onclick = function () { window.editarObsModal(acuseId); };
