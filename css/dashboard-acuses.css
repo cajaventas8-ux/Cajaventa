@@ -302,6 +302,31 @@
     align-items: center;
     gap: 8px;
   }
+  .cv-reload-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    background: var(--white);
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .cv-reload-btn svg { transition: transform 0.35s ease; }
+  .cv-reload-btn:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(11,95,141,0.12);
+  }
+  .cv-reload-btn:hover svg { transform: rotate(-90deg); }
+  .cv-reload-btn:active { background: var(--gray-100); }
+  .cv-reload-btn.spinning svg { animation: cvReloadSpin 0.6s linear infinite; }
+  @keyframes cvReloadSpin { to { transform: rotate(360deg); } }
   .last-import-chip {
     display: inline-flex;
     align-items: center;

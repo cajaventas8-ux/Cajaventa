@@ -12,7 +12,7 @@
 <link href="/css/date-picker-pro.css?v=20260428-1" rel="stylesheet">
 <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
 <link href="/css/alas-motion.css" rel="stylesheet">
-<link href="/css/dashboard-acuses.css?v=20260624-2" rel="stylesheet">
+<link href="/css/dashboard-acuses.css?v=20260624-3" rel="stylesheet">
 <link href="/css/table-motion.css?v=20260512-1" rel="stylesheet">
 </head>
 <body>
@@ -199,6 +199,9 @@
     </div>
 
     <div class="panel-header-right">
+      <button class="cv-reload-btn" id="cvReloadBtn" type="button" onclick="this.classList.add('spinning');setTimeout(function(){location.reload();},260)" title="Recargar página" aria-label="Recargar página">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+      </button>
       <div class="last-import-chip" id="lastImportChip" style="display:none">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span id="lastImportLabel">—</span>
