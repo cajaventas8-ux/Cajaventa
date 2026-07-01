@@ -421,7 +421,8 @@
       var data = await get('pedidos', qs);
       if (filters && (filters.fecha || filters.fechaDesde || filters.fechaHasta)) {
         data = (data || []).filter(function (p) {
-          var f = formatearFecha(String(p.fecha || ''));
+          // Filtra por la fecha EFECTIVA del estado (acción para contabilizado/facturado/anulado)
+          var f = fechaEfectivaEstado(p);
           if (filters.fecha && f !== filters.fecha) return false;
           if (filters.fechaDesde && f < filters.fechaDesde) return false;
           if (filters.fechaHasta && f > filters.fechaHasta) return false;
@@ -596,7 +597,7 @@
       // Always fetch ALL data — dates may be stored in non-ISO formats (DD.MM.YYYY, etc.)
       // so we normalize client-side via formatearFecha before any filtering.
       var results = await Promise.all([
-        get('pedidos', 'select=estado,fecha,cliente,vendedor,almacen,monto'),
+        get('pedidos', 'select=estado,fecha,cliente,vendedor,almacen,monto,fecha_contabilizado,fecha_facturado,fecha_anulado'),
         Promise.resolve(null)
       ]);
       var data     = results[0] || [];
@@ -605,9 +606,10 @@
       // Normalizar fechas (handles ISO, DD/MM/YYYY, DD.MM.YYYY, Excel serials)
       data.forEach(function (p) { p.fecha = formatearFecha(p.fecha); });
 
-      // Client-side month filter
+      // Client-side month filter — por fecha EFECTIVA según estado
+      // (contabilizado/facturado cuentan en el mes en que se hizo la acción)
       if (inicio && fin) {
-        data = data.filter(function (p) { return p.fecha >= inicio && p.fecha <= fin; });
+        data = data.filter(function (p) { var ff = fechaEfectivaEstado(p); return ff >= inicio && ff <= fin; });
       }
 
       // Mapa cliente por estado — cada KPI solo mira entregas de su propio estado
@@ -859,6 +861,26 @@
     var n = Number(val);
     if (!isNaN(n) && n > 40000 && n < 100000) { var d = new Date((n - 25569) * 86400 * 1000); return d.toISOString().split('T')[0]; }
     return val;
+  }
+
+  // Fecha efectiva para filtrar por mes según el ESTADO:
+  //  - pendiente  → fecha de creación
+  //  - contabilizado/facturado/anulado → fecha en que se hizo la acción
+  // (DB 'facturado' = UI Contabilizado → fecha_contabilizado ; DB 'contabilizado' = UI Facturado → fecha_facturado)
+  // Devuelve 'YYYY-MM-DD' en hora de Paraguay (UTC-3) para las fechas de acción (ISO/UTC).
+  function fechaEfectivaEstado(p) {
+    var iso = null;
+    if (p.estado === 'facturado')          iso = p.fecha_contabilizado;
+    else if (p.estado === 'contabilizado') iso = p.fecha_facturado || p.fecha_contabilizado;
+    else if (p.estado === 'anulado')       iso = p.fecha_anulado;
+    if (iso) {
+      var d = new Date(iso);
+      if (!isNaN(d.getTime())) {
+        var py = new Date(d.getTime() - 3 * 3600 * 1000); // Paraguay UTC-3
+        return py.getUTCFullYear() + '-' + String(py.getUTCMonth() + 1).padStart(2, '0') + '-' + String(py.getUTCDate()).padStart(2, '0');
+      }
+    }
+    return formatearFecha(String(p.fecha || ''));
   }
 
   async function getLastImportDate() {
